@@ -1,0 +1,562 @@
+/**
+ * $RCSfile: RemoteObjectList.java,v $
+ * $Revision: 1.0 $
+ * $Date: 2025/08/25 $
+ * <p>
+ * Copyright (c) 2025 ooder.net
+ * </p>
+ * <p>
+ * Company: ooder.net
+ * </p>
+ * <p>
+ * License: MIT License
+ * </p>
+ */
+package net.ooder.msg.client;
+
+import net.ooder.msg.Msg;
+import net.ooder.msg.ct.CtMsg;
+
+
+import java.io.Serializable;
+import java.util.AbstractList;
+import java.util.Collection;
+
+/**
+     * <p>
+     * Title: JDS系统管理系统
+     * </p>
+     * <p>
+ * Description: 工具类，实现java.util.List接口，储存各个对象的UUID，当需要的时候才从数据中取得实际的数据对象
+ * </p>
+     * <p>
+     * Copyright: Copyright (c) 2016
+     * </p>
+     * <p>
+     * Company: raddev.cn
+     * </p>
+     * 
+     * @author WENZHANG.LI
+     * @version 2.0
+     */
+  public   abstract class RemoteObjectList<T extends Msg> extends AbstractList<T> implements Cloneable,
+        Serializable {
+    
+        public static final int TYPE_MSG = 1;
+    
+        
+    
+        /**
+         * The array buffer into which the elements of the ArrayList are stored. The
+         * capacity of the ArrayList is the length of this array buffer.
+         */
+        protected transient T elementData[];
+    
+        /**
+         * The size of the ArrayList (the number of elements it contains).
+         * 
+         * @serial
+         */
+        protected int size;
+    
+        /**
+         * Constructs an empty list with an initial capacity of ten.
+         */
+        public RemoteObjectList() {
+            this.elementData = (T[]) new Object [10];
+        }
+    
+        /**
+         * Constructs a list containing the elements of the specified collection, in
+         * the order they are returned by the collection's iterator. The
+         * <tt>ArrayList</tt> instance has an initial capacity of 110% the size of
+         * the specified collection.
+         * 
+         * @param c
+         *            the collection whose elements are to be placed into this list.
+         * @throws NullPointerException
+         *             if the specified collection is null.
+         */
+        public RemoteObjectList(Collection<T> c) {
+            size = c.size();
+            // Allow 10% room for growth
+            elementData = (T[]) new Object[(int) Math.min((size * 110L) / 100,
+                    Integer.MAX_VALUE)];
+            c.toArray(elementData);
+        }
+    
+        /**
+         * Trims the capacity of this <tt>ArrayList</tt> instance to be the list's
+         * current size. An application can use this operation to minimize the
+         * storage of an <tt>ArrayList</tt> instance.
+         */
+        public void trimToSize() {
+            modCount++;
+            int oldCapacity = elementData.length;
+            if (size < oldCapacity) {
+                T oldData[] = elementData;
+                elementData = (T[]) new CtMsg[size];
+                System.arraycopy(oldData, 0, elementData, 0, size);
+            }
+        }
+    
+        /**
+         * Increases the capacity of this <tt>ArrayList</tt> instance, if
+         * necessary, to ensure that it can hold at least the number of elements
+         * specified by the minimum capacity argument.
+         * 
+         * @param minCapacity
+         *            the desired minimum capacity.
+         */
+        public void ensureCapacity(int minCapacity) {
+            modCount++;
+            int oldCapacity = elementData.length;
+            if (minCapacity > oldCapacity) {
+                Object oldData[] = elementData;
+                int newCapacity = (oldCapacity * 3) / 2 + 1;
+                if (newCapacity < minCapacity)
+                    newCapacity = minCapacity;
+                elementData = (T[]) new CtMsg[newCapacity];
+                System.arraycopy(oldData, 0, elementData, 0, size);
+            }
+        }
+    
+        /**
+         * Returns the number of elements in this list.
+         * 
+         * @return the number of elements in this list.
+         */
+        public int size() {
+            return size;
+        }
+    
+        /**
+         * Tests if this list has no elements.
+         * 
+         * @return <tt>true</tt> if this list has no elements; <tt>false</tt>
+         *         otherwise.
+         */
+        public boolean isEmpty() {
+            return size == 0;
+        }
+    
+        /**
+         * Returns <tt>true</tt> if this list contains the specified element.
+         * 
+         * @param elem
+         *            element whose presence in this List is to be tested.
+         * @return <code>true</code> if the specified element is present;
+         *         <code>false</code> otherwise.
+         */
+        public boolean contains(T elem) {
+            return indexOf(elem) >= 0;
+        }
+    
+        /**
+         * Searches for the first occurence of the given argument, testing for
+         * equality using the <tt>equals</tt> method.
+         * 
+         * @param elem
+         *            an object.
+         * @return the index of the first occurrence of the argument in this list;
+         *         returns <tt>-1</tt> if the object is not found.
+         * @see Object#equals(Object)
+         */
+        public int indexOf(T elem) {
+    
+            if (elem == null) {
+                for (int i = 0; i < size; i++)
+                    if (elementData[i] == null)
+                        return i;
+            } else {
+                for (int i = 0; i < size; i++)
+                    if (elem.equals(elementData[i]))
+                        return i;
+            }
+            return -1;
+        }
+    
+        /**
+         * Returns the index of the last occurrence of the specified object in this
+         * list.
+         * 
+         * @param elem
+         *            the desired element.
+         * @return the index of the last occurrence of the specified object in this
+         *         list; returns -1 if the object is not found.
+         */
+        public int lastIndexOf(T elem) {
+    
+            if (elem == null) {
+                for (int i = size - 1; i >= 0; i--)
+                    if (elementData[i] == null)
+                        return i;
+            } else {
+                for (int i = size - 1; i >= 0; i--)
+                    if (elem.equals(elementData[i]))
+                        return i;
+            }
+            return -1;
+        }
+    
+        /**
+         * Returns a shallow copy of this <tt>ArrayList</tt> instance. (The
+         * elements themselves are not copied.)
+         * 
+         * @return a clone of this <tt>ArrayList</tt> instance.
+         */
+        public Object clone() {
+            try {
+                RemoteObjectList v = (RemoteObjectList) super.clone();
+                v.elementData = new CtMsg[size];
+                System.arraycopy(elementData, 0, v.elementData, 0, size);
+                v.modCount = 0;
+                return v;
+            } catch (CloneNotSupportedException e) {
+                // this shouldn't happen, since we are Cloneable
+                throw new InternalError();
+            }
+        }
+    
+        /**
+         * Returns an array containing all of the elements in this list in the
+         * correct order.
+         * 
+         * @return an array containing all of the elements in this list in the
+         *         correct order.
+         */
+        public T[] toArray() {
+            // can't support this operation , it's too cost
+            // throw new UnsupportedOperationException();
+            T[] result = (T[]) new Object[size];
+            // System.arraycopy(elementData, 0, result, 0, size);
+            // copy it one by one and not use arraycopy
+            for (int i = 0; i < size; i++) {
+                // use get() method , can use the perfetch
+                result[i] = get(i);
+            }
+            //
+            return result;
+        }
+    
+        /**
+         * Returns an array containing all of the elements in this list in the
+         * correct order; the runtime type of the returned array is that of the
+         * specified array. If the list fits in the specified array, it is returned
+         * therein. Otherwise, a new array is allocated with the runtime type of the
+         * specified array and the size of this list.
+         * <p>
+         * If the list fits in the specified array with room to spare (i.e., the
+         * array has more elements than the list), the element in the array
+         * immediately following the end of the collection is set to <tt>null</tt>.
+         * This is useful in determining the length of the list <i>only</i> if the
+         * caller knows that the list does not contain any <tt>null</tt> elements.
+         * 
+         * @param a
+         *            the array into which the elements of the list are to be
+         *            stored, if it is big enough; otherwise, a new array of the
+         *            same runtime type is allocated for this purpose.
+         * @return an array containing the elements of the list.
+         * @throws ArrayStoreException
+         *             if the runtime type of a is not a supertype of the runtime
+         *             type of every element in this list.
+         */
+        public T[] toArray(T a[]) {
+            // can't support this operation , it's too cost
+            // throw new UnsupportedOperationException();
+            if (a.length < size)
+                a = (T[]) java.lang.reflect.Array.newInstance(a.getClass()
+                        .getComponentType(), size);
+    
+            // System.arraycopy(elementData, 0, a, 0, size);
+            // copy it one by one and not use arraycopy
+            for (int i = 0; i < size; i++) {
+                a[i] = get(i);
+            }
+    
+            if (a.length > size)
+                a[size] = null;
+            return a;
+        }
+    
+        // Positional Access Operations
+    
+        /**
+         * Returns the element at the specified position in this list.
+         * 
+         * @param index
+         *            index of element to return.
+         * @return the element at the specified position in this list.
+         * @throws IndexOutOfBoundsException
+         *             if index is out of range <tt>(index
+         * 		  &lt; 0 || index &gt;= size())</tt>.
+         */
+        public T get(int index) {
+            RangeCheck(index);
+            prepareGet(index);
+            return getObject(elementData[index]);
+        }
+    
+        /**
+         * Replaces the element at the specified position in this list with the
+         * specified element.
+         * 
+         * @param index
+         *            index of element to replace.
+         * @param element
+         *            element to be stored at the specified position.
+         * @return the element previously at the specified position.
+         * @throws IndexOutOfBoundsException
+         *             if index out of range
+         *             <tt>(index &lt; 0 || index &gt;= size())</tt>.
+         */
+        public T set(int index, T element) {
+    
+            RangeCheck(index);
+    
+            T oldValue = elementData[index];
+            elementData[index] = element;
+            return oldValue;
+        }
+    
+        /**
+         * Appends the specified element to the end of this list.
+         * 
+         * @param o
+         *            element to be appended to this list.
+         * @return <tt>true</tt> (as per the general contract of Collection.add).
+         */
+        public boolean add(T o) {
+            ensureCapacity(size + 1); // Increments modCount!!
+            elementData[size++] = o;
+            return true;
+        }
+    
+        /**
+         * Inserts the specified element at the specified position in this list.
+         * Shifts the element currently at that position (if any) and any subsequent
+         * elements to the right (adds one to their indices).
+         * 
+         * @param index
+         *            index at which the specified element is to be inserted.
+         * @param element
+         *            element to be inserted.
+         * @throws IndexOutOfBoundsException
+         *             if index is out of range
+         *             <tt>(index &lt; 0 || index &gt; size())</tt>.
+         */
+        public void add(int index, T element) {
+            if (index > size || index < 0)
+                throw new IndexOutOfBoundsException("Index: " + index + ", Size: "
+                        + size);
+    
+            ensureCapacity(size + 1); // Increments modCount!!
+            System.arraycopy(elementData, index, elementData, index + 1, size
+                    - index);
+            elementData[index] = element;
+            size++;
+        }
+    
+        /**
+         * Removes the element at the specified position in this list. Shifts any
+         * subsequent elements to the left (subtracts one from their indices).
+         * 
+         * @param index
+         *            the index of the element to removed.
+         * @return the element that was removed from the list.
+         * @throws IndexOutOfBoundsException
+         *             if index out of range <tt>(index
+         * 		  &lt; 0 || index &gt;= size())</tt>.
+         */
+        public T remove(int index) {
+            RangeCheck(index);
+    
+            modCount++;
+            T oldValue = elementData[index];
+    
+            int numMoved = size - index - 1;
+            if (numMoved > 0)
+                System.arraycopy(elementData, index + 1, elementData, index,
+                        numMoved);
+            elementData[--size] = null; // Let gc do its work
+    
+            return oldValue;
+        }
+    
+        /**
+         * Removes all of the elements from this list. The list will be empty after
+         * this call returns.
+         */
+        public void clear() {
+            modCount++;
+    
+            // Let gc do its work
+            for (int i = 0; i < size; i++)
+                elementData[i] = null;
+    
+            size = 0;
+        }
+    
+        /**
+         * Appends all of the elements in the specified Collection to the end of
+         * this list, in the order that they are returned by the specified
+         * Collection's Iterator. The behavior of this operation is undefined if the
+         * specified Collection is modified while the operation is in progress.
+         * (This implies that the behavior of this call is undefined if the
+         * specified Collection is this list, and this list is nonempty.)
+         * 
+         * @param c
+         *            the elements to be inserted into this list.
+         * @return <tt>true</tt> if this list changed as a result of the call.
+         * @throws NullPointerException
+         *             if the specified collection is null.
+         */
+        public boolean addAll(Collection c) {
+            Object[] a = c.toArray();
+            int numNew = a.length;
+            ensureCapacity(size + numNew); // Increments modCount
+            System.arraycopy(a, 0, elementData, size, numNew);
+            size += numNew;
+            return numNew != 0;
+        }
+    
+        /**
+         * Inserts all of the elements in the specified Collection into this list,
+         * starting at the specified position. Shifts the element currently at that
+         * position (if any) and any subsequent elements to the right (increases
+         * their indices). The new elements will appear in the list in the order
+         * that they are returned by the specified Collection's iterator.
+         * 
+         * @param index
+         *            index at which to insert first element from the specified
+         *            collection.
+         * @param c
+         *            elements to be inserted into this list.
+         * @return <tt>true</tt> if this list changed as a result of the call.
+         * @throws IndexOutOfBoundsException
+         *             if index out of range <tt>(index
+         *		  &lt; 0 || index &gt; size())</tt>.
+         * @throws NullPointerException
+         *             if the specified Collection is null.
+         */
+        public boolean addAll(int index, Collection c) {
+            if (index > size || index < 0)
+                throw new IndexOutOfBoundsException("Index: " + index + ", Size: "
+                        + size);
+    
+            Object[] a = c.toArray();
+            int numNew = a.length;
+            ensureCapacity(size + numNew); // Increments modCount
+    
+            int numMoved = size - index;
+            if (numMoved > 0)
+                System.arraycopy(elementData, index, elementData, index + numNew,
+                        numMoved);
+    
+            System.arraycopy(a, 0, elementData, index, numNew);
+            size += numNew;
+            return numNew != 0;
+        }
+    
+        public boolean equals(Object o) {
+            if (o == this)
+                return true;
+            return false;
+        }
+    
+        /**
+         * Removes from this List all of the elements whose index is between
+         * fromIndex, inclusive and toIndex, exclusive. Shifts any succeeding
+         * elements to the left (reduces their index). This call shortens the list
+         * by <tt>(toIndex - fromIndex)</tt> elements. (If
+         * <tt>toIndex==fromIndex</tt>, this operation has no effect.)
+         * 
+         * @param fromIndex
+         *            index of first element to be removed.
+         * @param toIndex
+         *            index after last element to be removed.
+         */
+        protected void removeRange(int fromIndex, int toIndex) {
+            modCount++;
+            int numMoved = size - toIndex;
+            System
+                    .arraycopy(elementData, toIndex, elementData, fromIndex,
+                            numMoved);
+    
+            // Let gc do its work
+            int newSize = size - (toIndex - fromIndex);
+            while (size != newSize)
+                elementData[--size] = null;
+        }
+    
+        /**
+         * Check if the given index is in range. If not, throw an appropriate
+         * runtime exception. This method does *not* check if the index is negative:
+         * It is always used immediately prior to an array access, which throws an
+         * ArrayIndexOutOfBoundsException if index is negative.
+         */
+        private void RangeCheck(int index) {
+            if (index >= size)
+                throw new IndexOutOfBoundsException("Index: " + index + ", Size: "
+                        + size);
+        }
+    
+        /**
+         * Save the state of the <tt>ArrayList</tt> instance to a stream (that is,
+         * serialize it).
+         * 
+         * @serialData The length of the array backing the <tt>ArrayList</tt>
+         *             instance is emitted (int), followed by all of its elements
+         *             (each an <tt>Object</tt>) in the proper order.
+         */
+        private void writeObject(java.io.ObjectOutputStream s)
+                throws java.io.IOException {
+            // Write out element count, and any hidden stuff
+            s.defaultWriteObject();
+    
+            // Write out array length
+            s.writeInt(elementData.length);
+    
+            // Write out all elements in the proper order.
+            for (int i = 0; i < size; i++)
+                s.writeObject(elementData[i]);
+        }
+    
+        /**
+         * Reconstitute the <tt>ArrayList</tt> instance from a stream (that is,
+         * deserialize it).
+         */
+        private void readObject(java.io.ObjectInputStream s)
+                throws java.io.IOException, ClassNotFoundException {
+            // Read in size, and any hidden stuff
+            s.defaultReadObject();
+    
+            // Read in array length and allocate array
+            int arrayLength = s.readInt();
+            elementData = (T[]) new CtMsg[arrayLength];
+    
+            // Read in all elements in the proper order.
+            for (int i = 0; i < size; i++)
+                elementData[i] = (T) s.readObject();
+        }
+    
+        /**
+         * 准备读取相应的数据，子类可以预先从数据中读取后面的数据<br>
+         * 默认实现不做任何工作!
+         * 
+         * @param index
+         */
+        protected void prepareGet(int index) {
+    
+        }
+    
+        /**
+         * 将UUID转为相应的ORG对象
+         * 
+         * @param obj
+         * @return
+         */
+        protected abstract T getObject(Object obj);
+    
+    }
+

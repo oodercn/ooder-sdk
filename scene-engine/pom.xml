@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.ooder</groupId>
+    <artifactId>scene-engine-parent</artifactId>
+    <version>0.7.3</version>
+    <packaging>pom</packaging>
+
+    <name>Scene Engine Parent</name>
+    <description>Scene Engine - Enterprise Scene Service Engine</description>
+
+    <modules>
+        <module>scene-engine</module>
+        <module>drivers</module>
+        <module>skill-org</module>
+        <module>skill-vfs</module>
+        <module>skill-msg</module>
+        <module>skill-mqtt</module>
+        <module>skill-agent</module>
+        <module>skill-security</module>
+        <module>skill-business</module>
+        <module>scene-gateway</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        
+        <spring-boot.version>2.7.0</spring-boot.version>
+        <ooder.version>2.2</ooder.version>
+        <ooder-common.version>2.2</ooder-common.version>
+        <agent-sdk.version>0.7.3</agent-sdk.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>scene-engine</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>skill-org</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>skill-vfs</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>skill-msg</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>skill-mqtt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>skill-agent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>skill-business</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>agent-sdk</artifactId>
+                <version>${agent-sdk.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-org-web</artifactId>
+                <version>${ooder.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-common</artifactId>
+                <version>${ooder.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>agentsdk</artifactId>
+                <version>${ooder.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>UTF-8</encoding>
+                    </configuration>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>aliyunmaven</id>
+            <name>Aliyun Maven</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>aliyunmaven</id>
+            <name>Aliyun Maven</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <name>Central Repository OSSRH</name>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>Central Repository OSSRH Snapshots</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

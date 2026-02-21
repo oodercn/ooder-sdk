@@ -1,0 +1,153 @@
+# Northbound Services 场景配置示例
+# 开发环境配置
+# 版本: 0.7.3
+
+scene:
+  id: dev-scene
+  name: 开发环境场景
+  description: 用于本地开发和单元测试
+  version: 0.7.3
+
+  # Org组织机构服务配置
+  org:
+    sceneId: dev-org
+    configName: org
+    dbDriver: org.hsqldb.jdbcDriver
+    dbUrl: jdbc:hsqldb:mem:devdb
+    dbUser: sa
+    dbPassword: ""
+    cacheEnabled: true
+    cacheExpireTime: 3600000
+    cacheSize: 5242880
+    capabilities:
+      org-query:
+        capabilityName: 组织查询服务
+        interfaceId: OrgWebManager
+        endpoint: http://localhost:8080/api/org/orgManager
+      org-admin:
+        capabilityName: 组织管理服务
+        interfaceId: OrgAdminService
+        endpoint: http://localhost:8080/api/org/admin
+      user-auth:
+        capabilityName: 用户认证服务
+        interfaceId: UserService
+        endpoint: http://localhost:8080/api/user
+
+  # Vfs虚拟文件服务配置
+  vfs:
+    sceneId: dev-vfs
+    configName: vfs
+    storageType: local
+    basePath: ./data/vfs
+    maxFileSize: 52428800
+    allowedTypes: "*"
+    capabilities:
+      vfs-client:
+        capabilityName: 虚拟目录服务
+        interfaceId: VFSWebService
+        endpoint: http://localhost:8080/api/vfs/client
+      vfs-store:
+        capabilityName: 实体存储服务
+        interfaceId: VFSStoreService
+        endpoint: http://localhost:8080/api/vfs/store
+
+  # Msg消息服务配置
+  msg:
+    sceneId: dev-msg
+    configName: msg
+    personId: dev-user
+    mqttBroker: tcp://localhost:1883
+    mqttClientId: dev-msg-client
+    retainMessages: false
+    capabilities:
+      msg-push:
+        capabilityName: 消息推送服务
+        interfaceId: MsgWebService
+        endpoint: http://localhost:8080/api/msg/push
+      msg-p2p:
+        capabilityName: P2P通信服务
+        interfaceId: MsgWebService
+        endpoint: http://localhost:8080/api/msg/p2p
+      msg-topic:
+        capabilityName: Topic订阅服务
+        interfaceId: MsgWebService
+        endpoint: http://localhost:8080/api/msg/topic
+
+  # MQTT服务配置
+  mqtt:
+    sceneId: dev-mqtt
+    configName: mqtt
+    providerId: lightweight-mqtt
+    brokerUrl: tcp://localhost:1883
+    websocketUrl: ws://localhost:8083
+    port: 1883
+    websocketPort: 8083
+    maxConnections: 10000
+    allowAnonymous: true
+    persistent: false
+    dataDirectory: ./data/mqtt
+    capabilities:
+      mqtt-broker:
+        capabilityName: MQTT Broker服务
+        interfaceId: MqttService
+        endpoint: tcp://localhost:1883
+      mqtt-publish:
+        capabilityName: MQTT发布服务
+        interfaceId: MqttService
+        endpoint: http://localhost:8084/api/mqtt/publish
+      mqtt-subscribe:
+        capabilityName: MQTT订阅服务
+        interfaceId: MqttService
+        endpoint: http://localhost:8084/api/mqtt/subscribe
+      mqtt-p2p:
+        capabilityName: MQTT P2P服务
+        interfaceId: MqttService
+        endpoint: http://localhost:8084/api/mqtt/p2p
+      mqtt-topic:
+        capabilityName: MQTT Topic服务
+        interfaceId: MqttService
+        endpoint: http://localhost:8084/api/mqtt/topic
+      mqtt-command:
+        capabilityName: MQTT命令服务
+        interfaceId: MqttService
+        endpoint: http://localhost:8084/api/mqtt/command
+
+  # 协议配置
+  protocols:
+    mqtt:
+      enabled: true
+      defaultProvider: lightweight-mqtt
+      providers:
+        - id: lightweight-mqtt
+          name: Lightweight MQTT Server
+          type: LIGHTWEIGHT
+          priority: 100
+        - id: emqx-enterprise
+          name: EMQX Enterprise
+          type: ENTERPRISE_SELF_HOSTED
+          priority: 50
+        - id: mosquitto-enterprise
+          name: Mosquitto
+          type: ENTERPRISE_SELF_HOSTED
+          priority: 60
+        - id: aliyun-iot
+          name: Aliyun IoT
+          type: CLOUD_MANAGED
+          priority: 10
+        - id: tencent-iot
+          name: Tencent IoT
+          type: CLOUD_MANAGED
+          priority: 15
+
+  # Topic规范配置
+  topicSpec:
+    prefix: "ooder/"
+    patterns:
+      p2p: "ooder/p2p/{userId}/inbox"
+      group: "ooder/group/{groupId}/broadcast"
+      topic: "ooder/topic/{topicName}/data"
+      broadcast: "ooder/broadcast/{channel}"
+      sensor: "ooder/sensor/{sensorType}/{sensorId}/data"
+      commandRequest: "ooder/command/{deviceType}/{deviceId}/request"
+      commandResponse: "ooder/command/{deviceType}/{deviceId}/response"
+      system: "ooder/system/{eventType}"

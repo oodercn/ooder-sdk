@@ -1,0 +1,16 @@
+package net.ooder.annotation.ui.css.preset;
+
+import net.ooder.annotation.ui.css.CSBorder;
+import net.ooder.annotation.ui.css.CSFont;
+import net.ooder.annotation.ui.css.CSLayout;
+
+public enum TablePreset {
+    UNSET,
+    BASIC,
+    BORDERED,
+    STRIPED;
+
+    public CSFont getFont() { return null; }
+    public CSLayout getLayout() { return null; }
+    public CSBorder getBorder() { return null; }
+}

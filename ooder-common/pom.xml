@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.ooder</groupId>
+    <artifactId>ooder-common-all</artifactId>
+    <version>2.2</version>
+    <packaging>pom</packaging>
+
+    <name>ooder-common-all</name>
+    <description>ooder V1.0 MIT Open Source Version - Common utilities and base components</description>
+    <url>https://github.com/oodercn/common</url>
+
+    <organization>
+        <name>ooder</name>
+        <url>http://net.ooder</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+            <comments>MIT License</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>IhyTdX</name>
+            <email>18683731@qq.com</email>
+            <organization>ooder</organization>
+            <organizationUrl>http://net.ooder</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/oodercn/common</url>
+        <connection>scm:git:https://github.com/oodercn/common.git</connection>
+        <developerConnection>scm:git:https://github.com/oodercn/common.git</developerConnection>
+        <tag>v2.2</tag>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.javadoc.skip>false</maven.javadoc.skip>
+        <maven.source.skip>false</maven.source.skip>
+        <gpg.skip>false</gpg.skip>
+
+        <!-- 依赖版本管理 -->
+        <freemarker.version>2.3.32</freemarker.version>
+        <ognl.version>3.1.29</ognl.version>
+        <jdom.version>2.0.6.1</jdom.version>
+        <jedis.version>3.9.0</jedis.version>
+        <spring.version>5.3.30</spring.version>
+        <mvel2.version>2.4.4.Final</mvel2.version>
+        <httpcomponents.version>4.5.13</httpcomponents.version>
+        <httpcore-nio.version>4.4.16</httpcore-nio.version>
+        <pinyin4j.version>2.5.1</pinyin4j.version>
+        <hsqldb.version>2.5.0</hsqldb.version>
+        <javax-persistence.version>2.2</javax-persistence.version>
+        <commons-fileupload.version>1.5</commons-fileupload.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ognl</groupId>
+                <artifactId>ognl</artifactId>
+                <version>${ognl.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jdom</groupId>
+                <artifactId>jdom2</artifactId>
+                <version>${jdom.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mvel</groupId>
+                <artifactId>mvel2</artifactId>
+                <version>${mvel2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore-nio</artifactId>
+                <version>${httpcore-nio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpmime</artifactId>
+                <version>${httpcomponents.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>fluent-hc</artifactId>
+                <version>${httpcomponents.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.belerweb</groupId>
+                <artifactId>pinyin4j</artifactId>
+                <version>${pinyin4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>${hsqldb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>javax.persistence-api</artifactId>
+                <version>${javax-persistence.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>${commons-fileupload.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.13.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>3.12.4</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>ooder-config</module>
+        <module>ooder-common-client</module>
+        <module>ooder-database</module>
+        <module>ooder-vfs-web</module>
+        <module>ooder-server</module>
+        <module>ooder-org-web</module>
+        <module>ooder-index-web</module>
+        <module>ooder-msg-web</module>
+        <module>ooder-iot-webclient</module>
+    </modules>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Maven Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <!-- 新的 Maven Central Portal 方式 -->
+        <repository>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
+        </repository>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                    <source>8</source>
+                    <target>8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <source>8</source>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                    <failOnError>false</failOnError>
+                    <charset>UTF-8</charset>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Maven Central Publishing Plugin -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.4.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <tokenAuth>true</tokenAuth>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

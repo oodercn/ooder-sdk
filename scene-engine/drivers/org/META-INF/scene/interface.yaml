@@ -1,0 +1,294 @@
+apiVersion: agent.ooder.net/v1
+kind: InterfaceDefinition
+
+metadata:
+  category: ORG
+  version: 1.0.0
+  interfaceHash: sha256:org-v1.0.0
+
+spec:
+  capabilities:
+    user-auth:
+      description: 用户认证能力
+      methods:
+        login:
+          description: 用户登录
+          input:
+            type: object
+            required: [username, password]
+            properties:
+              username:
+                type: string
+                description: 用户名
+              password:
+                type: string
+                description: 密码
+              clientIp:
+                type: string
+                description: 客户端IP
+          output:
+            type: object
+            properties:
+              userId:
+                type: string
+              username:
+                type: string
+              nickname:
+                type: string
+              token:
+                type: string
+              roles:
+                type: array
+                items:
+                  type: string
+          errors:
+            - code: AUTH_FAILED
+              message: 认证失败
+            - code: USER_NOT_FOUND
+              message: 用户不存在
+              
+        logout:
+          description: 用户登出
+          input:
+            type: object
+            required: [token]
+            properties:
+              token:
+                type: string
+          output:
+            type: boolean
+            
+        validateToken:
+          description: 验证令牌
+          input:
+            type: object
+            required: [token]
+            properties:
+              token:
+                type: string
+          output:
+            type: boolean
+            
+        refreshToken:
+          description: 刷新令牌
+          input:
+            type: object
+            required: [refreshToken]
+            properties:
+              refreshToken:
+                type: string
+          output:
+            type: object
+            properties:
+              userId:
+                type: string
+              token:
+                type: string
+              
+    user-manage:
+      description: 用户管理能力
+      methods:
+        getUser:
+          description: 获取用户信息
+          input:
+            type: object
+            required: [userId]
+            properties:
+              userId:
+                type: string
+          output:
+            type: object
+            properties:
+              userId:
+                type: string
+              username:
+                type: string
+              nickname:
+                type: string
+              email:
+                type: string
+              phone:
+                type: string
+              status:
+                type: string
+              roles:
+                type: array
+                items:
+                  type: string
+                  
+        getUserByAccount:
+          description: 根据账号获取用户
+          input:
+            type: object
+            required: [account]
+            properties:
+              account:
+                type: string
+          output:
+            type: object
+            properties:
+              userId:
+                type: string
+              username:
+                type: string
+                  
+        registerUser:
+          description: 注册用户
+          input:
+            type: object
+            required: [username]
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              phone:
+                type: string
+              nickname:
+                type: string
+          output:
+            type: object
+            properties:
+              userId:
+                type: string
+              success:
+                type: boolean
+              
+        updateUser:
+          description: 更新用户
+          input:
+            type: object
+            required: [userId]
+            properties:
+              userId:
+                type: string
+              nickname:
+                type: string
+              email:
+                type: string
+              phone:
+                type: string
+          output:
+            type: object
+            properties:
+              userId:
+                type: string
+              success:
+                type: boolean
+              
+        deleteUser:
+          description: 删除用户
+          input:
+            type: object
+            required: [userId]
+            properties:
+              userId:
+                type: string
+          output:
+            type: boolean
+              
+        listUsers:
+          description: 获取用户列表
+          input:
+            type: object
+            properties:
+              pageNum:
+                type: integer
+                default: 1
+              pageSize:
+                type: integer
+                default: 20
+          output:
+            type: object
+            properties:
+              items:
+                type: array
+              total:
+                type: integer
+              pageNum:
+                type: integer
+              pageSize:
+                type: integer
+              
+    org-manage:
+      description: 组织管理能力
+      methods:
+        getOrgTree:
+          description: 获取组织树
+          input:
+            type: object
+            properties: {}
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                orgId:
+                  type: string
+                name:
+                  type: string
+                parentId:
+                  type: string
+                memberCount:
+                  type: integer
+                children:
+                  type: array
+                  
+        getOrg:
+          description: 获取组织信息
+          input:
+            type: object
+            required: [orgId]
+            properties:
+              orgId:
+                type: string
+          output:
+            type: object
+            properties:
+              orgId:
+                type: string
+              name:
+                type: string
+              parentId:
+                type: string
+              leaderId:
+                type: string
+              memberCount:
+                type: integer
+              
+        getOrgUsers:
+          description: 获取组织下的用户
+          input:
+            type: object
+            required: [orgId]
+            properties:
+              orgId:
+                type: string
+          output:
+            type: array
+            items:
+              type: object
+              
+    role-manage:
+      description: 角色管理能力
+      methods:
+        getUserRoles:
+          description: 获取用户角色
+          input:
+            type: object
+            required: [userId]
+            properties:
+              userId:
+                type: string
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                roleId:
+                  type: string
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum: [ORG_LEVEL, ORG_ROLE, PERSON_DUTY, PERSON_GROUP, PERSON_LEVEL, PERSON_POSITION, PERSON_ROLE]

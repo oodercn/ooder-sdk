@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>net.ooder</groupId>
+        <artifactId>drivers</artifactId>
+        <version>0.7.3</version>
+    </parent>
+    
+    <artifactId>driver-msg</artifactId>
+    <packaging>jar</packaging>
+    <name>scene-engine-driver-msg</name>
+    <description>MSG Scene Driver - Message Service</description>
+    
+    <dependencies>
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>scene-engine</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>META-INF</directory>
+                <targetPath>META-INF</targetPath>
+            </resource>
+        </resources>
+    </build>
+</project>

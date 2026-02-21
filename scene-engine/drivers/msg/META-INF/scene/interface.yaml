@@ -1,0 +1,282 @@
+apiVersion: agent.ooder.net/v1
+kind: InterfaceDefinition
+
+metadata:
+  category: MSG
+  version: 1.0.0
+  interfaceHash: sha256:msg-v1.0.0
+
+spec:
+  capabilities:
+    message-operations:
+      description: 消息操作能力
+      methods:
+        sendMessage:
+          description: 发送消息
+          input:
+            type: object
+            required: [queue, content]
+            properties:
+              queue:
+                type: string
+                description: 队列名称
+              content:
+                type: string
+                description: 消息内容
+              properties:
+                type: object
+                description: 消息属性
+              delayMs:
+                type: integer
+                description: 延迟时间(毫秒)
+          output:
+            type: object
+            properties:
+              messageId:
+                type: string
+              success:
+                type: boolean
+          errors:
+            - code: QUEUE_NOT_FOUND
+              message: 队列不存在
+            - code: SEND_FAILED
+              message: 发送失败
+              
+        receiveMessage:
+          description: 接收消息
+          input:
+            type: object
+            required: [queue]
+            properties:
+              queue:
+                type: string
+              timeoutMs:
+                type: integer
+                description: 超时时间(毫秒)
+          output:
+            type: object
+            properties:
+              messageId:
+                type: string
+              content:
+                type: string
+              properties:
+                type: object
+              receiptHandle:
+                type: string
+          errors:
+            - code: QUEUE_EMPTY
+              message: 队列为空
+              
+        acknowledgeMessage:
+          description: 确认消息
+          input:
+            type: object
+            required: [queue, receiptHandle]
+            properties:
+              queue:
+                type: string
+              receiptHandle:
+                type: string
+          output:
+            type: boolean
+            
+        batchSend:
+          description: 批量发送消息
+          input:
+            type: object
+            required: [queue, messages]
+            properties:
+              queue:
+                type: string
+              messages:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    content:
+                      type: string
+                    properties:
+                      type: object
+          output:
+            type: object
+            properties:
+              successCount:
+                type: integer
+              failedCount:
+                type: integer
+              messageIds:
+                type: array
+                items:
+                  type: string
+                  
+    queue-operations:
+      description: 队列操作能力
+      methods:
+        createQueue:
+          description: 创建队列
+          input:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+              durable:
+                type: boolean
+                default: true
+              autoDelete:
+                type: boolean
+                default: false
+              maxMessages:
+                type: integer
+              messageTtl:
+                type: integer
+                description: 消息存活时间(毫秒)
+          output:
+            type: object
+            properties:
+              queueName:
+                type: string
+              success:
+                type: boolean
+          errors:
+            - code: QUEUE_EXISTS
+              message: 队列已存在
+              
+        deleteQueue:
+          description: 删除队列
+          input:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+              ifUnused:
+                type: boolean
+                default: true
+              ifEmpty:
+                type: boolean
+                default: true
+          output:
+            type: boolean
+            
+        listQueues:
+          description: 列出队列
+          input:
+            type: object
+            properties: {}
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                messageCount:
+                  type: integer
+                consumerCount:
+                  type: integer
+                durable:
+                  type: boolean
+                  
+        getQueueInfo:
+          description: 获取队列信息
+          input:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+          output:
+            type: object
+            properties:
+              name:
+                type: string
+              messageCount:
+                type: integer
+              consumerCount:
+                type: integer
+              durable:
+                type: boolean
+              autoDelete:
+                type: boolean
+          errors:
+            - code: QUEUE_NOT_FOUND
+              message: 队列不存在
+              
+        purgeQueue:
+          description: 清空队列
+          input:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+          output:
+            type: object
+            properties:
+              purgedCount:
+                type: integer
+              
+    subscription-operations:
+      description: 订阅操作能力
+      methods:
+        subscribe:
+          description: 订阅队列
+          input:
+            type: object
+            required: [queue, callback]
+            properties:
+              queue:
+                type: string
+              callback:
+                type: string
+                description: 回调地址或处理器名称
+              autoAck:
+                type: boolean
+                default: false
+              prefetchCount:
+                type: integer
+                default: 1
+          output:
+            type: object
+            properties:
+              subscriptionId:
+                type: string
+              success:
+                type: boolean
+          errors:
+            - code: QUEUE_NOT_FOUND
+              message: 队列不存在
+              
+        unsubscribe:
+          description: 取消订阅
+          input:
+            type: object
+            required: [subscriptionId]
+            properties:
+              subscriptionId:
+                type: string
+          output:
+            type: boolean
+            
+        listSubscriptions:
+          description: 列出订阅
+          input:
+            type: object
+            properties:
+              queue:
+                type: string
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                subscriptionId:
+                  type: string
+                queue:
+                  type: string
+                callback:
+                  type: string
+                active:
+                  type: boolean

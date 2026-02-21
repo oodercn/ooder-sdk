@@ -1,0 +1,31 @@
+/**
+ * $RCSfile: TopicMsg.java,v $
+ * $Revision: 1.0 $
+ * $Date: 2025/08/25 $
+ * <p>
+ * Copyright (c) 2025 ooder.net
+ * </p>
+ * <p>
+ * Company: ooder.net
+ * </p>
+ * <p>
+ * License: MIT License
+ * </p>
+ */
+package net.ooder.msg;
+
+public interface TopicMsg extends Msg {
+
+    public  String  getTopic();
+
+    public  void setTopic(String times);
+
+    public Boolean getRetained();
+
+    public void setRetained(Boolean retained);
+
+    public Integer getQos();
+
+    public void setQos(Integer qos);
+
+}

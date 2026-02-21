@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	
+	<commonConfigKey>common</commonConfigKey>
+	<common>
+		<log>
+			<logFactory>
+				net.ooder.common.logging.impl.LogFactoryImpl
+			</logFactory>
+			<logger>net.ooder.common.logging.impl.SimpleLog</logger>
+		</log>
+	</common>
+
+</config>
+

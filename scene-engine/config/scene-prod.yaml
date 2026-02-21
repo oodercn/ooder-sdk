@@ -1,0 +1,86 @@
+# Northbound Services 场景配置示例
+# 生产环境配置
+
+scene:
+  id: prod-scene
+  name: 生产环境场景
+  description: 生产环境配置，使用环境变量替换敏感信息
+
+  # Org组织机构服务配置
+  org:
+    sceneId: prod-org
+    configName: org
+    dbDriver: com.mysql.cj.jdbc.Driver
+    dbUrl: jdbc:mysql://db-cluster:3306/org_prod?useSSL=true&serverTimezone=Asia/Shanghai
+    dbUser: prod_user
+    dbPassword: ${DB_PASSWORD}
+    cacheEnabled: true
+    cacheExpireTime: 604800000
+    cacheSize: 104857600
+    capabilities:
+      org-query:
+        capabilityName: 组织查询服务
+        interfaceId: OrgWebManager
+        endpoint: https://api.example.com/org/orgManager
+        systemCode: org
+      org-admin:
+        capabilityName: 组织管理服务
+        interfaceId: OrgAdminService
+        endpoint: https://api.example.com/org/admin
+        systemCode: org
+      user-auth:
+        capabilityName: 用户认证服务
+        interfaceId: UserService
+        endpoint: https://api.example.com/user
+        systemCode: org
+
+  # Vfs虚拟文件服务配置
+  vfs:
+    sceneId: prod-vfs
+    configName: vfs
+    storageType: oss
+    basePath: /prod-files
+    maxFileSize: 524288000
+    allowedTypes: "jpg,jpeg,png,pdf,doc,docx,xls,xlsx,zip"
+    ossEndpoint: https://oss.example.com
+    ossBucket: prod-vfs
+    ossAccessKey: ${OSS_ACCESS_KEY}
+    ossSecretKey: ${OSS_SECRET_KEY}
+    capabilities:
+      vfs-client:
+        capabilityName: 虚拟目录服务
+        interfaceId: VFSWebService
+        endpoint: https://api.example.com/vfs/client
+        systemCode: vfs
+      vfs-store:
+        capabilityName: 实体存储服务
+        interfaceId: VFSStoreService
+        endpoint: https://api.example.com/vfs/store
+        systemCode: vfs
+
+  # Msg消息服务配置
+  msg:
+    sceneId: prod-msg
+    configName: msg
+    personId: system
+    mqttBroker: tcp://mqtt-cluster:1883
+    mqttClientId: prod-msg-${RANDOM_ID}
+    retainMessages: true
+    mqttUsername: ${MQTT_USER}
+    mqttPassword: ${MQTT_PASSWORD}
+    capabilities:
+      msg-push:
+        capabilityName: 消息推送服务
+        interfaceId: MsgWebService
+        endpoint: https://api.example.com/msg/push
+        systemCode: msg
+      msg-p2p:
+        capabilityName: P2P通信服务
+        interfaceId: MsgWebService
+        endpoint: https://api.example.com/msg/p2p
+        systemCode: msg
+      msg-topic:
+        capabilityName: Topic订阅服务
+        interfaceId: MsgWebService
+        endpoint: https://api.example.com/msg/topic
+        systemCode: msg

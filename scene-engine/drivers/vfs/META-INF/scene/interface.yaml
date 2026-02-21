@@ -1,0 +1,347 @@
+apiVersion: agent.ooder.net/v1
+kind: InterfaceDefinition
+
+metadata:
+  category: VFS
+  version: 1.0.0
+  interfaceHash: sha256:vfs-v1.0.0
+
+spec:
+  capabilities:
+    file-operations:
+      description: 文件操作能力
+      methods:
+        getFileInfo:
+          description: 获取文件信息
+          input:
+            type: object
+            required: [fileId]
+            properties:
+              fileId:
+                type: string
+                description: 文件ID
+          output:
+            type: object
+            properties:
+              fileId:
+                type: string
+              name:
+                type: string
+              path:
+                type: string
+              length:
+                type: long
+              mimeType:
+                type: string
+              createTime:
+                type: long
+              updateTime:
+                type: long
+              folderId:
+                type: string
+              personId:
+                type: string
+          errors:
+            - code: FILE_NOT_FOUND
+              message: 文件不存在
+              
+        createFile:
+          description: 创建文件
+          input:
+            type: object
+            required: [folderId, name]
+            properties:
+              folderId:
+                type: string
+              name:
+                type: string
+              personId:
+                type: string
+          output:
+            type: object
+            properties:
+              fileId:
+                type: string
+              name:
+                type: string
+              success:
+                type: boolean
+              
+        deleteFile:
+          description: 删除文件
+          input:
+            type: object
+            required: [fileId]
+            properties:
+              fileId:
+                type: string
+          output:
+            type: boolean
+            
+        copyFile:
+          description: 复制文件
+          input:
+            type: object
+            required: [fileId, targetFolderId]
+            properties:
+              fileId:
+                type: string
+              targetFolderId:
+                type: string
+          output:
+            type: object
+            properties:
+              fileId:
+                type: string
+              success:
+                type: boolean
+              
+        moveFile:
+          description: 移动文件
+          input:
+            type: object
+            required: [fileId, targetFolderId]
+            properties:
+              fileId:
+                type: string
+              targetFolderId:
+                type: string
+          output:
+            type: object
+            properties:
+              fileId:
+                type: string
+              success:
+                type: boolean
+              
+        renameFile:
+          description: 重命名文件
+          input:
+            type: object
+            required: [fileId, newName]
+            properties:
+              fileId:
+                type: string
+              newName:
+                type: string
+          output:
+            type: boolean
+            
+        listFiles:
+          description: 列出文件夹下的文件
+          input:
+            type: object
+            required: [folderId]
+            properties:
+              folderId:
+                type: string
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                fileId:
+                  type: string
+                name:
+                  type: string
+                length:
+                  type: long
+                mimeType:
+                  type: string
+                  
+    folder-operations:
+      description: 文件夹操作能力
+      methods:
+        getFolder:
+          description: 获取文件夹信息
+          input:
+            type: object
+            required: [folderId]
+            properties:
+              folderId:
+                type: string
+          output:
+            type: object
+            properties:
+              folderId:
+                type: string
+              name:
+                type: string
+              path:
+                type: string
+              parentId:
+                type: string
+              createTime:
+                type: long
+              folderType:
+                type: string
+                enum: [NORMAL, SHARED, SYSTEM, TEMPORARY, PROJECT]
+          errors:
+            - code: FOLDER_NOT_FOUND
+              message: 文件夹不存在
+              
+        createFolder:
+          description: 创建文件夹
+          input:
+            type: object
+            required: [name]
+            properties:
+              parentId:
+                type: string
+              name:
+                type: string
+              personId:
+                type: string
+          output:
+            type: object
+            properties:
+              folderId:
+                type: string
+              name:
+                type: string
+              success:
+                type: boolean
+              
+        deleteFolder:
+          description: 删除文件夹
+          input:
+            type: object
+            required: [folderId]
+            properties:
+              folderId:
+                type: string
+          output:
+            type: boolean
+            
+        listFolders:
+          description: 列出子文件夹
+          input:
+            type: object
+            properties:
+              parentId:
+                type: string
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                folderId:
+                  type: string
+                name:
+                  type: string
+                path:
+                  type: string
+                  
+    stream-operations:
+      description: 流操作能力
+      methods:
+        downloadFile:
+          description: 下载文件
+          input:
+            type: object
+            required: [fileId]
+            properties:
+              fileId:
+                type: string
+          output:
+            type: stream
+            description: 文件输入流
+            
+        uploadFile:
+          description: 上传文件
+          input:
+            type: object
+            required: [folderId, name, content]
+            properties:
+              folderId:
+                type: string
+              name:
+                type: string
+              content:
+                type: stream
+                description: 文件内容流
+              personId:
+                type: string
+          output:
+            type: object
+            properties:
+              fileId:
+                type: string
+              name:
+                type: string
+              length:
+                type: long
+              success:
+                type: boolean
+              
+    version-operations:
+      description: 版本操作能力
+      methods:
+        getFileVersions:
+          description: 获取文件版本列表
+          input:
+            type: object
+            required: [fileId]
+            properties:
+              fileId:
+                type: string
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                versionId:
+                  type: string
+                fileId:
+                  type: string
+                description:
+                  type: string
+                createTime:
+                  type: long
+                personId:
+                  type: string
+                  
+        createVersion:
+          description: 创建文件版本
+          input:
+            type: object
+            required: [fileId]
+            properties:
+              fileId:
+                type: string
+              description:
+                type: string
+              personId:
+                type: string
+          output:
+            type: object
+            properties:
+              versionId:
+                type: string
+              success:
+                type: boolean
+              
+    search-operations:
+      description: 搜索操作能力
+      methods:
+        searchFiles:
+          description: 搜索文件
+          input:
+            type: object
+            required: [keyword]
+            properties:
+              keyword:
+                type: string
+              folderId:
+                type: string
+          output:
+            type: array
+            items:
+              type: object
+              properties:
+                fileId:
+                  type: string
+                name:
+                  type: string
+                path:
+                  type: string

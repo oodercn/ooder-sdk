@@ -1,0 +1,65 @@
+apiVersion: agent.ooder.net/v1
+kind: SceneDescription
+
+metadata:
+  category: VFS
+  name: Virtual File System
+  version: 1.0.0
+  author: ooder-team
+  createdAt: 1708329600000
+  updatedAt: 1708329600000
+
+spec:
+  category: VFS
+  description: 虚拟文件系统场景，提供文件存储、文件夹管理、版本控制能力
+  homepage: https://gitee.com/ooderCN/scene-engine
+  license: Apache-2.0
+  
+  capabilities:
+    - name: file-operations
+      description: 文件操作能力
+      version: 1.0.0
+    - name: folder-operations
+      description: 文件夹操作能力
+      version: 1.0.0
+    - name: stream-operations
+      description: 流操作能力
+      version: 1.0.0
+    - name: version-operations
+      description: 版本操作能力
+      version: 1.0.0
+    - name: search-operations
+      description: 搜索操作能力
+      version: 1.0.0
+      
+  protocols:
+    - type: http
+      description: REST API
+      
+  dependencies: []
+  
+  roles:
+    - name: admin
+      capabilities: ["*"]
+      description: 管理员角色
+    - name: editor
+      capabilities: ["file-operations", "folder-operations", "stream-operations"]
+      description: 编辑角色
+    - name: viewer
+      capabilities: ["file-operations:read", "folder-operations:read"]
+      description: 只读角色
+      
+  interfaces:
+    main:
+      type: yaml
+      location: embedded
+      path: interface.yaml
+      
+  fallback:
+    enabled: true
+    implementation: net.ooder.scene.drivers.vfs.VfsFallback
+    description: 本地文件系统降级实现
+    limitations:
+      - 文件存储在本地文件系统
+      - 不支持分布式存储
+      - 不支持文件分享外链
