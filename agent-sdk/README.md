@@ -51,23 +51,32 @@ public enum DiscoveryMethod {
 ```
 agent-sdk/
 ├── src/main/java/net/ooder/sdk/
-│   ├── OoderSDK.java              # SDK 入口
 │   ├── api/                       # API 接口
+│   │   ├── OoderSDK.java          # SDK 入口
 │   │   ├── agent/                 # Agent 接口
 │   │   ├── skill/                 # 技能接口
-│   │   └── scene/                 # 场景接口
+│   │   ├── scene/                 # 场景接口
+│   │   ├── event/                 # 事件接口
+│   │   ├── network/               # 网络接口
+│   │   └── security/              # 安全接口
+│   ├── capability/                # 能力中心
 │   ├── common/                    # 公共模块
 │   │   ├── annotation/            # 注解
 │   │   ├── enums/                 # 枚举
-│   │   └── exception/             # 异常
+│   │   └── constants/             # 常量
+│   ├── core/                      # 核心实现
+│   │   ├── agent/                 # Agent 实现
+│   │   ├── scene/                 # 场景实现
+│   │   ├── skill/                 # 技能实现
+│   │   ├── collaboration/         # 协作模块
+│   │   └── transport/             # 传输层
 │   ├── infra/                     # 基础设施
 │   │   ├── config/                # 配置
 │   │   ├── lifecycle/             # 生命周期
-│   │   └── event/                 # 事件
-│   ├── southbound/                # 南向协议
-│   │   └── protocol/              # 协议实现
-│   └── northbound/                # 北向协议
-│       └── protocol/              # 协议实现
+│   │   └── exception/             # 异常
+│   ├── northbound/                # 北向协议
+│   ├── discovery/                 # 发现服务
+│   └── nexus/                     # Nexus 服务
 └── pom.xml
 ```
 
@@ -86,7 +95,7 @@ agent-sdk/
 ### 初始化 SDK
 
 ```java
-import net.ooder.sdk.OoderSDK;
+import net.ooder.sdk.api.OoderSDK;
 import net.ooder.sdk.infra.config.SDKConfiguration;
 
 SDKConfiguration config = new SDKConfiguration();
@@ -106,21 +115,21 @@ sdk.start();
 
 ```java
 import net.ooder.sdk.api.agent.EndAgent;
+import net.ooder.sdk.api.scene.SceneManager;
 
 EndAgent endAgent = sdk.createEndAgent();
 endAgent.start();
 
 // 获取场景管理器
-SceneManager sceneManager = endAgent.getSceneManager();
-
-// 加入场景
-SceneJoinResult result = sceneManager.joinScene("auth-scene");
+SceneManager sceneManager = sdk.getSceneManager();
 ```
 
 ### 安装技能
 
 ```java
 import net.ooder.sdk.api.skill.SkillPackageManager;
+import net.ooder.sdk.api.skill.InstallRequest;
+import net.ooder.sdk.api.skill.InstallResult;
 import net.ooder.sdk.common.enums.DiscoveryMethod;
 
 SkillPackageManager packageManager = sdk.getSkillPackageManager();
@@ -128,7 +137,6 @@ SkillPackageManager packageManager = sdk.getSkillPackageManager();
 InstallRequest request = new InstallRequest();
 request.setSkillId("skill-org-feishu");
 request.setVersion("0.7.3");
-request.setDiscoveryMethod(DiscoveryMethod.GITHUB);
 
 InstallResult result = packageManager.install(request).join();
 ```
@@ -142,9 +150,15 @@ InstallResult result = packageManager.install(request).join();
 | `initialize()` | 初始化 SDK |
 | `start()` | 启动 SDK |
 | `stop()` | 停止 SDK |
+| `shutdown()` | 关闭 SDK |
 | `createEndAgent()` | 创建 End Agent |
 | `createRouteAgent()` | 创建 Route Agent |
+| `createMcpAgent()` | 创建 MCP Agent |
 | `getSkillPackageManager()` | 获取技能包管理器 |
+| `getSceneManager()` | 获取场景管理器 |
+| `getSceneGroupManager()` | 获取场景组管理器 |
+| `getCapabilityInvoker()` | 获取能力调用器 |
+| `diagnoseServices()` | 诊断服务状态 |
 
 ### SkillPackageManager
 
@@ -152,17 +166,15 @@ InstallResult result = packageManager.install(request).join();
 |------|------|
 | `install(request)` | 安装技能 |
 | `uninstall(skillId)` | 卸载技能 |
+| `update(skillId, version)` | 更新技能 |
 | `discover(skillId, method)` | 发现技能 |
 | `listInstalled()` | 列出已安装技能 |
+| `isInstalled(skillId)` | 检查技能是否已安装 |
+| `search(query, method)` | 搜索技能 |
+| `getDependencies(skillId)` | 获取技能依赖 |
+| `installDependencies(skillId)` | 安装技能依赖 |
 
-### DiscoveryProtocol
 
-| 方法 | 说明 |
-|------|------|
-| `discoverPeers()` | 发现节点 |
-| `discoverMcp()` | 发现 MCP Agent |
-| `startBroadcast()` | 开始广播 |
-| `stopBroadcast()` | 停止广播 |
 
 ## 配置参考
 
