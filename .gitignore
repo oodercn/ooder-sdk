@@ -1,0 +1,16 @@
+.idea/
+*.iml
+*.log
+*.class
+target/
+logs/
+*.jar
+hs_err_pid*.log
+replay_pid*.log
+.settings/
+.classpath
+.project
+*.swp
+*.swo
+*~
+.DS_Store
