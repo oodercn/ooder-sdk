@@ -11,6 +11,41 @@
 
     <name>Scene Engine Parent</name>
     <description>Scene Engine - Enterprise Scene Service Engine</description>
+    <url>https://gitee.com/ooderCN/scene-engine</url>
+
+    <organization>
+        <name>ooder</name>
+        <url>https://gitee.com/ooderCN</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>IhyTdX</name>
+            <email>18683731@qq.com</email>
+            <organization>ooder</organization>
+            <organizationUrl>https://gitee.com/ooderCN</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+            <comments>MIT License</comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://gitee.com/ooderCN/scene-engine</url>
+        <connection>scm:git:https://gitee.com/ooderCN/scene-engine.git</connection>
+        <developerConnection>scm:git:https://gitee.com/ooderCN/scene-engine.git</developerConnection>
+        <tag>v0.7.3</tag>
+    </scm>
 
     <modules>
         <module>scene-engine</module>
@@ -136,55 +171,6 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring-boot.version}</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
-                    <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
-                        <encoding>UTF-8</encoding>
-                    </configuration>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.1</version>
-                    <executions>
-                        <execution>
-                            <id>attach-sources</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
     <repositories>
         <repository>
             <id>central</id>
@@ -237,14 +223,124 @@
 
     <distributionManagement>
         <repository>
-            <id>ossrh</id>
-            <name>Central Repository OSSRH</name>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
         </repository>
         <snapshotRepository>
-            <id>ossrh</id>
-            <name>Central Repository OSSRH Snapshots</name>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>UTF-8</encoding>
+                    </configuration>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.3.2</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <additionalJOption>-Xdoclint:none</additionalJOption>
+                        <failOnError>false</failOnError>
+                        <charset>UTF-8</charset>
+                        <encoding>UTF-8</encoding>
+                        <docencoding>UTF-8</docencoding>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.6</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>0.4.0</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <publishingServerId>central</publishingServerId>
+                        <tokenAuth>true</tokenAuth>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

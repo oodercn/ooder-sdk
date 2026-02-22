@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-8+-green.svg)](https://openjdk.org/)
+[![Maven](https://img.shields.io/badge/Maven-3.6+-blue.svg)](https://maven.apache.org/)
 
 Ooder Agent 平台软件开发工具包，包含 Agent SDK、通用组件和场景引擎。
 
@@ -14,7 +15,10 @@ ooder-sdk/
 ├── ooder-common/       # 通用组件模块 (v2.2)
 ├── scene-engine/       # 场景引擎 (v0.7.3)
 ├── pom.xml             # 父 POM
-└── README.md
+├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+└── LICENSE
 ```
 
 ## 模块说明
@@ -24,7 +28,7 @@ ooder-sdk/
 Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
 
 - Agent 生命周期管理（End Agent、Route Agent、MCP Agent）
-- 技能发现与安装
+- 技能发现与安装（支持 GitHub/Gitee/本地文件系统）
 - 场景配置与协作
 - 网络通信（P2P、UDP、WebSocket）
 - 安全认证
@@ -35,10 +39,12 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
 
 注解模块提供 Ooder 平台的核心注解定义：
 
-- UI 组件注解（@FormAnnotation, @GridAnnotation 等）
-- 事件注解（@APIEvent, @ButtonEvent 等）
-- 数据绑定注解（@DBField, @DBTable 等）
-- Agent 注解（@Agent, @AgentCapability 等）
+| 注解类型 | 说明 |
+|----------|------|
+| UI 组件 | @FormAnnotation, @GridAnnotation, @TreeAnnotation 等 |
+| 事件 | @APIEvent, @ButtonEvent, @FieldEvent 等 |
+| 数据绑定 | @DBField, @DBTable, @DBPrimaryKey 等 |
+| Agent | @Agent, @AgentCapability, @Skill 等 |
 
 ### ooder-common
 
@@ -62,7 +68,10 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
 |--------|------|
 | scene-engine | 核心引擎 |
 | scene-gateway | 场景网关 |
-| drivers/ | 协议驱动（MQTT、MSG、ORG、VFS） |
+| drivers/mqtt | MQTT 协议驱动 |
+| drivers/msg | 消息驱动 |
+| drivers/org | 组织架构驱动 |
+| drivers/vfs | VFS 驱动 |
 | skill-* | 技能模块 |
 
 ## 快速开始
@@ -101,6 +110,50 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
 </dependency>
 ```
 
+### 代码示例
+
+#### 创建 End Agent
+
+```java
+import net.ooder.sdk.OoderSDK;
+import net.ooder.sdk.api.agent.EndAgent;
+import net.ooder.sdk.infra.config.SDKConfiguration;
+
+public class MyEndAgent {
+    public static void main(String[] args) {
+        SDKConfiguration config = new SDKConfiguration();
+        config.setAgentId("my-end-agent-001");
+        config.setAgentName("My End Agent");
+        config.setAgentType(AgentType.END);
+        
+        OoderSDK sdk = OoderSDK.builder()
+            .configuration(config)
+            .build();
+        
+        sdk.initialize();
+        sdk.start();
+    }
+}
+```
+
+#### 使用注解定义 Skill
+
+```java
+import net.ooder.annotation.Agent;
+import net.ooder.annotation.AgentCapability;
+import net.ooder.annotation.Skill;
+
+@Agent(id = "my-agent", name = "My Agent")
+@AgentCapability(name = "data-processing")
+public class MyAgent {
+    
+    @Skill(id = "data-extract", name = "数据提取")
+    public ExtractResult extractData(ExtractRequest request) {
+        return new ExtractResult();
+    }
+}
+```
+
 ### 构建项目
 
 ```bash
@@ -112,6 +165,36 @@ mvn clean install
 ```bash
 cd agent-sdk
 mvn clean install
+```
+
+## 架构概览
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Ooder SDK 架构                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  应用层                                                          │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐   │
+│  │ 用户应用   │  │ 组织管理   │  │ 技能市场   │  │ 协作平台   │   │
+│  └───────────┘  └───────────┘  └───────────┘  └───────────┘   │
+│                                                                 │
+│  SDK 层 (agent-sdk)                                             │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Agent 管理 │ 技能发现 │ 场景配置 │ P2P 网络 │ 安全认证    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  引擎层 (scene-engine)                                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │ 场景引擎        │  │ 协议驱动        │  │ 技能模块        │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                 │
+│  基础层 (ooder-common + ooder-annotation)                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │ 通用组件        │  │ 注解定义        │  │ 工具类          │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## 版本历史
@@ -129,22 +212,28 @@ mvn clean install
 | ooder-common | 2.2 |
 | scene-engine | 0.7.3 |
 
+详细变更请参阅 [CHANGELOG.md](CHANGELOG.md)
+
 ## 相关项目
 
-| 项目 | 说明 |
-|------|------|
-| [super-Agent](https://gitee.com/ooderCN/super-Agent) | 核心框架 |
-| [ooder-Nexus](https://gitee.com/ooderCN/ooder-Nexus) | 分发枢纽 |
-| [skills](https://gitee.com/ooderCN/skills) | 能力库 |
+| 项目 | 说明 | 地址 |
+|------|------|------|
+| super-Agent | 核心框架 | [GitHub](https://github.com/oodercn/super-Agent) / [Gitee](https://gitee.com/ooderCN/super-Agent) |
+| ooder-skills | 能力库 | [GitHub](https://github.com/oodercn/ooder-skills) / [Gitee](https://gitee.com/ooderCN/skills) |
+
+## 贡献指南
+
+欢迎贡献代码和提出问题！请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 许可证
 
-[MIT License](LICENSE)
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 
-## 贡献
+## 联系方式
 
-欢迎提交 Issue 和 Pull Request。
+- GitHub: [https://github.com/oodercn/ooder-sdk](https://github.com/oodercn/ooder-sdk)
+- Gitee: [https://gitee.com/ooderCN/ooder-sdk](https://gitee.com/ooderCN/ooder-sdk)
 
 ---
 
-**Ooder Team**
+**Made with ❤️ by Ooder Team**
