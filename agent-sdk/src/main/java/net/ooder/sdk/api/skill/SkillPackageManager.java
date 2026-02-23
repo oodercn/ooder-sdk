@@ -58,4 +58,43 @@ public interface SkillPackageManager {
     CompletableFuture<DependencyResult> updateDependencies(String skillId);
     
     CompletableFuture<Boolean> checkDependencySatisfied(String skillId);
+    
+    CompletableFuture<List<InterfaceDefinition>> getProvidedInterfaces(String skillId);
+    
+    CompletableFuture<List<InterfaceDependency>> getRequiredInterfaces(String skillId);
+    
+    CompletableFuture<Boolean> registerInterfaceProvider(String skillId, InterfaceDefinition interfaceDef);
+    
+    CompletableFuture<Boolean> unregisterInterfaceProvider(String skillId, String interfaceId);
+    
+    CompletableFuture<List<String>> findSkillsProvidingInterface(String interfaceId);
+    
+    CompletableFuture<List<String>> findSkillsProvidingInterface(String interfaceId, String version);
+    
+    CompletableFuture<Boolean> validateInterfaceCompatibility(String skillId, String interfaceId);
+    
+    CompletableFuture<InterfaceResolutionResult> resolveInterfaces(String skillId);
+    
+    class InterfaceResolutionResult {
+        private boolean success;
+        private List<String> resolvedInterfaces;
+        private List<String> unresolvedInterfaces;
+        private Map<String, String> interfaceToSkill;
+        private String errorMessage;
+        
+        public boolean isSuccess() { return success; }
+        public void setSuccess(boolean success) { this.success = success; }
+        
+        public List<String> getResolvedInterfaces() { return resolvedInterfaces; }
+        public void setResolvedInterfaces(List<String> resolvedInterfaces) { this.resolvedInterfaces = resolvedInterfaces; }
+        
+        public List<String> getUnresolvedInterfaces() { return unresolvedInterfaces; }
+        public void setUnresolvedInterfaces(List<String> unresolvedInterfaces) { this.unresolvedInterfaces = unresolvedInterfaces; }
+        
+        public Map<String, String> getInterfaceToSkill() { return interfaceToSkill; }
+        public void setInterfaceToSkill(Map<String, String> interfaceToSkill) { this.interfaceToSkill = interfaceToSkill; }
+        
+        public String getErrorMessage() { return errorMessage; }
+        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+    }
 }

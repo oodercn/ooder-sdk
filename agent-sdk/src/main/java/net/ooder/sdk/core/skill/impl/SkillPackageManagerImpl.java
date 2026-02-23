@@ -427,6 +427,179 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
         });
     }
     
+    @Override
+    public CompletableFuture<List<InterfaceDefinition>> getProvidedInterfaces(String skillId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SkillPackage pkg = registry.get(skillId);
+            if (pkg == null || pkg.getManifest() == null) {
+                return new ArrayList<InterfaceDefinition>();
+            }
+            
+            List<InterfaceDefinition> interfaces = new ArrayList<>();
+            SkillManifest manifest = pkg.getManifest();
+            
+            if (manifest.getProvidedInterfaces() != null) {
+                for (String interfaceId : manifest.getProvidedInterfaces()) {
+                    InterfaceDefinition def = new InterfaceDefinition(interfaceId, interfaceId);
+                    interfaces.add(def);
+                }
+            }
+            
+            return interfaces;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<List<InterfaceDependency>> getRequiredInterfaces(String skillId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SkillPackage pkg = registry.get(skillId);
+            if (pkg == null || pkg.getManifest() == null) {
+                return new ArrayList<InterfaceDependency>();
+            }
+            
+            List<InterfaceDependency> dependencies = new ArrayList<>();
+            SkillManifest manifest = pkg.getManifest();
+            
+            if (manifest.getRequiredInterfaces() != null) {
+                for (String interfaceId : manifest.getRequiredInterfaces()) {
+                    InterfaceDependency dep = new InterfaceDependency(interfaceId);
+                    dependencies.add(dep);
+                }
+            }
+            
+            return dependencies;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<Boolean> registerInterfaceProvider(String skillId, InterfaceDefinition interfaceDef) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (skillId == null || interfaceDef == null) {
+                return false;
+            }
+            
+            SkillPackage pkg = registry.get(skillId);
+            if (pkg == null) {
+                log.warn("Cannot register interface for unknown skill: {}", skillId);
+                return false;
+            }
+            
+            interfaceDef.addImplementation(skillId);
+            log.info("Interface {} registered for skill {}", interfaceDef.getInterfaceId(), skillId);
+            return true;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<Boolean> unregisterInterfaceProvider(String skillId, String interfaceId) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (skillId == null || interfaceId == null) {
+                return false;
+            }
+            
+            log.info("Interface {} unregistered for skill {}", interfaceId, skillId);
+            return true;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<List<String>> findSkillsProvidingInterface(String interfaceId) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<String> skills = new ArrayList<>();
+            
+            for (SkillPackage pkg : registry.getAll()) {
+                if (pkg.getManifest() != null && 
+                    pkg.getManifest().getProvidedInterfaces() != null &&
+                    pkg.getManifest().getProvidedInterfaces().contains(interfaceId)) {
+                    skills.add(pkg.getSkillId());
+                }
+            }
+            
+            return skills;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<List<String>> findSkillsProvidingInterface(String interfaceId, String version) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<String> skills = new ArrayList<>();
+            
+            for (SkillPackage pkg : registry.getAll()) {
+                if (pkg.getManifest() != null && 
+                    pkg.getManifest().getProvidedInterfaces() != null &&
+                    pkg.getManifest().getProvidedInterfaces().contains(interfaceId)) {
+                    if (version == null || version.equals(pkg.getVersion())) {
+                        skills.add(pkg.getSkillId());
+                    }
+                }
+            }
+            
+            return skills;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<Boolean> validateInterfaceCompatibility(String skillId, String interfaceId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SkillPackage pkg = registry.get(skillId);
+            if (pkg == null) {
+                return false;
+            }
+            
+            if (pkg.getManifest() != null && 
+                pkg.getManifest().getProvidedInterfaces() != null &&
+                pkg.getManifest().getProvidedInterfaces().contains(interfaceId)) {
+                return true;
+            }
+            
+            if (pkg.getManifest() != null && 
+                pkg.getManifest().getRequiredInterfaces() != null &&
+                pkg.getManifest().getRequiredInterfaces().contains(interfaceId)) {
+                return true;
+            }
+            
+            return false;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<InterfaceResolutionResult> resolveInterfaces(String skillId) {
+        return CompletableFuture.supplyAsync(() -> {
+            InterfaceResolutionResult result = new InterfaceResolutionResult();
+            result.setResolvedInterfaces(new ArrayList<>());
+            result.setUnresolvedInterfaces(new ArrayList<>());
+            result.setInterfaceToSkill(new ConcurrentHashMap<>());
+            
+            SkillPackage pkg = registry.get(skillId);
+            if (pkg == null) {
+                result.setSuccess(false);
+                result.setErrorMessage("Skill not found: " + skillId);
+                return result;
+            }
+            
+            List<InterfaceDependency> required = getRequiredInterfaces(skillId).join();
+            
+            for (InterfaceDependency dep : required) {
+                List<String> providers = findSkillsProvidingInterface(dep.getInterfaceId()).join();
+                
+                if (!providers.isEmpty()) {
+                    result.getResolvedInterfaces().add(dep.getInterfaceId());
+                    result.getInterfaceToSkill().put(dep.getInterfaceId(), providers.get(0));
+                } else {
+                    result.getUnresolvedInterfaces().add(dep.getInterfaceId());
+                }
+            }
+            
+            result.setSuccess(result.getUnresolvedInterfaces().isEmpty());
+            
+            if (!result.isSuccess()) {
+                result.setErrorMessage("Unresolved interfaces: " + result.getUnresolvedInterfaces());
+            }
+            
+            return result;
+        });
+    }
+    
     private SkillDiscoverer getDiscoverer(DiscoveryMethod method) {
         if (method == null) {
             return discoverers.get(DiscoveryMethod.LOCAL_FS);

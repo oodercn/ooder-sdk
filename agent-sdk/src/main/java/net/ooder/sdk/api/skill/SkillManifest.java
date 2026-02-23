@@ -26,6 +26,8 @@ public class SkillManifest {
     private String category;
     private String subCategory;
     private List<String> tags;
+    private List<String> providedInterfaces;
+    private List<String> requiredInterfaces;
     
     public String getSkillId() {
         return skillId;
@@ -189,6 +191,22 @@ public class SkillManifest {
     
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+    
+    public List<String> getProvidedInterfaces() {
+        return providedInterfaces;
+    }
+    
+    public void setProvidedInterfaces(List<String> providedInterfaces) {
+        this.providedInterfaces = providedInterfaces;
+    }
+    
+    public List<String> getRequiredInterfaces() {
+        return requiredInterfaces;
+    }
+    
+    public void setRequiredInterfaces(List<String> requiredInterfaces) {
+        this.requiredInterfaces = requiredInterfaces;
     }
     
     public static class Dependency {
