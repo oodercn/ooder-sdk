@@ -6,6 +6,10 @@ import net.ooder.sdk.capability.CapabilityDistService;
 import net.ooder.sdk.capability.CapabilityMgtService;
 import net.ooder.sdk.capability.CapabilityMonService;
 import net.ooder.sdk.capability.CapabilityCoopService;
+import net.ooder.sdk.cap.CapRegistry;
+import net.ooder.sdk.cap.CapRegistryImpl;
+import net.ooder.sdk.cap.CapDefinition;
+import net.ooder.sdk.cap.CapCategory;
 import net.ooder.sdk.capability.model.CapabilitySpec;
 import net.ooder.sdk.capability.model.SpecDefinition;
 import net.ooder.sdk.capability.model.ValidationResult;
@@ -63,6 +67,7 @@ public class CapabilityCenterImpl implements CapabilityCenter {
     private final CapabilityMgtServiceImpl mgtService;
     private final CapabilityMonServiceImpl monService;
     private final CapabilityCoopServiceImpl coopService;
+    private final CapRegistry capRegistry;
     
     private volatile boolean initialized = false;
     
@@ -72,7 +77,12 @@ public class CapabilityCenterImpl implements CapabilityCenter {
         this.mgtService = new CapabilityMgtServiceImpl();
         this.monService = new CapabilityMonServiceImpl();
         this.coopService = new CapabilityCoopServiceImpl();
+        this.capRegistry = new CapRegistryImpl();
         log.info("CapabilityCenterImpl created");
+    }
+    
+    public CapRegistry getCapRegistry() {
+        return capRegistry;
     }
     
     @Override
@@ -108,8 +118,9 @@ public class CapabilityCenterImpl implements CapabilityCenter {
         mgtService.initialize();
         monService.initialize();
         coopService.initialize();
+        capRegistry.loadFromClasspath("cap/cap-index.yaml");
         initialized = true;
-        log.info("CapabilityCenter initialized");
+        log.info("CapabilityCenter initialized with {} CAPs", capRegistry.size());
     }
     
     @Override

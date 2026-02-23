@@ -4,7 +4,9 @@ package net.ooder.sdk.common.enums;
 public enum AgentType {
     MCP("mcp", "MCP Agent"),
     ROUTE("route", "Route Agent"),
-    END("end", "End Agent");
+    END("end", "End Agent"),
+    SCENE("scene", "Scene Agent"),
+    WORKER("worker", "Worker Agent");
     
     private final String code;
     private final String description;
@@ -29,5 +31,25 @@ public enum AgentType {
             }
         }
         throw new IllegalArgumentException("Unknown agent type: " + code);
+    }
+    
+    public boolean isSceneAgent() {
+        return this == SCENE;
+    }
+    
+    public boolean isWorkerAgent() {
+        return this == WORKER;
+    }
+    
+    public boolean isApplicationLayer() {
+        return this == SCENE || this == WORKER;
+    }
+    
+    public boolean isLinkLayer() {
+        return this == MCP || this == ROUTE;
+    }
+    
+    public boolean isPhysicalLayer() {
+        return this == END;
     }
 }
