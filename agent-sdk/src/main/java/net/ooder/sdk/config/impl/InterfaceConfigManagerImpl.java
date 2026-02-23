@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class InterfaceConfigManagerImpl implements InterfaceConfigManager {
     
@@ -17,35 +18,95 @@ public class InterfaceConfigManagerImpl implements InterfaceConfigManager {
     private final List<InterfaceConfigListener> listeners = new CopyOnWriteArrayList<>();
     
     @Override
-    public void register(String interfaceId) {
-        configs.computeIfAbsent(interfaceId, InterfaceConfig::new);
-        notifyConfigAdded(interfaceId);
-        log.info("Registered config for interface: {}", interfaceId);
-    }
-    
-    @Override
-    public InterfaceConfig getConfig(String interfaceId) {
-        return configs.get(interfaceId);
-    }
-    
-    @Override
-    public void setConfig(String interfaceId, InterfaceConfig config) {
+    public void registerConfig(String interfaceId, InterfaceConfig config) {
+        if (interfaceId == null || config == null) {
+            throw new IllegalArgumentException("Interface ID and config cannot be null");
+        }
+        config.setInterfaceId(interfaceId);
+        config.setLastUpdateTime(System.currentTimeMillis());
         configs.put(interfaceId, config);
-        log.info("Set config for interface: {}", interfaceId);
+        notifyConfigAdded(interfaceId);
+        log.info("Config registered for interface: {}", interfaceId);
+    }
+    
+    @Override
+    public void unregisterConfig(String interfaceId) {
+        if (interfaceId == null) return;
+        InterfaceConfig removed = configs.remove(interfaceId);
+        if (removed != null) {
+            notifyConfigRemoved(interfaceId);
+            log.info("Config unregistered for interface: {}", interfaceId);
+        }
+    }
+    
+    @Override
+    public Optional<InterfaceConfig> getConfig(String interfaceId) {
+        if (interfaceId == null) return Optional.empty();
+        return Optional.ofNullable(configs.get(interfaceId));
+    }
+    
+    @Override
+    public Map<String, InterfaceConfig> getAllConfigs() {
+        return new ConcurrentHashMap<>(configs);
+    }
+    
+    @Override
+    public void updateConfig(String interfaceId, Map<String, Object> updates) {
+        InterfaceConfig config = configs.computeIfAbsent(interfaceId, InterfaceConfig::new);
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
+            Object oldValue = config.getProperty(entry.getKey());
+            config.setProperty(entry.getKey(), entry.getValue());
+            notifyConfigChanged(interfaceId, entry.getKey(), oldValue, entry.getValue());
+        }
+        log.debug("Config updated for interface: {}", interfaceId);
     }
     
     @Override
     public void setProperty(String interfaceId, String key, Object value) {
-        InterfaceConfig config = getOrCreate(interfaceId);
+        InterfaceConfig config = configs.computeIfAbsent(interfaceId, InterfaceConfig::new);
         Object oldValue = config.getProperty(key);
         config.setProperty(key, value);
         notifyConfigChanged(interfaceId, key, oldValue, value);
     }
     
     @Override
-    public Object getProperty(String interfaceId, String key) {
+    public Optional<Object> getProperty(String interfaceId, String key) {
         InterfaceConfig config = configs.get(interfaceId);
-        return config != null ? config.getProperty(key) : null;
+        if (config == null) return Optional.empty();
+        return Optional.ofNullable(config.getProperty(key));
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getProperty(String interfaceId, String key, Class<T> type) {
+        InterfaceConfig config = configs.get(interfaceId);
+        if (config == null) return Optional.empty();
+        Object value = config.getProperty(key);
+        if (value == null) return Optional.empty();
+        if (type.isInstance(value)) {
+            return Optional.of((T) value);
+        }
+        try {
+            if (type == String.class) {
+                return Optional.of((T) value.toString());
+            } else if (type == Integer.class || type == int.class) {
+                return Optional.of((T) Integer.valueOf(value.toString()));
+            } else if (type == Long.class || type == long.class) {
+                return Optional.of((T) Long.valueOf(value.toString()));
+            } else if (type == Boolean.class || type == boolean.class) {
+                return Optional.of((T) Boolean.valueOf(value.toString()));
+            }
+        } catch (Exception e) {
+            log.debug("Failed to convert property {} to type {}", key, type.getName());
+        }
+        return Optional.empty();
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getProperty(String interfaceId, String key, T defaultValue) {
+        Optional<T> value = getProperty(interfaceId, key, (Class<T>) defaultValue.getClass());
+        return value.orElse(defaultValue);
     }
     
     @Override
@@ -53,13 +114,15 @@ public class InterfaceConfigManagerImpl implements InterfaceConfigManager {
         InterfaceConfig config = configs.get(interfaceId);
         if (config != null) {
             Object oldValue = config.getProperties().remove(key);
-            notifyConfigChanged(interfaceId, key, oldValue, null);
+            if (oldValue != null) {
+                notifyConfigChanged(interfaceId, key, oldValue, null);
+            }
         }
     }
     
     @Override
     public boolean hasConfig(String interfaceId) {
-        return configs.containsKey(interfaceId);
+        return interfaceId != null && configs.containsKey(interfaceId);
     }
     
     @Override
@@ -69,40 +132,24 @@ public class InterfaceConfigManagerImpl implements InterfaceConfigManager {
     
     @Override
     public void loadConfigs(String configPath) {
-        try (InputStream is = new FileInputStream(configPath)) {
+        File file = new File(configPath);
+        if (!file.exists()) {
+            log.info("Config file not found: {}", configPath);
+            return;
+        }
+        try (InputStream is = new FileInputStream(file)) {
             Properties props = new Properties();
             props.load(is);
-            
             for (String key : props.stringPropertyNames()) {
-                int dotIndex = key.indexOf('.');
-                if (dotIndex > 0) {
+                if (key.contains(".")) {
+                    int dotIndex = key.indexOf('.');
                     String interfaceId = key.substring(0, dotIndex);
                     String propKey = key.substring(dotIndex + 1);
                     String value = props.getProperty(key);
-                    
-                    InterfaceConfig config = getOrCreate(interfaceId);
-                    
-                    switch (propKey) {
-                        case "preferredImplementation":
-                            config.setPreferredImplementation(value);
-                            break;
-                        case "enabled":
-                            config.setEnabled(Boolean.parseBoolean(value));
-                            break;
-                        case "timeout":
-                            config.setTimeout(Integer.parseInt(value));
-                            break;
-                        case "retryCount":
-                            config.setRetryCount(Integer.parseInt(value));
-                            break;
-                        default:
-                            config.setProperty(propKey, value);
-                    }
+                    setProperty(interfaceId, propKey, value);
                 }
             }
-            
             log.info("Loaded {} configs from {}", configs.size(), configPath);
-            
         } catch (IOException e) {
             log.error("Failed to load configs from: {}", configPath, e);
         }
@@ -110,28 +157,25 @@ public class InterfaceConfigManagerImpl implements InterfaceConfigManager {
     
     @Override
     public void saveConfigs(String configPath) {
-        try (OutputStream os = new FileOutputStream(configPath)) {
+        File file = new File(configPath);
+        file.getParentFile().mkdirs();
+        try (OutputStream os = new FileOutputStream(file)) {
             Properties props = new Properties();
-            
             for (Map.Entry<String, InterfaceConfig> entry : configs.entrySet()) {
                 String interfaceId = entry.getKey();
                 InterfaceConfig config = entry.getValue();
-                
                 if (config.getPreferredImplementation() != null) {
                     props.setProperty(interfaceId + ".preferredImplementation", config.getPreferredImplementation());
                 }
                 props.setProperty(interfaceId + ".enabled", String.valueOf(config.isEnabled()));
                 props.setProperty(interfaceId + ".timeout", String.valueOf(config.getTimeout()));
                 props.setProperty(interfaceId + ".retryCount", String.valueOf(config.getRetryCount()));
-                
                 for (Map.Entry<String, Object> prop : config.getProperties().entrySet()) {
                     props.setProperty(interfaceId + "." + prop.getKey(), String.valueOf(prop.getValue()));
                 }
             }
-            
             props.store(os, "Interface Configurations");
             log.info("Saved {} configs to {}", configs.size(), configPath);
-            
         } catch (IOException e) {
             log.error("Failed to save configs to: {}", configPath, e);
         }
@@ -161,27 +205,30 @@ public class InterfaceConfigManagerImpl implements InterfaceConfigManager {
         log.info("All configs reset");
     }
     
-    private InterfaceConfig getOrCreate(String interfaceId) {
-        return configs.computeIfAbsent(interfaceId, InterfaceConfig::new);
-    }
-    
     private void notifyConfigChanged(String interfaceId, String key, Object oldValue, Object newValue) {
         for (InterfaceConfigListener listener : listeners) {
-            try { listener.onConfigChanged(interfaceId, key, oldValue, newValue); } 
+            try { listener.onConfigChanged(interfaceId, key, oldValue, newValue); }
             catch (Exception e) { log.warn("Listener error", e); }
         }
     }
     
     private void notifyConfigAdded(String interfaceId) {
         for (InterfaceConfigListener listener : listeners) {
-            try { listener.onConfigAdded(interfaceId); } 
+            try { listener.onConfigAdded(interfaceId); }
+            catch (Exception e) { log.warn("Listener error", e); }
+        }
+    }
+    
+    private void notifyConfigRemoved(String interfaceId) {
+        for (InterfaceConfigListener listener : listeners) {
+            try { listener.onConfigRemoved(interfaceId); }
             catch (Exception e) { log.warn("Listener error", e); }
         }
     }
     
     private void notifyConfigReset(String interfaceId) {
         for (InterfaceConfigListener listener : listeners) {
-            try { listener.onConfigReset(interfaceId); } 
+            try { listener.onConfigReset(interfaceId); }
             catch (Exception e) { log.warn("Listener error", e); }
         }
     }

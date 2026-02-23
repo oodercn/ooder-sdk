@@ -155,18 +155,21 @@ public class WorkerAgentImpl implements WorkerAgent {
     @Override
     public CompletableFuture<Object> execute(String capId, Map<String, Object> params) {
         if (!isHealthy()) {
-            return CompletableFuture.failedFuture(
-                new IllegalStateException("WorkerAgent is not healthy: " + agentState.get()));
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalStateException("WorkerAgent is not healthy: " + agentState.get()));
+            return future;
         }
         
         if (!capabilities.contains(capId)) {
-            return CompletableFuture.failedFuture(
-                new IllegalArgumentException("Capability not supported: " + capId));
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("Capability not supported: " + capId));
+            return future;
         }
         
         if (skill == null) {
-            return CompletableFuture.failedFuture(
-                new IllegalStateException("No skill mounted"));
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalStateException("No skill mounted"));
+            return future;
         }
         
         workerStatus.set(WorkerAgentStatus.BUSY);

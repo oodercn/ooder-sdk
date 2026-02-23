@@ -3,6 +3,8 @@ package net.ooder.sdk.config;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public interface InterfaceConfigManager {
     
@@ -47,17 +49,14 @@ public interface InterfaceConfigManager {
         private String preferredImplementation;
         private List<String> fallbackChain;
         private Map<String, Object> properties;
-        private boolean enabled;
-        private int timeout;
-        private int retryCount;
+        private boolean enabled = true;
+        private int timeout = 30000;
+        private int retryCount = 3;
         private long lastUpdateTime;
         
         public InterfaceConfig() {
-            this.enabled = true;
-            this.timeout = 30000;
-            this.retryCount = 3;
-            this.properties = new java.util.concurrent.ConcurrentHashMap<>();
-            this.fallbackChain = new java.util.ArrayList<>();
+            this.properties = new ConcurrentHashMap<>();
+            this.fallbackChain = new CopyOnWriteArrayList<>();
         }
         
         public InterfaceConfig(String interfaceId) {
@@ -97,7 +96,7 @@ public interface InterfaceConfigManager {
         }
         
         public void addFallback(String skillId) {
-            if (!fallbackChain.contains(skillId)) {
+            if (skillId != null && !fallbackChain.contains(skillId)) {
                 fallbackChain.add(skillId);
             }
         }

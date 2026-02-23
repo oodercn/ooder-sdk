@@ -13,7 +13,7 @@ public interface CacheDriver {
     
     CompletableFuture<Void> set(String key, Object value, long ttl, TimeUnit unit);
     
-    CompletableFuture<T> get(String key, Class type);
+    <T> CompletableFuture<T> get(String key, Class<T> type);
     
     CompletableFuture<Object> get(String key);
     

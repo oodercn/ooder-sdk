@@ -142,8 +142,10 @@ public class CommandRouter {
         @Override
         public CommandResult handle(Command command) {
             log.debug("Handling ON command: {}", command.getCommandId());
-            return CommandResult.success(command.getCommandId(), 
-                Map.of("state", "on", "timestamp", System.currentTimeMillis()));
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("state", "on");
+            result.put("timestamp", System.currentTimeMillis());
+            return CommandResult.success(command.getCommandId(), result);
         }
     }
     
@@ -151,8 +153,10 @@ public class CommandRouter {
         @Override
         public CommandResult handle(Command command) {
             log.debug("Handling OFF command: {}", command.getCommandId());
-            return CommandResult.success(command.getCommandId(),
-                Map.of("state", "off", "timestamp", System.currentTimeMillis()));
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("state", "off");
+            result.put("timestamp", System.currentTimeMillis());
+            return CommandResult.success(command.getCommandId(), result);
         }
     }
     
@@ -160,8 +164,10 @@ public class CommandRouter {
         @Override
         public CommandResult handle(Command command) {
             log.debug("Handling TOGGLE command: {}", command.getCommandId());
-            return CommandResult.success(command.getCommandId(),
-                Map.of("state", "toggled", "timestamp", System.currentTimeMillis()));
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("state", "toggled");
+            result.put("timestamp", System.currentTimeMillis());
+            return CommandResult.success(command.getCommandId(), result);
         }
     }
     
@@ -169,9 +175,11 @@ public class CommandRouter {
         @Override
         public CommandResult handle(Command command) {
             log.debug("Handling SET command: {}", command.getCommandId());
-            return CommandResult.success(command.getCommandId(),
-                Map.of("state", "set", "params", command.getParams(), 
-                      "timestamp", System.currentTimeMillis()));
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("state", "set");
+            result.put("params", command.getParams());
+            result.put("timestamp", System.currentTimeMillis());
+            return CommandResult.success(command.getCommandId(), result);
         }
     }
     
@@ -179,8 +187,10 @@ public class CommandRouter {
         @Override
         public CommandResult handle(Command command) {
             log.debug("Handling GET command: {}", command.getCommandId());
-            return CommandResult.success(command.getCommandId(),
-                Map.of("state", "current", "timestamp", System.currentTimeMillis()));
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("state", "current");
+            result.put("timestamp", System.currentTimeMillis());
+            return CommandResult.success(command.getCommandId(), result);
         }
     }
 }
