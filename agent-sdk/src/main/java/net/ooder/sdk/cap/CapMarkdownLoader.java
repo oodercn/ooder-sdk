@@ -80,14 +80,15 @@ public class CapMarkdownLoader {
                 } else {
                     if (currentSectionTitle != null) {
                         if (currentSectionLines.size() > 0 || !line.trim().isEmpty()) {
-                        currentSection.append(line).append("\n");
-                        currentSectionLines.add(line);
-                    }
-                } else {
-                    if (line.startsWith("# ")) {
-                        doc.setTitle(line.substring(2).trim());
-                    } else if (line.startsWith("| ")) {
-                        parseTableRow(doc, line);
+                            currentSection.append(line).append("\n");
+                            currentSectionLines.add(line);
+                        }
+                    } else {
+                        if (line.startsWith("# ")) {
+                            doc.setTitle(line.substring(2).trim());
+                        } else if (line.startsWith("| ")) {
+                            parseTableRow(doc, line);
+                        }
                     }
                 }
             }
@@ -125,27 +126,27 @@ public class CapMarkdownLoader {
         
         public Map<String, String> getSections() { return sections; }
         public void addSection(String title, String content) {
-                sections.put(title, content);
-            }
+            sections.put(title, content);
+        }
         
         public String getSection(String title) {
-                return sections.get(title);
-            }
+            return sections.get(title);
+        }
         
         public List<CodeBlock> getCodeBlocks() { return codeBlocks; }
         public void addCodeBlock(String section, String language, String content) {
-                codeBlocks.add(new CodeBlock(section, language, content));
-            }
+            codeBlocks.add(new CodeBlock(section, language, content));
+        }
         
         public List<CodeBlock> getCodeBlocksBySection(String section) {
-                List<CodeBlock> result = new ArrayList<>();
-                for (CodeBlock block : codeBlocks) {
-                    if (section.equals(block.getSection())) {
-                        result.add(block);
-                    }
+            List<CodeBlock> result = new ArrayList<>();
+            for (CodeBlock block : codeBlocks) {
+                if (section.equals(block.getSection())) {
+                    result.add(block);
                 }
-                return result;
             }
+            return result;
+        }
     }
     
     public static class CodeBlock {
@@ -155,13 +156,12 @@ public class CapMarkdownLoader {
         
         public CodeBlock(String section, String language, String content) {
             this.section = section;
-                this.language = language;
-                this.content = content;
-            }
-            
-            public String getSection() { return section; }
-            public String getLanguage() { return language; }
-            public String getContent() { return content; }
+            this.language = language;
+            this.content = content;
         }
+        
+        public String getSection() { return section; }
+        public String getLanguage() { return language; }
+        public String getContent() { return content; }
     }
 }
