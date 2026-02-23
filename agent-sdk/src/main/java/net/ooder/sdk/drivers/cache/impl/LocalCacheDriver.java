@@ -54,7 +54,7 @@ public class LocalCacheDriver implements CacheDriver {
     }
     
     @Override
-    public CompletableFuture<T> get(String key, Class type) {
+    public <T> CompletableFuture<T> get(String key, Class<T> type) {
         return CompletableFuture.supplyAsync(() -> {
             CacheEntry entry = cache.get(key);
             if (entry == null || entry.isExpired()) {

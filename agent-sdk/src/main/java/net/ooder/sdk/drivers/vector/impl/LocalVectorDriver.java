@@ -14,7 +14,7 @@ public class LocalVectorDriver implements VectorDriver {
     
     private static final Logger log = LoggerFactory.getLogger(LocalVectorDriver.class);
     
-    private final Map<String, VectorCollection> collections = new ConcurrentHashMap<>();
+    private final Map<String, InternalVectorCollection> collections = new ConcurrentHashMap<>();
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private VectorConfig config;
     private final AtomicBoolean connected = new AtomicBoolean(false);
@@ -29,7 +29,7 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<String> createCollection(String collectionName, int dimension, Map<String, Object> metadata) {
         return CompletableFuture.supplyAsync(() -> {
-            VectorCollection collection = new VectorCollection();
+            InternalVectorCollection collection = new InternalVectorCollection();
             collection.name = collectionName;
             collection.dimension = dimension;
             collection.metadata = metadata != null ? metadata : new HashMap<>();
@@ -57,7 +57,7 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<String> insert(String collectionName, String id, float[] vector, Map<String, Object> metadata) {
         return CompletableFuture.supplyAsync(() -> {
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             if (collection == null) {
                 throw new RuntimeException("Collection not found: " + collectionName);
             }
@@ -66,7 +66,7 @@ public class LocalVectorDriver implements VectorDriver {
                 throw new RuntimeException("Vector dimension mismatch");
             }
             
-            VectorRecord record = new VectorRecord();
+            InternalVectorRecord record = new InternalVectorRecord();
             record.id = id;
             record.vector = Arrays.copyOf(vector, vector.length);
             record.metadata = metadata != null ? metadata : new HashMap<>();
@@ -81,12 +81,12 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<Void> update(String collectionName, String id, float[] vector, Map<String, Object> metadata) {
         return CompletableFuture.runAsync(() -> {
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             if (collection == null) {
                 throw new RuntimeException("Collection not found: " + collectionName);
             }
             
-            VectorRecord record = collection.records.get(id);
+            InternalVectorRecord record = collection.records.get(id);
             if (record == null) {
                 throw new RuntimeException("Record not found: " + id);
             }
@@ -105,7 +105,7 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<Void> delete(String collectionName, String id) {
         return CompletableFuture.runAsync(() -> {
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             if (collection != null) {
                 collection.records.remove(id);
                 log.debug("Vector deleted: {} from {}", id, collectionName);
@@ -116,7 +116,7 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<Void> deleteBatch(String collectionName, List<String> ids) {
         return CompletableFuture.runAsync(() -> {
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             if (collection != null) {
                 for (String id : ids) {
                     collection.records.remove(id);
@@ -131,7 +131,7 @@ public class LocalVectorDriver implements VectorDriver {
         return CompletableFuture.supplyAsync(() -> {
             long startTime = System.currentTimeMillis();
             
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             if (collection == null) {
                 VectorResult result = new VectorResult();
                 result.setRecords(Collections.emptyList());
@@ -142,7 +142,7 @@ public class LocalVectorDriver implements VectorDriver {
             
             List<ScoredRecord> scoredRecords = new ArrayList<>();
             
-            for (VectorRecord record : collection.records.values()) {
+            for (InternalVectorRecord record : collection.records.values()) {
                 if (filterMatches(record.metadata, filter)) {
                     float score = calculateSimilarity(queryVector, record.vector);
                     scoredRecords.add(new ScoredRecord(record, score));
@@ -192,11 +192,11 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<VectorRecord> get(String collectionName, String id) {
         return CompletableFuture.supplyAsync(() -> {
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             if (collection == null) {
                 return null;
             }
-            VectorRecord record = collection.records.get(id);
+            InternalVectorRecord record = collection.records.get(id);
             return record != null ? toDriverRecord(record) : null;
         }, executor);
     }
@@ -204,14 +204,14 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<List<VectorRecord>> getBatch(String collectionName, List<String> ids) {
         return CompletableFuture.supplyAsync(() -> {
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             if (collection == null) {
                 return Collections.emptyList();
             }
             
             List<VectorRecord> result = new ArrayList<>();
             for (String id : ids) {
-                VectorRecord record = collection.records.get(id);
+                InternalVectorRecord record = collection.records.get(id);
                 if (record != null) {
                     result.add(toDriverRecord(record));
                 }
@@ -223,7 +223,7 @@ public class LocalVectorDriver implements VectorDriver {
     @Override
     public CompletableFuture<Long> count(String collectionName) {
         return CompletableFuture.supplyAsync(() -> {
-            VectorCollection collection = collections.get(collectionName);
+            InternalVectorCollection collection = collections.get(collectionName);
             return collection != null ? (long) collection.records.size() : 0L;
         }, executor);
     }
@@ -312,7 +312,7 @@ public class LocalVectorDriver implements VectorDriver {
         return true;
     }
     
-    private VectorRecord toDriverRecord(VectorRecord record) {
+    private VectorRecord toDriverRecord(InternalVectorRecord record) {
         VectorRecord result = new VectorRecord();
         result.setId(record.id);
         result.setVector(Arrays.copyOf(record.vector, record.vector.length));
@@ -320,24 +320,24 @@ public class LocalVectorDriver implements VectorDriver {
         return result;
     }
     
-    private static class VectorCollection {
+    private static class InternalVectorCollection {
         String name;
         int dimension;
         Map<String, Object> metadata;
-        Map<String, VectorRecord> records;
+        Map<String, InternalVectorRecord> records;
     }
     
-    private static class VectorRecord {
+    private static class InternalVectorRecord {
         String id;
         float[] vector;
         Map<String, Object> metadata;
     }
     
     private static class ScoredRecord {
-        VectorRecord record;
+        InternalVectorRecord record;
         float score;
         
-        ScoredRecord(VectorRecord record, float score) {
+        ScoredRecord(InternalVectorRecord record, float score) {
             this.record = record;
             this.score = score;
         }
