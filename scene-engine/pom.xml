@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>scene-engine-parent</artifactId>
-    <version>0.7.3</version>
+    <version>0.8.0</version>
     <packaging>pom</packaging>
 
     <name>Scene Engine Parent</name>
@@ -44,7 +44,7 @@
         <url>https://gitee.com/ooderCN/scene-engine</url>
         <connection>scm:git:https://gitee.com/ooderCN/scene-engine.git</connection>
         <developerConnection>scm:git:https://gitee.com/ooderCN/scene-engine.git</developerConnection>
-        <tag>v0.7.3</tag>
+        <tag>v0.8.0</tag>
     </scm>
 
     <modules>

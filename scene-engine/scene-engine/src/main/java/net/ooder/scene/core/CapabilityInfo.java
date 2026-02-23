@@ -1,25 +1,49 @@
 package net.ooder.scene.core;
 
-/**
- * 能力信息
- */
 public class CapabilityInfo {
+    private String capId;
     private String name;
+    private String version;
+    private String category;
     private String description;
-    private String inputSchema;
-    private String outputSchema;
-    private boolean async;
+    private String skillId;
+    private String method;
 
-    public CapabilityInfo() {}
+    public CapabilityInfo(String capId, String name, String version, String category, String description, String skillId, String method) {
+        this.capId = capId;
+        this.name = name;
+        this.version = version;
+        this.category = category;
+        this.description = description;
+        this.skillId = skillId;
+        this.method = method;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public String getInputSchema() { return inputSchema; }
-    public void setInputSchema(String inputSchema) { this.inputSchema = inputSchema; }
-    public String getOutputSchema() { return outputSchema; }
-    public void setOutputSchema(String outputSchema) { this.outputSchema = outputSchema; }
-    public boolean isAsync() { return async; }
-    public void setAsync(boolean async) { this.async = async; }
+    public String getCapId() {
+        return capId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getSkillId() {
+        return skillId;
+    }
+
+    public String getMethod() {
+        return method;
+    }
 }
