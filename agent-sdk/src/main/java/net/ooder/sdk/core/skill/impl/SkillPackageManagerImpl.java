@@ -17,6 +17,8 @@ import net.ooder.sdk.api.skill.InstallProgress;
 import net.ooder.sdk.api.skill.InstallRequest;
 import net.ooder.sdk.api.skill.InstallResult;
 import net.ooder.sdk.api.skill.InstalledSkill;
+import net.ooder.sdk.api.skill.InterfaceDefinition;
+import net.ooder.sdk.api.skill.InterfaceDependency;
 import net.ooder.sdk.api.skill.SkillCenterClient;
 import net.ooder.sdk.api.skill.SkillDiscoverer;
 import net.ooder.sdk.api.skill.SkillManifest;
