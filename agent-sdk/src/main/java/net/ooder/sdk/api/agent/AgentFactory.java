@@ -12,6 +12,12 @@ public interface AgentFactory {
     
     EndAgent createEndAgent(SDKConfiguration config);
     
+    SceneAgent createSceneAgent(String sceneId, String agentName);
+    
+    SceneAgent createSceneAgent(String sceneId, String agentName, SceneAgent.SceneAgentType type);
+    
+    WorkerAgent createWorkerAgent(String sceneId, String workerName, String skillId);
+    
     Agent createAgent(AgentType type, SDKConfiguration config);
     
     void destroyAgent(String agentId);
@@ -19,4 +25,8 @@ public interface AgentFactory {
     Agent getAgent(String agentId);
     
     boolean hasAgent(String agentId);
+    
+    int getAgentCount();
+    
+    void destroyAllAgents();
 }

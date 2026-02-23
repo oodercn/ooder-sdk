@@ -7,6 +7,8 @@ import net.ooder.sdk.nexus.offline.model.SyncResult;
 import net.ooder.sdk.nexus.offline.model.NetworkState;
 import net.ooder.sdk.nexus.offline.model.NetworkStateListener;
 import net.ooder.sdk.nexus.offline.model.SyncStateListener;
+import net.ooder.sdk.service.heartbeat.EnhancedHeartbeatService;
+import net.ooder.sdk.service.heartbeat.HeartbeatConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +31,7 @@ public class OfflineServiceImpl implements OfflineService {
     private final ExecutorService executor;
     private final ScheduledExecutorService scheduler;
     private ScheduledFuture<?> networkCheckTask;
+    private EnhancedHeartbeatService heartbeatService;
     
     public OfflineServiceImpl() {
         this.offlineMode = new AtomicBoolean(false);
@@ -50,11 +53,26 @@ public class OfflineServiceImpl implements OfflineService {
         log.info("OfflineServiceImpl initialized");
     }
     
+    public void setHeartbeatService(EnhancedHeartbeatService heartbeatService) {
+        this.heartbeatService = heartbeatService;
+        log.info("EnhancedHeartbeatService integrated with OfflineService");
+    }
+    
+    public EnhancedHeartbeatService getHeartbeatService() {
+        return heartbeatService;
+    }
+    
     @Override
     public CompletableFuture<Void> enableOfflineMode() {
         return CompletableFuture.runAsync(() -> {
             log.info("Enabling offline mode");
             offlineMode.set(true);
+            
+            if (heartbeatService != null) {
+                heartbeatService.stopAllHeartbeats();
+                log.info("All heartbeats stopped due to offline mode");
+            }
+            
             log.info("Offline mode enabled");
         }, executor);
     }
@@ -64,6 +82,11 @@ public class OfflineServiceImpl implements OfflineService {
         return CompletableFuture.runAsync(() -> {
             log.info("Disabling offline mode");
             offlineMode.set(false);
+            
+            if (heartbeatService != null) {
+                log.info("Heartbeats will resume as agents reconnect");
+            }
+            
             log.info("Offline mode disabled");
         }, executor);
     }
@@ -338,6 +361,10 @@ public class OfflineServiceImpl implements OfflineService {
     }
     
     private void notifyNetworkAvailable() {
+        if (heartbeatService != null) {
+            log.info("Network restored, heartbeat monitoring will resume");
+        }
+        
         for (NetworkStateListener listener : networkListeners) {
             try {
                 listener.onNetworkAvailable();
@@ -348,6 +375,11 @@ public class OfflineServiceImpl implements OfflineService {
     }
     
     private void notifyNetworkLost() {
+        if (heartbeatService != null) {
+            heartbeatService.stopAllHeartbeats();
+            log.info("Network lost, all heartbeats stopped");
+        }
+        
         for (NetworkStateListener listener : networkListeners) {
             try {
                 listener.onNetworkLost();
@@ -430,6 +462,12 @@ public class OfflineServiceImpl implements OfflineService {
     public void shutdown() {
         log.info("Shutting down OfflineService");
         stopNetworkMonitoring();
+        
+        if (heartbeatService != null) {
+            heartbeatService.shutdown();
+            log.info("EnhancedHeartbeatService shutdown complete");
+        }
+        
         scheduler.shutdown();
         executor.shutdown();
         pendingSyncs.clear();

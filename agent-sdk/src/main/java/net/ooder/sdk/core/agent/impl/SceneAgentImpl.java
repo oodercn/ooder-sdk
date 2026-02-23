@@ -2,8 +2,11 @@ package net.ooder.sdk.core.agent.impl;
 
 import net.ooder.sdk.api.agent.SceneAgent;
 import net.ooder.sdk.api.agent.Agent;
+import net.ooder.sdk.api.agent.WorkerAgent;
 import net.ooder.sdk.api.skill.Capability;
 import net.ooder.sdk.api.skill.SkillService;
+import net.ooder.sdk.binding.BindingManager;
+import net.ooder.sdk.binding.DeviceBinding;
 import net.ooder.sdk.common.enums.AgentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,8 @@ public class SceneAgentImpl implements SceneAgent {
     private final List<Capability> capabilities = new CopyOnWriteArrayList<>();
     private final Map<String, SkillService> mountedSkills = new ConcurrentHashMap<>();
     private final Map<String, Object> sharedState = new ConcurrentHashMap<>();
+    private final Map<String, WorkerAgent> workerAgents = new ConcurrentHashMap<>();
+    private final BindingManager bindingManager = new BindingManager();
     
     private String sceneGroupId;
     private String currentTaskId;
@@ -299,6 +304,97 @@ public class SceneAgentImpl implements SceneAgent {
     public void removeCapability(String capId) {
         capabilities.removeIf(cap -> cap.getCapId().equals(capId));
         log.debug("Capability removed: {} from agent {}", capId, agentId);
+    }
+    
+    @Override
+    public void addWorkerAgent(WorkerAgent worker) {
+        if (worker == null) {
+            throw new IllegalArgumentException("WorkerAgent cannot be null");
+        }
+        
+        String workerId = worker.getAgentId();
+        if (workerAgents.containsKey(workerId)) {
+            log.warn("WorkerAgent already exists: {}", workerId);
+            return;
+        }
+        
+        workerAgents.put(workerId, worker);
+        
+        if (state.get() == AgentState.RUNNING) {
+            worker.start();
+        }
+        
+        log.info("WorkerAgent added: {} to SceneAgent {}", workerId, agentId);
+    }
+    
+    @Override
+    public void removeWorkerAgent(String workerId) {
+        WorkerAgent worker = workerAgents.remove(workerId);
+        if (worker != null) {
+            if (state.get() == AgentState.RUNNING) {
+                worker.stop();
+            }
+            log.info("WorkerAgent removed: {} from SceneAgent {}", workerId, agentId);
+        }
+    }
+    
+    @Override
+    public WorkerAgent getWorkerAgent(String workerId) {
+        return workerAgents.get(workerId);
+    }
+    
+    @Override
+    public List<WorkerAgent> getWorkerAgents() {
+        return new ArrayList<>(workerAgents.values());
+    }
+    
+    @Override
+    public CompletableFuture<Object> dispatchToWorker(String workerId, String capId, Map<String, Object> params) {
+        WorkerAgent worker = workerAgents.get(workerId);
+        if (worker == null) {
+            return CompletableFuture.failedFuture(
+                new IllegalArgumentException("WorkerAgent not found: " + workerId));
+        }
+        
+        if (!worker.isHealthy()) {
+            return CompletableFuture.failedFuture(
+                new IllegalStateException("WorkerAgent is not healthy: " + workerId));
+        }
+        
+        log.debug("Dispatching capability {} to WorkerAgent {}", capId, workerId);
+        return worker.execute(capId, params);
+    }
+    
+    @Override
+    public DeviceBinding bindDevices(String sourceDevice, String sourceCap, 
+                                      String targetDevice, String targetCap,
+                                      DeviceBinding.BindingType bindingType) {
+        DeviceBinding binding = bindingManager.createBinding(
+            sourceDevice, sourceCap, targetDevice, targetCap, bindingType);
+        log.info("Device binding created: {} -> {} for SceneAgent {}", 
+            sourceDevice, targetDevice, agentId);
+        return binding;
+    }
+    
+    @Override
+    public void unbindDevices(String bindingId) {
+        bindingManager.removeBinding(bindingId);
+        log.info("Device binding removed: {} from SceneAgent {}", bindingId, agentId);
+    }
+    
+    @Override
+    public List<DeviceBinding> getDeviceBindings() {
+        return bindingManager.getAllBindings();
+    }
+    
+    @Override
+    public List<DeviceBinding> getDeviceBindingsByDevice(String deviceId) {
+        return bindingManager.getBindingsByDevice(deviceId);
+    }
+    
+    @Override
+    public BindingManager getBindingManager() {
+        return bindingManager;
     }
     
     @Override

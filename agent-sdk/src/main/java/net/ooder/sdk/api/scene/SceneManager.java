@@ -45,6 +45,12 @@ public interface SceneManager {
     
     CompletableFuture<Void> restoreSnapshot(String sceneId, SceneSnapshot snapshot);
     
+    CompletableFuture<String> startWorkflow(String sceneId, String workflowId);
+    
+    CompletableFuture<Void> stopWorkflow(String sceneId);
+    
+    CompletableFuture<String> getWorkflowStatus(String sceneId);
+    
     class SceneState {
         private String sceneId;
         private boolean active;
@@ -52,6 +58,8 @@ public interface SceneManager {
         private List<String> installedSkills;
         private long createTime;
         private long lastUpdateTime;
+        private String currentWorkflowId;
+        private String workflowStatus;
         
         public String getSceneId() { return sceneId; }
         public void setSceneId(String sceneId) { this.sceneId = sceneId; }
@@ -65,5 +73,9 @@ public interface SceneManager {
         public void setCreateTime(long createTime) { this.createTime = createTime; }
         public long getLastUpdateTime() { return lastUpdateTime; }
         public void setLastUpdateTime(long lastUpdateTime) { this.lastUpdateTime = lastUpdateTime; }
+        public String getCurrentWorkflowId() { return currentWorkflowId; }
+        public void setCurrentWorkflowId(String currentWorkflowId) { this.currentWorkflowId = currentWorkflowId; }
+        public String getWorkflowStatus() { return workflowStatus; }
+        public void setWorkflowStatus(String workflowStatus) { this.workflowStatus = workflowStatus; }
     }
 }

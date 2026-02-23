@@ -1,4 +1,3 @@
-
 package net.ooder.sdk.core.agent.factory;
 
 import java.util.Map;
@@ -12,10 +11,14 @@ import net.ooder.sdk.api.agent.AgentFactory;
 import net.ooder.sdk.api.agent.EndAgent;
 import net.ooder.sdk.api.agent.McpAgent;
 import net.ooder.sdk.api.agent.RouteAgent;
+import net.ooder.sdk.api.agent.SceneAgent;
+import net.ooder.sdk.api.agent.WorkerAgent;
 import net.ooder.sdk.common.enums.AgentType;
 import net.ooder.sdk.core.agent.impl.EndAgentImpl;
 import net.ooder.sdk.core.agent.impl.McpAgentImpl;
 import net.ooder.sdk.core.agent.impl.RouteAgentImpl;
+import net.ooder.sdk.core.agent.impl.SceneAgentImpl;
+import net.ooder.sdk.core.agent.impl.WorkerAgentImpl;
 import net.ooder.sdk.core.agent.model.AgentConfig;
 import net.ooder.sdk.infra.config.SDKConfiguration;
 
@@ -53,14 +56,39 @@ public class AgentFactoryImpl implements AgentFactory {
     }
     
     @Override
+    public SceneAgent createSceneAgent(String sceneId, String agentName) {
+        return createSceneAgent(sceneId, agentName, SceneAgent.SceneAgentType.PRIMARY);
+    }
+    
+    @Override
+    public SceneAgent createSceneAgent(String sceneId, String agentName, SceneAgent.SceneAgentType type) {
+        SceneAgentImpl agent = new SceneAgentImpl(sceneId, agentName, type);
+        agents.put(agent.getAgentId(), agent);
+        log.info("Created SceneAgent: {} for scene {} with type {}", agent.getAgentId(), sceneId, type);
+        return agent;
+    }
+    
+    @Override
+    public WorkerAgent createWorkerAgent(String sceneId, String workerName, String skillId) {
+        WorkerAgentImpl agent = new WorkerAgentImpl(sceneId, workerName, skillId, null);
+        agents.put(agent.getAgentId(), agent);
+        log.info("Created WorkerAgent: {} for scene {} with skill {}", agent.getAgentId(), sceneId, skillId);
+        return agent;
+    }
+    
+    @Override
     public Agent createAgent(AgentType type, SDKConfiguration config) {
         switch (type) {
             case MCP:
-                return (Agent) createMcpAgent(config);
+                return createMcpAgent(config);
             case ROUTE:
-                return (Agent) createRouteAgent(config);
+                return createRouteAgent(config);
             case END:
-                return (Agent) createEndAgent(config);
+                return createEndAgent(config);
+            case SCENE:
+                return createSceneAgent(config.getAgentId(), config.getAgentName());
+            case WORKER:
+                return createWorkerAgent(config.getAgentId(), config.getAgentName(), null);
             default:
                 throw new IllegalArgumentException("Unknown agent type: " + type);
         }
@@ -76,6 +104,10 @@ public class AgentFactoryImpl implements AgentFactory {
                 ((RouteAgent) agent).stop();
             } else if (agent instanceof EndAgent) {
                 ((EndAgent) agent).stop();
+            } else if (agent instanceof SceneAgent) {
+                ((SceneAgent) agent).stop();
+            } else if (agent instanceof WorkerAgent) {
+                ((WorkerAgent) agent).stop();
             }
             log.info("Destroyed Agent: {}", agentId);
         }
@@ -89,6 +121,25 @@ public class AgentFactoryImpl implements AgentFactory {
     @Override
     public boolean hasAgent(String agentId) {
         return agents.containsKey(agentId);
+    }
+    
+    @Override
+    public int getAgentCount() {
+        return agents.size();
+    }
+    
+    @Override
+    public void destroyAllAgents() {
+        log.info("Destroying all agents, count: {}", agents.size());
+        for (String agentId : agents.keySet()) {
+            try {
+                destroyAgent(agentId);
+            } catch (Exception e) {
+                log.warn("Failed to destroy agent: {}", agentId, e);
+            }
+        }
+        agents.clear();
+        log.info("All agents destroyed");
     }
     
     private AgentConfig convertConfig(SDKConfiguration sdkConfig, AgentType type) {

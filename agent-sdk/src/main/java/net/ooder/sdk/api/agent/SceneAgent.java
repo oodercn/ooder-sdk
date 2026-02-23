@@ -2,6 +2,8 @@ package net.ooder.sdk.api.agent;
 
 import net.ooder.sdk.api.skill.Capability;
 import net.ooder.sdk.api.skill.SkillService;
+import net.ooder.sdk.binding.BindingManager;
+import net.ooder.sdk.binding.DeviceBinding;
 
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,28 @@ public interface SceneAgent extends Agent {
     Map<String, Object> getSharedState();
     
     void updateSharedState(Map<String, Object> state);
+    
+    void addWorkerAgent(WorkerAgent worker);
+    
+    void removeWorkerAgent(String workerId);
+    
+    WorkerAgent getWorkerAgent(String workerId);
+    
+    List<WorkerAgent> getWorkerAgents();
+    
+    CompletableFuture<Object> dispatchToWorker(String workerId, String capId, Map<String, Object> params);
+    
+    DeviceBinding bindDevices(String sourceDevice, String sourceCap, 
+                              String targetDevice, String targetCap,
+                              DeviceBinding.BindingType bindingType);
+    
+    void unbindDevices(String bindingId);
+    
+    List<DeviceBinding> getDeviceBindings();
+    
+    List<DeviceBinding> getDeviceBindingsByDevice(String deviceId);
+    
+    BindingManager getBindingManager();
     
     enum SceneAgentType {
         PRIMARY("primary", "主 Agent"),

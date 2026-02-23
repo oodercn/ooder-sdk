@@ -1,6 +1,9 @@
 package net.ooder.sdk.core.scene.impl;
 
 import net.ooder.sdk.api.scene.CapabilityInvoker;
+import net.ooder.sdk.command.Command;
+import net.ooder.sdk.command.CommandResult;
+import net.ooder.sdk.command.CommandRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +28,14 @@ public class CapabilityInvokerImpl implements CapabilityInvoker {
     private final ScheduledExecutorService scheduler;
     private final Map<String, CapabilityMetadata> metadataStore;
     private final Map<String, Object> capabilityHandlers;
+    private final CommandRouter commandRouter;
     private int defaultTimeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
     
     public CapabilityInvokerImpl() {
+        this(null);
+    }
+    
+    public CapabilityInvokerImpl(CommandRouter commandRouter) {
         this.executor = new ThreadPoolExecutor(
             4, MAX_POOL_SIZE, 60L, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>(100),
@@ -37,11 +45,16 @@ public class CapabilityInvokerImpl implements CapabilityInvoker {
         this.scheduler = Executors.newScheduledThreadPool(2);
         this.metadataStore = new ConcurrentHashMap<>();
         this.capabilityHandlers = new ConcurrentHashMap<>();
+        this.commandRouter = commandRouter != null ? commandRouter : new CommandRouter();
     }
     
     @Override
     public CompletableFuture<Object> invoke(String sceneId, String capId, Map<String, Object> params) {
         log.debug("Synchronously invoking capability: sceneId={}, capId={}", sceneId, capId);
+        
+        if (capId.startsWith("cmd://")) {
+            return invokeViaCommandRouter(sceneId, capId, params);
+        }
         
         String key = buildKey(sceneId, capId);
         long startTime = System.currentTimeMillis();
@@ -65,6 +78,25 @@ public class CapabilityInvokerImpl implements CapabilityInvoker {
             failed.completeExceptionally(new RuntimeException("Capability invocation failed: " + e.getMessage(), e));
             return failed;
         }
+    }
+    
+    private CompletableFuture<Object> invokeViaCommandRouter(String sceneId, String capId, Map<String, Object> params) {
+        String commandName = capId.substring(6);
+        Command command = new Command();
+        command.setCommandId("cmd-" + System.currentTimeMillis());
+        command.setName(commandName);
+        command.setParams(params);
+        
+        log.debug("Routing capability to CommandRouter: {}", commandName);
+        
+        return CompletableFuture.supplyAsync(() -> {
+            CommandResult result = commandRouter.execute(command);
+            if (result.isSuccess()) {
+                return result.getData();
+            } else {
+                throw new RuntimeException("Command execution failed: " + result.getErrorMessage());
+            }
+        }, executor);
     }
     
     @Override

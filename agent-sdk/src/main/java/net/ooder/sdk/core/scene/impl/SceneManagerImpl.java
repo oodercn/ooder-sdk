@@ -4,6 +4,7 @@ package net.ooder.sdk.core.scene.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,6 +16,11 @@ import net.ooder.sdk.api.scene.SceneManager;
 import net.ooder.sdk.api.scene.SceneSnapshot;
 import net.ooder.sdk.api.scene.SceneManager.SceneState;
 import net.ooder.sdk.api.skill.Capability;
+import net.ooder.sdk.workflow.WorkflowContext;
+import net.ooder.sdk.workflow.WorkflowDefinition;
+import net.ooder.sdk.workflow.WorkflowEngine;
+import net.ooder.sdk.workflow.WorkflowResult;
+import net.ooder.sdk.workflow.impl.WorkflowEngineImpl;
 
 public class SceneManagerImpl implements SceneManager {
     
@@ -22,6 +28,15 @@ public class SceneManagerImpl implements SceneManager {
     
     private final Map<String, SceneDefinition> scenes = new ConcurrentHashMap<>();
     private final Map<String, SceneState> sceneStates = new ConcurrentHashMap<>();
+    private final WorkflowEngine workflowEngine;
+    
+    public SceneManagerImpl() {
+        this.workflowEngine = new WorkflowEngineImpl();
+    }
+    
+    public SceneManagerImpl(WorkflowEngine workflowEngine) {
+        this.workflowEngine = workflowEngine;
+    }
     
     @Override
     public CompletableFuture<SceneDefinition> create(SceneDefinition definition) {
@@ -320,6 +335,77 @@ public class SceneManagerImpl implements SceneManager {
             }
             
             log.info("Snapshot {} restored for scene {}", snapshot.getSnapshotId(), sceneId);
+        });
+    }
+    
+    @Override
+    public CompletableFuture<String> startWorkflow(String sceneId, String workflowId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SceneDefinition definition = scenes.get(sceneId);
+            if (definition == null) {
+                throw new IllegalArgumentException("Scene not found: " + sceneId);
+            }
+            
+            SceneState state = sceneStates.get(sceneId);
+            if (state == null) {
+                throw new IllegalStateException("Scene state not found: " + sceneId);
+            }
+            
+            WorkflowDefinition wfDef = workflowEngine.getWorkflow(workflowId);
+            if (wfDef == null) {
+                throw new IllegalArgumentException("Workflow not found: " + workflowId);
+            }
+            
+            WorkflowContext context = new WorkflowContext();
+            context.setSceneId(sceneId);
+            context.setWorkflowId(workflowId);
+            
+            state.setCurrentWorkflowId(workflowId);
+            state.setWorkflowStatus("RUNNING");
+            
+            String executionId = "wf-" + UUID.randomUUID().toString();
+            
+            workflowEngine.executeAsync(wfDef, context)
+                .thenAccept(result -> {
+                    state.setWorkflowStatus(result.isSuccess() ? "COMPLETED" : "FAILED");
+                    state.setLastUpdateTime(System.currentTimeMillis());
+                    log.info("Workflow {} completed for scene {}", workflowId, sceneId);
+                })
+                .exceptionally(e -> {
+                    state.setWorkflowStatus("ERROR");
+                    log.error("Workflow {} failed for scene {}", workflowId, sceneId, e);
+                });
+            
+            log.info("Workflow {} started for scene {}", workflowId, sceneId);
+            return executionId;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<Void> stopWorkflow(String sceneId) {
+        return CompletableFuture.runAsync(() -> {
+            SceneState state = sceneStates.get(sceneId);
+            if (state == null || state.getCurrentWorkflowId() == null) {
+                log.warn("No active workflow for scene: {}", sceneId);
+                return;
+            }
+            
+            String workflowId = state.getCurrentWorkflowId();
+            workflowEngine.cancel(workflowId);
+            
+            state.setCurrentWorkflowId(null);
+            state.setWorkflowStatus("STOPPED");
+            state.setLastUpdateTime(System.currentTimeMillis());
+            
+            log.info("Workflow stopped for scene {}", sceneId);
+        });
+    }
+    
+    @Override
+    public CompletableFuture<String> getWorkflowStatus(String sceneId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SceneState state = sceneStates.get(sceneId);
+                return state != null ? state.getWorkflowStatus() : null;
         });
     }
 }
