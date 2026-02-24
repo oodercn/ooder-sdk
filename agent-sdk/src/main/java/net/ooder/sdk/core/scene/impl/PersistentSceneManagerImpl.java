@@ -582,4 +582,15 @@ public class PersistentSceneManagerImpl implements SceneManager {
     public boolean isPersistenceEnabled() {
         return persistenceEnabled;
     }
+    
+    @Override
+    public CompletableFuture<String> getWorkflowStatus(String sceneId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SceneState state = sceneStates.get(sceneId);
+            if (state != null) {
+                return state.getWorkflowStatus();
+            }
+            return null;
+        });
+    }
 }

@@ -82,10 +82,11 @@ public class CapabilityInvokerImpl implements CapabilityInvoker {
     
     private CompletableFuture<Object> invokeViaCommandRouter(String sceneId, String capId, Map<String, Object> params) {
         String commandName = capId.substring(6);
-        Command command = new Command();
-        command.setCommandId("cmd-" + System.currentTimeMillis());
-        command.setName(commandName);
-        command.setParams(params);
+        Command command = Command.builder()
+            .commandId("cmd-" + System.currentTimeMillis())
+            .name(commandName)
+            .params(params)
+            .build();
         
         log.debug("Routing capability to CommandRouter: {}", commandName);
         

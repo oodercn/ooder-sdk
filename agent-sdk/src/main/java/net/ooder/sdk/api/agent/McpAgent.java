@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import net.ooder.sdk.api.skill.SkillPackage;
 import net.ooder.sdk.api.scene.SceneGroup;
 
-public interface McpAgent {
+public interface McpAgent extends Agent {
     
     String getAgentId();
     

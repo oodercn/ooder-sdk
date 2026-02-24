@@ -356,14 +356,12 @@ public class SceneManagerImpl implements SceneManager {
                 throw new IllegalArgumentException("Workflow not found: " + workflowId);
             }
             
-            WorkflowContext context = new WorkflowContext();
-            context.setSceneId(sceneId);
-            context.setWorkflowId(workflowId);
+            String executionId = "wf-" + UUID.randomUUID().toString();
+            
+            WorkflowContext context = new WorkflowContext(executionId, workflowId, sceneId);
             
             state.setCurrentWorkflowId(workflowId);
             state.setWorkflowStatus("RUNNING");
-            
-            String executionId = "wf-" + UUID.randomUUID().toString();
             
             workflowEngine.executeAsync(wfDef, context)
                 .thenAccept(result -> {
@@ -374,6 +372,7 @@ public class SceneManagerImpl implements SceneManager {
                 .exceptionally(e -> {
                     state.setWorkflowStatus("ERROR");
                     log.error("Workflow {} failed for scene {}", workflowId, sceneId, e);
+                    return null;
                 });
             
             log.info("Workflow {} started for scene {}", workflowId, sceneId);

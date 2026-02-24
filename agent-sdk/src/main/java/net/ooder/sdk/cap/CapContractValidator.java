@@ -38,7 +38,7 @@ public class CapContractValidator {
             return new ValidationResult(false, errors, warnings);
         }
         
-        CapDefinition.CapInterface interface_ = definition.getSpec().getInterface_();
+        CapDefinition.CapInterface interface_ = definition.getSpec().getInterface();
         if (interface_ == null || interface_.getRequest() == null) {
             return new ValidationResult(true, errors, warnings);
         }
@@ -58,7 +58,7 @@ public class CapContractValidator {
             return new ValidationResult(false, errors, warnings);
         }
         
-        CapDefinition.CapInterface interface_ = definition.getSpec().getInterface_();
+        CapDefinition.CapInterface interface_ = definition.getSpec().getInterface();
         if (interface_ == null || interface_.getResponse() == null) {
             return new ValidationResult(true, errors, warnings);
         }
@@ -110,7 +110,7 @@ public class CapContractValidator {
             return;
         }
         
-        CapDefinition.CapInterface interface_ = definition.getSpec().getInterface_();
+        CapDefinition.CapInterface interface_ = definition.getSpec().getInterface();
         if (interface_ == null) {
             errors.add("CAP interface is required");
             return;

@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import net.ooder.sdk.api.skill.SkillPackage;
 import net.ooder.sdk.api.scene.SceneGroupKey;
 
-public interface EndAgent {
+public interface EndAgent extends Agent {
     
     String getAgentId();
     

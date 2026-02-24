@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import net.ooder.sdk.api.skill.SkillPackage;
 
-public interface RouteAgent {
+public interface RouteAgent extends Agent {
     
     String getAgentId();
     

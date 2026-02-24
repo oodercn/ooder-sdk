@@ -123,7 +123,7 @@ public class CapRegistryImpl implements CapRegistry {
         if (definition == null) {
             return false;
         }
-        return versionManager.isCompatible(definition.getVersion(), version);
+        return versionManager.isCompatible(capId, definition.getVersion(), version);
     }
     
     @Override

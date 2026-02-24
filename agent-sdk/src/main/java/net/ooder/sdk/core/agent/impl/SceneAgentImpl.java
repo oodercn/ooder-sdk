@@ -211,7 +211,10 @@ public class SceneAgentImpl implements SceneAgent {
             Map<String, Object> caps = skill.getCapabilities();
             if (caps != null && caps.containsKey(capId)) {
                 log.debug("Invoking capability {} via skill {}", capId, skill.getSkillId());
-                return skill.executeAsync(new net.ooder.sdk.api.skill.SkillRequest(capId, params));
+                net.ooder.sdk.api.skill.SkillRequest request = net.ooder.sdk.api.skill.SkillRequest.create();
+                request.setOperation(capId);
+                request.setParams(params);
+                return skill.executeAsync(request);
             }
         }
         
