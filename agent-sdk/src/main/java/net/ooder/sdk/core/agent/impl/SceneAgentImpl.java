@@ -202,8 +202,9 @@ public class SceneAgentImpl implements SceneAgent {
     @Override
     public CompletableFuture<Object> invokeCapability(String capId, Map<String, Object> params) {
         if (state.get() != AgentState.RUNNING) {
-            return CompletableFuture.failedFuture(
-                new IllegalStateException("Agent is not running: " + state.get()));
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalStateException("Agent is not running: " + state.get()));
+            return future;
         }
         
         for (SkillService skill : mountedSkills.values()) {
@@ -214,8 +215,9 @@ public class SceneAgentImpl implements SceneAgent {
             }
         }
         
-        return CompletableFuture.failedFuture(
-            new IllegalArgumentException("Capability not found: " + capId));
+        CompletableFuture<Object> future = new CompletableFuture<>();
+        future.completeExceptionally(new IllegalArgumentException("Capability not found: " + capId));
+        return future;
     }
     
     @Override
@@ -352,13 +354,15 @@ public class SceneAgentImpl implements SceneAgent {
     public CompletableFuture<Object> dispatchToWorker(String workerId, String capId, Map<String, Object> params) {
         WorkerAgent worker = workerAgents.get(workerId);
         if (worker == null) {
-            return CompletableFuture.failedFuture(
-                new IllegalArgumentException("WorkerAgent not found: " + workerId));
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalArgumentException("WorkerAgent not found: " + workerId));
+            return future;
         }
         
         if (!worker.isHealthy()) {
-            return CompletableFuture.failedFuture(
-                new IllegalStateException("WorkerAgent is not healthy: " + workerId));
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            future.completeExceptionally(new IllegalStateException("WorkerAgent is not healthy: " + workerId));
+            return future;
         }
         
         log.debug("Dispatching capability {} to WorkerAgent {}", capId, workerId);

@@ -68,6 +68,74 @@ public class InterfaceDependency implements Serializable {
         return this;
     }
     
+    public boolean hasVersionConstraint() {
+        return version != null && !version.isEmpty();
+    }
+    
+    public boolean versionSatisfies(String actualVersion) {
+        if (!hasVersionConstraint()) {
+            return true;
+        }
+        
+        if (actualVersion == null) {
+            return false;
+        }
+        
+        if (version.startsWith(">=")) {
+            String minVersion = version.substring(2).trim();
+            return compareVersions(actualVersion, minVersion) >= 0;
+        } else if (version.startsWith(">")) {
+            String minVersion = version.substring(1).trim();
+            return compareVersions(actualVersion, minVersion) > 0;
+        } else if (version.startsWith("<=")) {
+            String maxVersion = version.substring(2).trim();
+            return compareVersions(actualVersion, maxVersion) <= 0;
+        } else if (version.startsWith("<")) {
+            String maxVersion = version.substring(1).trim();
+            return compareVersions(actualVersion, maxVersion) < 0;
+        } else if (version.startsWith("^")) {
+            String baseVersion = version.substring(1).trim();
+            return isCompatibleVersion(actualVersion, baseVersion);
+        } else {
+            return version.equals(actualVersion);
+        }
+    }
+    
+    private int compareVersions(String v1, String v2) {
+        String[] parts1 = v1.split("\\.");
+        String[] parts2 = v2.split("\\.");
+        
+        int maxLen = Math.max(parts1.length, parts2.length);
+        for (int i = 0; i < maxLen; i++) {
+            int num1 = i < parts1.length ? parseVersionPart(parts1[i]) : 0;
+            int num2 = i < parts2.length ? parseVersionPart(parts2[i]) : 0;
+            
+            if (num1 != num2) {
+                return Integer.compare(num1, num2);
+            }
+        }
+        return 0;
+    }
+    
+    private int parseVersionPart(String part) {
+        try {
+            return Integer.parseInt(part.replaceAll("[^0-9]", ""));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    
+    private boolean isCompatibleVersion(String actualVersion, String baseVersion) {
+        String[] actualParts = actualVersion.split("\\.");
+        String[] baseParts = baseVersion.split("\\.");
+        
+        if (actualParts.length < 1 || baseParts.length < 1) {
+            return false;
+        }
+        
+        return actualParts[0].equals(baseParts[0]);
+    }
+    
     @Override
     public String toString() {
         return "InterfaceDependency{" +

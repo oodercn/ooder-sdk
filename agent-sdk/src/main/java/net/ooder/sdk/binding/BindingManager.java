@@ -148,7 +148,8 @@ public class BindingManager {
                     newDeviceId, binding.getSourceCap(),
                     binding.getTargetDevice(), binding.getTargetCap(),
                     binding.getBindingType());
-                newBinding.setConfig(binding.getConfig());
+                Map<String, Object> bindingConfig = binding.getConfig();
+                newBinding.setConfig(bindingConfig);
                 removeBinding(binding.getBindingId());
                 log.info("Replaced device in binding: {} -> {}", 
                     binding.getBindingId(), newBinding.getBindingId());
@@ -157,7 +158,8 @@ public class BindingManager {
                     binding.getSourceDevice(), binding.getSourceCap(),
                     newDeviceId, binding.getTargetCap(),
                     binding.getBindingType());
-                newBinding.setConfig(binding.getConfig());
+                Map<String, Object> bindingConfig = binding.getConfig();
+                newBinding.setConfig(bindingConfig);
                 removeBinding(binding.getBindingId());
                 log.info("Replaced device in binding: {} -> {}", 
                     binding.getBindingId(), newBinding.getBindingId());

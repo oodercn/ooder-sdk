@@ -27,7 +27,7 @@ public class DriverProxyFactory {
     
     @SuppressWarnings("unchecked")
     public static <T> T createCachedProxy(Class<T> interfaceType, DriverInvocationHandler handler) {
-        return proxyCache.computeIfAbsent(interfaceType, 
+        return (T) proxyCache.computeIfAbsent(interfaceType, 
             type -> createProxy(interfaceType, handler));
     }
     
