@@ -48,6 +48,7 @@ public interface LlmDriver {
         private double topP = 1.0;
         private int timeout = 60000;
         private int maxRetries = 3;
+        private boolean simulationMode = false;
         private Map<String, Object> properties = new java.util.concurrent.ConcurrentHashMap<>();
         
         public String getEndpoint() { return endpoint; }
@@ -76,6 +77,9 @@ public interface LlmDriver {
         
         public int getMaxRetries() { return maxRetries; }
         public void setMaxRetries(int maxRetries) { this.maxRetries = maxRetries; }
+        
+        public boolean isSimulationMode() { return simulationMode; }
+        public void setSimulationMode(boolean simulationMode) { this.simulationMode = simulationMode; }
         
         public Map<String, Object> getProperties() { return properties; }
         public void setProperties(Map<String, Object> properties) { this.properties = properties; }
