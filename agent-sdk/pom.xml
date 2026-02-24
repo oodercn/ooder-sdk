@@ -13,7 +13,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>0.7.3</version>
+    <version>0.8.0</version>
     <packaging>jar</packaging>
 
     <name>Ooder Agent SDK</name>
