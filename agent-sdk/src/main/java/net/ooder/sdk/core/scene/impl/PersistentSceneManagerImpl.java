@@ -593,4 +593,15 @@ public class PersistentSceneManagerImpl implements SceneManager {
             return null;
         });
     }
+    
+    @Override
+    public CompletableFuture<Void> stopWorkflow(String sceneId) {
+        return CompletableFuture.runAsync(() -> {
+            SceneState state = sceneStates.get(sceneId);
+            if (state != null) {
+                state.setWorkflowStatus("STOPPED");
+                log.info("Workflow stopped for scene: {}", sceneId);
+            }
+        });
+    }
 }
