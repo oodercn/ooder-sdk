@@ -63,6 +63,14 @@ public class DeviceBinding {
         this.updatedAt = System.currentTimeMillis();
     }
     
+    public void setConfig(Map<String, Object> config) {
+        this.config.clear();
+        if (config != null) {
+            this.config.putAll(config);
+        }
+        this.updatedAt = System.currentTimeMillis();
+    }
+    
     public void addHistory(String action, String description) {
         history.add(new BindingHistory(action, description, System.currentTimeMillis()));
     }
