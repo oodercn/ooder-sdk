@@ -595,6 +595,20 @@ public class PersistentSceneManagerImpl implements SceneManager {
     }
     
     @Override
+    public CompletableFuture<String> startWorkflow(String sceneId, String workflowId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SceneState state = sceneStates.get(sceneId);
+            if (state != null) {
+                state.setCurrentWorkflowId(workflowId);
+                state.setWorkflowStatus("RUNNING");
+                log.info("Workflow {} started for scene: {}", workflowId, sceneId);
+                return workflowId;
+            }
+            return null;
+        });
+    }
+    
+    @Override
     public CompletableFuture<Void> stopWorkflow(String sceneId) {
         return CompletableFuture.runAsync(() -> {
             SceneState state = sceneStates.get(sceneId);
