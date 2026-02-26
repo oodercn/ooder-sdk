@@ -1,6 +1,6 @@
 package net.ooder.scene.core;
 
-import net.ooder.scene.core.SceneAgent;
+import net.ooder.scene.core.SceneAgentCore;
 
 import java.io.*;
 import java.util.Map;
@@ -8,11 +8,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ScenePersistenceService {
     private String storagePath;
-    private Map<String, SceneAgent> cachedAgents;
+    private Map<String, SceneAgentCore> cachedAgents;
 
     public ScenePersistenceService(String storagePath) {
         this.storagePath = storagePath;
-        this.cachedAgents = new ConcurrentHashMap<>();
+        this.cachedAgents = new ConcurrentHashMap<String, SceneAgentCore>();
         // 确保存储目录存在
         File dir = new File(storagePath);
         if (!dir.exists()) {
@@ -20,7 +20,7 @@ public class ScenePersistenceService {
         }
     }
 
-    public void saveSceneState(String sceneId, SceneAgent agent) {
+    public void saveSceneState(String sceneId, SceneAgentCore agent) {
         // 缓存场景代理
         cachedAgents.put(sceneId, agent);
 
@@ -32,16 +32,16 @@ public class ScenePersistenceService {
             Map<String, Object> state = new ConcurrentHashMap<>();
             state.put("sceneId", sceneId);
             state.put("agentId", agent.getAgentId());
-            state.put("state", agent.getState());
+            state.put("state", agent.getAgentCoreState());
             oos.writeObject(state);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public SceneAgent loadSceneState(String sceneId) {
+    public SceneAgentCore loadSceneState(String sceneId) {
         // 先检查缓存
-        SceneAgent agent = cachedAgents.get(sceneId);
+        SceneAgentCore agent = cachedAgents.get(sceneId);
         if (agent != null) {
             return agent;
         }
@@ -55,7 +55,7 @@ public class ScenePersistenceService {
                 // 暂时只加载场景ID和状态
                 Map<String, Object> state = (Map<String, Object>) ois.readObject();
                 // 创建新的场景代理
-                agent = new net.ooder.scene.core.impl.DefaultSceneAgent();
+                agent = new net.ooder.scene.core.impl.SceneAgentBridge();
                 cachedAgents.put(sceneId, agent);
                 return agent;
             } catch (IOException | ClassNotFoundException e) {

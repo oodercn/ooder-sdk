@@ -1,5 +1,7 @@
 package net.ooder.scene.core.provider;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.config.ConfigEvent;
 import net.ooder.scene.core.PageResult;
 import net.ooder.scene.core.Result;
 import net.ooder.scene.core.SceneEngine;
@@ -29,10 +31,15 @@ public class ConfigProviderImpl implements ConfigProvider {
     private boolean initialized = false;
     private boolean running = false;
     private SceneEngine engine;
+    private SceneEventPublisher eventPublisher;
     
     private final Map<String, String> configs = new ConcurrentHashMap<>();
     private final Map<String, List<ConfigHistory>> configHistory = new ConcurrentHashMap<>();
     private final AtomicLong historyIdGenerator = new AtomicLong(0);
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     @Override
     public String getProviderName() {
@@ -163,6 +170,8 @@ public class ConfigProviderImpl implements ConfigProvider {
         
         addConfigHistory(key, oldValue, value, "system", "Config updated");
         
+        publishConfigEvent(ConfigEvent.set(this, key, extractGroup(key), oldValue, value, "system"));
+        
         return Result.success(true);
     }
 
@@ -187,6 +196,8 @@ public class ConfigProviderImpl implements ConfigProvider {
             }
         }
         
+        publishConfigEvent(ConfigEvent.batchSet(this, "batch", configs.size(), "system"));
+        
         return Result.success(true);
     }
 
@@ -199,6 +210,7 @@ public class ConfigProviderImpl implements ConfigProvider {
         String oldValue = configs.remove(key);
         if (oldValue != null) {
             addConfigHistory(key, oldValue, null, "system", "Config deleted");
+            publishConfigEvent(ConfigEvent.deleted(this, key, extractGroup(key), "system"));
             return Result.success(true);
         }
         
@@ -618,6 +630,9 @@ public class ConfigProviderImpl implements ConfigProvider {
         setConfig("security.maxLoginAttempts", config.getMaxLoginAttempts());
         setConfig("security.passwordPolicy", config.getPasswordPolicy());
         setConfig("security.twoFactorEnabled", config.isTwoFactorEnabled());
+        
+        publishConfigEvent(ConfigEvent.securityConfigChanged(this, "system"));
+        
         return Result.success(true);
     }
 
@@ -707,5 +722,17 @@ public class ConfigProviderImpl implements ConfigProvider {
         String value = configs.get(key);
         if (value == null) return defaultValue;
         return Boolean.parseBoolean(value);
+    }
+    
+    private String extractGroup(String key) {
+        if (key == null) return null;
+        int dotIndex = key.indexOf('.');
+        return dotIndex > 0 ? key.substring(0, dotIndex) : "default";
+    }
+    
+    private void publishConfigEvent(ConfigEvent event) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(event);
+        }
     }
 }

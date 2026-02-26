@@ -1,5 +1,9 @@
 package net.ooder.scene.core.security;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.security.OperationDeniedEvent;
+import net.ooder.scene.event.skill.SkillEvent;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +18,7 @@ public abstract class SecureSkillService implements SkillService {
     protected AuditService auditService;
     protected PermissionService permissionService;
     protected List<SecurityInterceptor> interceptors;
+    protected SceneEventPublisher eventPublisher;
 
     @Override
     public final Object execute(SkillRequest request) {
@@ -27,6 +32,8 @@ public abstract class SecureSkillService implements SkillService {
                 auditService.logOperation(context, request.getOperation(),
                     getResourceType(), request.getResourceId(),
                     OperationResult.DENIED, details);
+                publishOperationDenied(context.getUserId(), request.getOperation(), 
+                    request.getResourceId(), result.getDenyReason());
                 return SkillResponse.denied(result.getDenyReason());
             }
         }
@@ -38,6 +45,8 @@ public abstract class SecureSkillService implements SkillService {
             auditService.logOperation(context, request.getOperation(),
                 getResourceType(), request.getResourceId(),
                 OperationResult.DENIED, details);
+            publishOperationDenied(context.getUserId(), request.getOperation(),
+                request.getResourceId(), "Permission denied");
             return SkillResponse.denied("Permission denied");
         }
 
@@ -67,6 +76,8 @@ public abstract class SecureSkillService implements SkillService {
             for (SecurityInterceptor interceptor : interceptors) {
                 interceptor.onError(context, request, e);
             }
+            
+            publishSkillExecutionError(getSkillId(), getSkillId(), e.getMessage());
 
             return SkillResponse.error(e.getMessage());
         }
@@ -111,6 +122,22 @@ public abstract class SecureSkillService implements SkillService {
     
     protected String getSkillId() {
         return "unknown";
+    }
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+    
+    private void publishOperationDenied(String userId, String operation, String resource, String reason) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(new OperationDeniedEvent(this, userId, operation, resource, reason));
+        }
+    }
+    
+    private void publishSkillExecutionError(String skillId, String skillName, String error) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(SkillEvent.executionError(this, skillId, skillName, error));
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 package net.ooder.scene.protocol.impl;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.peer.PeerEvent;
 import net.ooder.scene.protocol.*;
 
 import java.util.*;
@@ -22,11 +24,16 @@ public class DiscoveryProtocolAdapterImpl implements DiscoveryProtocolAdapter {
     private String localPeerType;
     private int discoveryTimeout = 30000;
     private int maxPeers = 100;
+    private SceneEventPublisher eventPublisher;
 
     public DiscoveryProtocolAdapterImpl() {
         this.localPeerId = UUID.randomUUID().toString();
         this.localPeerName = "local-node";
         this.localPeerType = "SEC_ENGINE";
+    }
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     public void setLocalPeerId(String localPeerId) {
@@ -185,12 +192,14 @@ public class DiscoveryProtocolAdapterImpl implements DiscoveryProtocolAdapter {
             if (!Objects.equals(oldStatus, newStatus)) {
                 existingPeer.setStatus(newStatus);
                 notifyPeerStatusChanged(peer.getPeerId(), oldStatus, newStatus);
+                publishPeerEvent(PeerEvent.statusChanged(this, peer.getPeerId(), oldStatus, newStatus));
             }
         } else {
             peer.setRegisteredAt(System.currentTimeMillis());
             peer.setLastSeen(System.currentTimeMillis());
             peerRegistry.put(peer.getPeerId(), peer);
             notifyPeerDiscovered(peer);
+            publishPeerEvent(PeerEvent.discovered(this, peer));
         }
     }
 
@@ -202,6 +211,7 @@ public class DiscoveryProtocolAdapterImpl implements DiscoveryProtocolAdapter {
         Peer peer = peerRegistry.remove(peerId);
         if (peer != null) {
             notifyPeerOffline(peerId);
+            publishPeerEvent(PeerEvent.offline(this, peerId));
         }
     }
 
@@ -216,6 +226,7 @@ public class DiscoveryProtocolAdapterImpl implements DiscoveryProtocolAdapter {
             peer.setStatus(status);
             peer.setLastSeen(System.currentTimeMillis());
             notifyPeerStatusChanged(peerId, oldStatus, status);
+            publishPeerEvent(PeerEvent.statusChanged(this, peerId, oldStatus, status));
         }
     }
 
@@ -302,6 +313,12 @@ public class DiscoveryProtocolAdapterImpl implements DiscoveryProtocolAdapter {
                 listener.onPeerStatusChanged(peerId, oldStatus, newStatus);
             } catch (Exception e) {
             }
+        }
+    }
+    
+    private void publishPeerEvent(PeerEvent event) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(event);
         }
     }
 }

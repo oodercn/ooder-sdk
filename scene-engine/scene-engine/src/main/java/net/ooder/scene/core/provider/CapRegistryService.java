@@ -1,5 +1,7 @@
 package net.ooder.scene.core.provider;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.capability.CapabilityEvent;
 import net.ooder.scene.core.CapabilityInfo;
 import net.ooder.scene.core.CapRegistry;
 
@@ -9,24 +11,29 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CapRegistryService {
     private CapRegistry registry;
     private Map<String, CapVersionManager> versionManagers;
+    private SceneEventPublisher eventPublisher;
 
     public CapRegistryService() {
         this.registry = new CapRegistry();
         this.versionManagers = new ConcurrentHashMap<>();
     }
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     public void registerCapability(CapabilityInfo info) {
-        // 注册能力
         registry.registerCapability(info.getCapId(), info);
 
-        // 初始化版本管理器
         if (!versionManagers.containsKey(info.getCapId())) {
             versionManagers.put(info.getCapId(), new CapVersionManager(info.getCapId()));
         }
 
-        // 管理版本
         CapVersionManager manager = versionManagers.get(info.getCapId());
         manager.addVersion(info.getVersion(), info);
+        
+        publishCapabilityEvent(CapabilityEvent.registered(this, info.getCapId(), 
+            info.getName(), info.getSkillId()));
     }
 
     public CapabilityInfo getCapability(String capId) {
@@ -42,8 +49,13 @@ public class CapRegistryService {
     }
 
     public void unregisterCapability(String capId) {
+        CapabilityInfo info = registry.getCapability(capId);
+        String capName = info != null ? info.getName() : null;
+        
         registry.unregisterCapability(capId);
         versionManagers.remove(capId);
+        
+        publishCapabilityEvent(CapabilityEvent.unregistered(this, capId, capName));
     }
 
     public boolean hasCapability(String capId) {
@@ -52,6 +64,12 @@ public class CapRegistryService {
 
     public Map<String, CapabilityInfo> getAllCapabilities() {
         return registry.getAllCapabilities();
+    }
+    
+    private void publishCapabilityEvent(CapabilityEvent event) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(event);
+        }
     }
 
     private static class CapVersionManager {

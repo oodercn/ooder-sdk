@@ -13,8 +13,13 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>0.8.0</version>
-    <packaging>jar</packaging>
+    <version>2.3</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>skills-framework</module>
+        <module>agent-sdk-core</module>
+    </modules>
 
     <name>Ooder Agent SDK</name>
     <description>Agent SDK for Southbound Protocol Implementation</description>
@@ -60,7 +65,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <maven.javadoc.skip>false</maven.javadoc.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
         <maven.source.skip>false</maven.source.skip>
     </properties>
 
@@ -112,6 +117,9 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.36</version>
         </dependency>
+
+        <!-- scene-engine 依赖已移除，核心接口已迁移到 agent-sdk -->
+        <!-- 依赖方向：scene-engine -> agent-sdk (单向) -->
 
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -230,10 +238,14 @@
                 </configuration>
             </plugin>
             
+            <!-- Source Plugin - 仅在 release 模式执行 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.2.1</version>
+                <configuration>
+                    <skipSource>${maven.source.skip}</skipSource>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -244,11 +256,13 @@
                 </executions>
             </plugin>
             
+            <!-- Javadoc Plugin - 仅在 release 模式执行 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.3.2</version>
                 <configuration>
+                    <skip>${maven.javadoc.skip}</skip>
                     <source>8</source>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
                     <failOnError>false</failOnError>
@@ -261,21 +275,6 @@
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
                         </goals>
                     </execution>
                 </executions>

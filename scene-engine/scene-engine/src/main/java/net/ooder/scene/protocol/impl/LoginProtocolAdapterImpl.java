@@ -1,5 +1,8 @@
 package net.ooder.scene.protocol.impl;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.security.LoginEvent;
+import net.ooder.scene.event.security.LogoutEvent;
 import net.ooder.scene.protocol.*;
 import net.ooder.scene.session.SessionInfo;
 import net.ooder.scene.session.SessionManager;
@@ -25,10 +28,15 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
     private final Map<String, String> tokenToSessionMap = new ConcurrentHashMap<>();
 
     private long sessionTimeout = 1800000L;
+    private SceneEventPublisher eventPublisher;
 
     public LoginProtocolAdapterImpl(SessionManager sessionManager, TokenManager tokenManager) {
         this.sessionManager = sessionManager;
         this.tokenManager = tokenManager;
+    }
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     public void setSessionTimeout(long sessionTimeout) {
@@ -39,15 +47,16 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
     public CompletableFuture<LoginResult> login(LoginRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             LoginResult result = new LoginResult();
+            String username = request.getUsername();
             
             try {
-                String username = request.getUsername();
                 String password = request.getPassword();
                 
                 if (username == null || username.isEmpty()) {
                     result.setSuccess(false);
                     result.setMessage("Username is required");
                     result.setErrorCode("USERNAME_REQUIRED");
+                    publishLoginFailed(username, request.getClientIp(), "Username is required");
                     return result;
                 }
                 
@@ -55,6 +64,7 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
                     result.setSuccess(false);
                     result.setMessage("Password is required");
                     result.setErrorCode("PASSWORD_REQUIRED");
+                    publishLoginFailed(username, request.getClientIp(), "Password is required");
                     return result;
                 }
                 
@@ -63,6 +73,7 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
                     result.setSuccess(false);
                     result.setMessage("Invalid username or password");
                     result.setErrorCode("AUTH_FAILED");
+                    publishLoginFailed(username, request.getClientIp(), "Invalid username or password");
                     return result;
                 }
                 
@@ -83,10 +94,13 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
                 result.setMessage("Login successful");
                 result.setSession(session);
                 
+                publishLoginSuccess(username, userId, request.getClientIp());
+                
             } catch (Exception e) {
                 result.setSuccess(false);
                 result.setMessage("Login failed: " + e.getMessage());
                 result.setErrorCode("SYSTEM_ERROR");
+                publishLoginFailed(username, request.getClientIp(), e.getMessage());
             }
             
             return result;
@@ -103,6 +117,7 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
             Session session = sessionCache.remove(sessionId);
             if (session != null) {
                 sessionManager.destroySession(sessionId);
+                publishLogout(session.getUserId(), session.getUsername(), sessionId);
             }
         });
     }
@@ -232,5 +247,23 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
         session.setLastActiveAt(sessionInfo.getLastActiveAt());
         session.setStatus(sessionInfo.getStatus());
         return session;
+    }
+    
+    private void publishLoginSuccess(String username, String userId, String ipAddress) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(LoginEvent.success(this, username, userId, ipAddress));
+        }
+    }
+    
+    private void publishLoginFailed(String username, String ipAddress, String reason) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(LoginEvent.failed(this, username, ipAddress, reason));
+        }
+    }
+    
+    private void publishLogout(String userId, String username, String sessionId) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(new LogoutEvent(this, userId, username, sessionId));
+        }
     }
 }

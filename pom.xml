@@ -53,17 +53,163 @@
         <maven.compiler.target>8</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         
-        <ooder.version>2.2</ooder.version>
-        <agent-sdk.version>0.7.3</agent-sdk.version>
-        <scene-engine.version>0.7.3</scene-engine.version>
+        <ooder.version>2.3</ooder.version>
+        <agent-sdk.version>2.3</agent-sdk.version>
+        <scene-engine.version>2.3</scene-engine.version>
+        <llm-sdk.version>2.3</llm-sdk.version>
         <spring-boot.version>2.7.0</spring-boot.version>
+        
+        <!-- 打包模式配置: local(本地快速) / release(完整发布) -->
+        <build.mode>local</build.mode>
+        
+        <!-- 本地模式: 跳过测试和文档，保留源码 -->
+        <skipTests>true</skipTests>
+        <maven.test.skip>true</maven.test.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <maven.source.skip>false</maven.source.skip>
+        <gpg.skip>true</gpg.skip>
     </properties>
+    
+    <!-- 打包模式 Profile -->
+    <profiles>
+        <!-- 本地快速打包模式 (默认) - 保留源码，跳过测试和文档 -->
+        <profile>
+            <id>local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <build.mode>local</build.mode>
+                <!-- 跳过测试 -->
+                <skipTests>true</skipTests>
+                <maven.test.skip>true</maven.test.skip>
+                <!-- 跳过 Javadoc -->
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+                <!-- 保留源码打包 -->
+                <maven.source.skip>false</maven.source.skip>
+                <!-- 跳过 GPG 签名 -->
+                <gpg.skip>true</gpg.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- 跳过测试编译 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <executions>
+                            <execution>
+                                <id>default-testCompile</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
+                    <!-- Source Plugin - 保留源码打包 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <!-- 发布模式: 完整编译、测试、文档、签名 -->
+        <profile>
+            <id>release</id>
+            <properties>
+                <build.mode>release</build.mode>
+                <skipTests>false</skipTests>
+                <maven.test.skip>false</maven.test.skip>
+                <maven.javadoc.skip>false</maven.javadoc.skip>
+                <maven.source.skip>false</maven.source.skip>
+                <gpg.skip>false</gpg.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Source Plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
+                    <!-- Javadoc Plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.3.2</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
+                    <!-- GPG Plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <modules>
+        <!-- 基础层 -->
+        <module>ooder-api</module>
+        <module>ooder-util</module>
+        
+        <!-- 基础设施层 -->
+        <module>ooder-infra-core</module>
+        <module>ooder-infra-driver</module>
+        
+        <!-- Skills 层 -->
+        <module>vfs-skill</module>
+        <module>org-skill</module>
+        
+        <!-- 代码生成器 -->
+        <module>ooder-codegen</module>
+        <module>ooder-codegen-cli</module>
+        
+        <!-- 现有模块 -->
         <module>agent-sdk</module>
         <module>ooder-annotation</module>
         <module>ooder-common</module>
         <module>scene-engine</module>
+        <module>llm-sdk</module>
+        <module>skills</module>
     </modules>
 
     <dependencyManagement>
@@ -74,6 +220,45 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            
+            <!-- 基础层 -->
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-api</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-util</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            
+            <!-- 基础设施层 -->
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-infra-core</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-infra-driver</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            
+            <!-- 代码生成器 -->
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-codegen</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-codegen-cli</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
             </dependency>
             
             <dependency>
@@ -128,6 +313,12 @@
                 <groupId>net.ooder</groupId>
                 <artifactId>scene-engine</artifactId>
                 <version>${scene-engine.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>llm-sdk</artifactId>
+                <version>${llm-sdk.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

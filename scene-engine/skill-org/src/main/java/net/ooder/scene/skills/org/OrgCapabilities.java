@@ -182,98 +182,43 @@ public class OrgCapabilities {
             || !supportPersonPosition || !supportPersonRole;
     }
 
+    /**
+     * @deprecated 使用 OrgCapabilitiesFactory 和配置驱动的方式替代
+     */
+    @Deprecated
     public static OrgCapabilities forDingTalk() {
-        OrgCapabilities caps = new OrgCapabilities();
-        caps.setProviderType("dingtalk");
-        caps.setSkillId("skill-org-dingding");
-        caps.setSupportOrgQuery(true);
-        caps.setSupportPersonQuery(true);
-        caps.setSupportPersonSync(true);
-        caps.setSupportOrgSync(true);
-        caps.setSupportOrgLevel(false);
-        caps.setSupportOrgRole(false);
-        caps.setSupportPersonDuty(false);
-        caps.setSupportPersonGroup(false);
-        caps.setSupportPersonLevel(false);
-        caps.setSupportPersonPosition(false);
-        caps.setSupportPersonRole(false);
-        caps.setSupportUserAuth(false);
-        return caps;
+        return OrgCapabilitiesFactory.getInstance().createCapabilities("dingtalk");
     }
 
+    /**
+     * @deprecated 使用 OrgCapabilitiesFactory 和配置驱动的方式替代
+     */
+    @Deprecated
     public static OrgCapabilities forFeishu() {
-        OrgCapabilities caps = new OrgCapabilities();
-        caps.setProviderType("feishu");
-        caps.setSkillId("skill-org-feishu");
-        caps.setSupportOrgQuery(true);
-        caps.setSupportPersonQuery(true);
-        caps.setSupportPersonSync(true);
-        caps.setSupportOrgSync(true);
-        caps.setSupportOrgLevel(false);
-        caps.setSupportOrgRole(false);
-        caps.setSupportPersonDuty(false);
-        caps.setSupportPersonGroup(false);
-        caps.setSupportPersonLevel(false);
-        caps.setSupportPersonPosition(false);
-        caps.setSupportPersonRole(false);
-        caps.setSupportUserAuth(false);
-        return caps;
+        return OrgCapabilitiesFactory.getInstance().createCapabilities("feishu");
     }
 
+    /**
+     * @deprecated 使用 OrgCapabilitiesFactory 和配置驱动的方式替代
+     */
+    @Deprecated
     public static OrgCapabilities forWeCom() {
-        OrgCapabilities caps = new OrgCapabilities();
-        caps.setProviderType("wecom");
-        caps.setSkillId("skill-org-wecom");
-        caps.setSupportOrgQuery(true);
-        caps.setSupportPersonQuery(true);
-        caps.setSupportPersonSync(true);
-        caps.setSupportOrgSync(true);
-        caps.setSupportOrgLevel(false);
-        caps.setSupportOrgRole(false);
-        caps.setSupportPersonDuty(false);
-        caps.setSupportPersonGroup(false);
-        caps.setSupportPersonLevel(false);
-        caps.setSupportPersonPosition(false);
-        caps.setSupportPersonRole(false);
-        caps.setSupportUserAuth(false);
-        return caps;
+        return OrgCapabilitiesFactory.getInstance().createCapabilities("wecom");
     }
 
+    /**
+     * @deprecated 使用 OrgCapabilitiesFactory 和配置驱动的方式替代
+     */
+    @Deprecated
     public static OrgCapabilities forJson() {
-        OrgCapabilities caps = new OrgCapabilities();
-        caps.setProviderType("json");
-        caps.setSupportOrgQuery(true);
-        caps.setSupportPersonQuery(true);
-        caps.setSupportPersonSync(true);
-        caps.setSupportOrgSync(true);
-        caps.setSupportOrgLevel(true);
-        caps.setSupportOrgRole(true);
-        caps.setSupportPersonDuty(true);
-        caps.setSupportPersonGroup(true);
-        caps.setSupportPersonLevel(true);
-        caps.setSupportPersonPosition(true);
-        caps.setSupportPersonRole(true);
-        caps.setSupportUserAuth(true);
-        caps.setSupportOrgAdmin(true);
-        return caps;
+        return OrgCapabilitiesFactory.getInstance().createCapabilities("json");
     }
 
+    /**
+     * @deprecated 使用 OrgCapabilitiesFactory 和配置驱动的方式替代
+     */
+    @Deprecated
     public static OrgCapabilities forDatabase() {
-        OrgCapabilities caps = new OrgCapabilities();
-        caps.setProviderType("database");
-        caps.setSupportOrgQuery(true);
-        caps.setSupportPersonQuery(true);
-        caps.setSupportPersonSync(true);
-        caps.setSupportOrgSync(true);
-        caps.setSupportOrgLevel(true);
-        caps.setSupportOrgRole(true);
-        caps.setSupportPersonDuty(true);
-        caps.setSupportPersonGroup(true);
-        caps.setSupportPersonLevel(true);
-        caps.setSupportPersonPosition(true);
-        caps.setSupportPersonRole(true);
-        caps.setSupportUserAuth(true);
-        caps.setSupportOrgAdmin(true);
-        return caps;
+        return OrgCapabilitiesFactory.getInstance().createCapabilities("database");
     }
 }

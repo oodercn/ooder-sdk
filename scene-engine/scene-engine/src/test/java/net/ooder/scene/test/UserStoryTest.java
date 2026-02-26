@@ -276,19 +276,19 @@ public class UserStoryTest {
         System.out.println("\nStory 4.2: Capability Information");
         System.out.println("----------------------------------------");
         
-        CapabilityInfo capability = new CapabilityInfo();
-        capability.setName("mqtt-broker");
-        capability.setDescription("Provides MQTT broker service");
-        capability.setAsync(false);
+        CapabilityInfo capability = new CapabilityInfo(
+            "cap-001", "mqtt-broker", "1.0.0", "messaging", 
+            "Provides MQTT broker service", "skill-mqtt", "publish"
+        );
         
         assertEquals("mqtt-broker", capability.getName());
         assertEquals("Provides MQTT broker service", capability.getDescription());
-        assertFalse("Should be sync", capability.isAsync());
+        assertEquals("cap-001", capability.getCapId());
         
         System.out.println("Capability info verified:");
         System.out.println("  - Name: " + capability.getName());
         System.out.println("  - Description: " + capability.getDescription());
-        System.out.println("  - Async: " + capability.isAsync());
+        System.out.println("  - CapId: " + capability.getCapId());
     }
 
     // ==================== Story 5: Engine Status ====================

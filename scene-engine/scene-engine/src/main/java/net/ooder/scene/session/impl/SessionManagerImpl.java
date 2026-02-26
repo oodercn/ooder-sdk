@@ -1,5 +1,7 @@
 package net.ooder.scene.session.impl;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.session.SessionEvent;
 import net.ooder.scene.session.SessionInfo;
 import net.ooder.scene.session.SessionManager;
 
@@ -16,6 +18,7 @@ public class SessionManagerImpl implements SessionManager {
     
     private long sessionTimeout = 1800000L;
     private int maxSessionsPerUser = 10;
+    private SceneEventPublisher eventPublisher;
 
     public void setSessionTimeout(long sessionTimeout) {
         this.sessionTimeout = sessionTimeout;
@@ -23,6 +26,10 @@ public class SessionManagerImpl implements SessionManager {
 
     public void setMaxSessionsPerUser(int maxSessionsPerUser) {
         this.maxSessionsPerUser = maxSessionsPerUser;
+    }
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -50,6 +57,8 @@ public class SessionManagerImpl implements SessionManager {
             String oldestSessionId = userSessionList.remove(0);
             sessions.remove(oldestSessionId);
         }
+        
+        publishSessionEvent(SessionEvent.created(this, sessionId, userId));
         
         return session;
     }
@@ -108,6 +117,8 @@ public class SessionManagerImpl implements SessionManager {
         session.setExpiresAt(now + sessionTimeout);
         session.setLastActiveAt(now);
         
+        publishSessionEvent(SessionEvent.refreshed(this, sessionId, session.getUserId()));
+        
         return session;
     }
 
@@ -127,6 +138,7 @@ public class SessionManagerImpl implements SessionManager {
                     userSessions.remove(userId);
                 }
             }
+            publishSessionEvent(SessionEvent.destroyed(this, sessionId, userId));
         }
     }
 
@@ -139,6 +151,7 @@ public class SessionManagerImpl implements SessionManager {
         SessionInfo session = sessions.get(sessionId);
         if (session != null && !session.isExpired()) {
             session.setLastActiveAt(System.currentTimeMillis());
+            publishSessionEvent(SessionEvent.touched(this, sessionId, session.getUserId()));
         }
     }
 
@@ -175,6 +188,7 @@ public class SessionManagerImpl implements SessionManager {
             for (String sessionId : sessionIds) {
                 sessions.remove(sessionId);
             }
+            publishSessionEvent(SessionEvent.userSessionsCleared(this, userId));
         }
     }
 
@@ -201,7 +215,14 @@ public class SessionManagerImpl implements SessionManager {
                         userSessions.remove(userId);
                     }
                 }
+                publishSessionEvent(SessionEvent.expired(this, entry.getKey(), userId));
             }
+        }
+    }
+    
+    private void publishSessionEvent(SessionEvent event) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(event);
         }
     }
 }

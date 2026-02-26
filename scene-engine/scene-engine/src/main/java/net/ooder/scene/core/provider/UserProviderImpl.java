@@ -1,5 +1,7 @@
 package net.ooder.scene.core.provider;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.user.UserEvent;
 import net.ooder.scene.core.PageResult;
 import net.ooder.scene.core.Result;
 import net.ooder.scene.core.SceneEngine;
@@ -20,12 +22,17 @@ public class UserProviderImpl implements UserProvider {
     private boolean initialized = false;
     private boolean running = false;
     private SceneEngine engine;
+    private SceneEventPublisher eventPublisher;
 
     private final Map<String, UserInfo> userRegistry = new ConcurrentHashMap<>();
     private final Map<String, Permission> permissionRegistry = new ConcurrentHashMap<>();
     private final Map<String, List<String>> userPermissions = new ConcurrentHashMap<>();
     private final List<SecurityLog> securityLogs = new ArrayList<>();
     private final int maxLogsSize = 1000;
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     @Override
     public String getProviderName() {
@@ -216,6 +223,8 @@ public class UserProviderImpl implements UserProvider {
         
         addSecurityLog(user.getUserId(), "create", "user", "User created: " + username);
         
+        publishUserEvent(UserEvent.created(this, user.getUserId(), username, "system"));
+        
         return Result.success(user);
     }
 
@@ -253,6 +262,8 @@ public class UserProviderImpl implements UserProvider {
         
         addSecurityLog(userId, "update", "user", "User updated: " + user.getUsername());
         
+        publishUserEvent(UserEvent.updated(this, userId, user.getUsername(), "system"));
+        
         return Result.success(user);
     }
 
@@ -270,6 +281,8 @@ public class UserProviderImpl implements UserProvider {
         userPermissions.remove(userId);
         
         addSecurityLog(userId, "delete", "user", "User deleted: " + user.getUsername());
+        
+        publishUserEvent(UserEvent.deleted(this, userId, user.getUsername(), "system"));
         
         return Result.success(true);
     }
@@ -290,6 +303,8 @@ public class UserProviderImpl implements UserProvider {
         
         addSecurityLog(userId, "enable", "user", "User enabled: " + user.getUsername());
         
+        publishUserEvent(UserEvent.enabled(this, userId, user.getUsername(), "system"));
+        
         return Result.success(user);
     }
 
@@ -308,6 +323,8 @@ public class UserProviderImpl implements UserProvider {
         user.setUpdatedAt(System.currentTimeMillis());
         
         addSecurityLog(userId, "disable", "user", "User disabled: " + user.getUsername());
+        
+        publishUserEvent(UserEvent.disabled(this, userId, user.getUsername(), "system", "Disabled by administrator"));
         
         return Result.success(user);
     }
@@ -349,6 +366,8 @@ public class UserProviderImpl implements UserProvider {
         
         addSecurityLog(userId, "update", "permissions", "Permissions updated");
         
+        publishUserEvent(UserEvent.permissionsChanged(this, userId, "system"));
+        
         return Result.success(true);
     }
 
@@ -387,6 +406,12 @@ public class UserProviderImpl implements UserProvider {
         
         while (securityLogs.size() > maxLogsSize) {
             securityLogs.remove(0);
+        }
+    }
+    
+    private void publishUserEvent(UserEvent event) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(event);
         }
     }
 }

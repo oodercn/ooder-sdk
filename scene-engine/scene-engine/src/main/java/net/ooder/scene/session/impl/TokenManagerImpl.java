@@ -1,5 +1,7 @@
 package net.ooder.scene.session.impl;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.security.TokenEvent;
 import net.ooder.scene.session.TokenInfo;
 import net.ooder.scene.session.TokenManager;
 
@@ -22,6 +24,7 @@ public class TokenManagerImpl implements TokenManager {
     private long tokenExpiration = 3600000L;
     private long refreshTokenExpiration = 604800000L;
     private String secretKey = "ooder-scene-engine-secret-key";
+    private SceneEventPublisher eventPublisher;
 
     public void setTokenExpiration(long tokenExpiration) {
         this.tokenExpiration = tokenExpiration;
@@ -33,6 +36,10 @@ public class TokenManagerImpl implements TokenManager {
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
+    }
+    
+    public void setEventPublisher(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -58,6 +65,8 @@ public class TokenManagerImpl implements TokenManager {
         
         tokenStore.put(token, tokenInfo);
         
+        publishTokenEvent(TokenEvent.generated(this, tokenId, subject));
+        
         return tokenInfo;
     }
 
@@ -68,16 +77,19 @@ public class TokenManagerImpl implements TokenManager {
         }
         
         if (revokedTokens.contains(token)) {
+            publishTokenEvent(TokenEvent.validationFailed(this, token, "Token has been revoked"));
             return null;
         }
         
         TokenInfo tokenInfo = tokenStore.get(token);
         if (tokenInfo == null) {
+            publishTokenEvent(TokenEvent.validationFailed(this, token, "Token not found"));
             return null;
         }
         
         if (System.currentTimeMillis() > tokenInfo.getExpiresAt()) {
             tokenStore.remove(token);
+            publishTokenEvent(TokenEvent.expired(this, token, tokenInfo.getSubject()));
             return null;
         }
         
@@ -111,8 +123,13 @@ public class TokenManagerImpl implements TokenManager {
             return;
         }
         
+        TokenInfo tokenInfo = tokenStore.get(token);
+        String subject = tokenInfo != null ? tokenInfo.getSubject() : null;
+        
         revokedTokens.add(token);
         tokenStore.remove(token);
+        
+        publishTokenEvent(TokenEvent.revoked(this, token, subject));
     }
 
     @Override
@@ -175,8 +192,15 @@ public class TokenManagerImpl implements TokenManager {
         while (iterator.hasNext()) {
             Map.Entry<String, TokenInfo> entry = iterator.next();
             if (entry.getValue().getExpiresAt() < now) {
+                publishTokenEvent(TokenEvent.expired(this, entry.getKey(), entry.getValue().getSubject()));
                 iterator.remove();
             }
+        }
+    }
+    
+    private void publishTokenEvent(TokenEvent event) {
+        if (eventPublisher != null) {
+            eventPublisher.publish(event);
         }
     }
 }
