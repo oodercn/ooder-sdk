@@ -2,7 +2,7 @@ package net.ooder.sdk.discovery.git;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

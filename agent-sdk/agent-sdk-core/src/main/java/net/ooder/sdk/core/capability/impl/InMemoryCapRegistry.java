@@ -197,7 +197,7 @@ public class InMemoryCapRegistry implements CapRegistry {
         stats.setHealthyCapabilities((int) domainCaps.stream()
             .filter(cap -> cap.getStatus() == CapabilityStatus.HEALTHY).count());
 
-        Map<CapabilityType, Integer> typeDist = new HashMap<>();
+        Map<String, Integer> typeDist = new HashMap<>();
         for (Capability cap : domainCaps) {
             if (cap.getType() != null) {
                 typeDist.merge(cap.getType(), 1, Integer::sum);

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import net.ooder.sdk.api.skill.SkillPackage;
 import net.ooder.sdk.api.scene.SceneGroup;
+import net.ooder.skills.api.SkillPackage;
 
 public interface McpAgent extends Agent {
     

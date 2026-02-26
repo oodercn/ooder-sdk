@@ -1,6 +1,6 @@
 package net.ooder.sdk.api.agent;
 
-import net.ooder.sdk.api.skill.SkillService;
+import net.ooder.skills.api.SkillService;
 
 import java.util.List;
 import java.util.Map;

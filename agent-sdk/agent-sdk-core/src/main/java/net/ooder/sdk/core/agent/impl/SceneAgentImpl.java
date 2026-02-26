@@ -7,7 +7,7 @@ import net.ooder.sdk.api.capability.CapAddress;
 import net.ooder.sdk.api.capability.CapRegistry;
 import net.ooder.sdk.api.capability.Capability;
 import net.ooder.sdk.core.capability.impl.InMemoryCapRegistry;
-import net.ooder.sdk.api.skill.SkillInvoker;
+import net.ooder.skills.api.SkillInvoker;
 import net.ooder.sdk.common.enums.AgentType;
 import net.ooder.sdk.core.event.EventBean;
 import net.ooder.sdk.core.event.agent.AgentStateChangedEvent;

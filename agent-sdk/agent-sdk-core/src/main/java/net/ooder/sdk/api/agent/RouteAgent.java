@@ -1,11 +1,12 @@
 
 package net.ooder.sdk.api.agent;
 
+import net.ooder.skills.api.SkillPackage;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import net.ooder.sdk.api.skill.SkillPackage;
 
 public interface RouteAgent extends Agent {
     

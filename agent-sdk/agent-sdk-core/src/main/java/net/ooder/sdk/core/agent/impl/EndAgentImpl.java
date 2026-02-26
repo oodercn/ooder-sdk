@@ -7,18 +7,18 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.ooder.skills.core.impl.LocalSkillRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.ooder.sdk.api.agent.Agent;
 import net.ooder.sdk.api.agent.EndAgent;
 import net.ooder.sdk.api.scene.SceneGroupKey;
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillPackage;
 import net.ooder.sdk.common.enums.AgentType;
 import net.ooder.sdk.common.enums.MemberRole;
 import net.ooder.sdk.core.agent.model.AgentConfig;
 import net.ooder.sdk.core.agent.model.AgentStateInfo;
-import net.ooder.sdk.core.skill.impl.LocalSkillRegistry;
 
 public class EndAgentImpl implements EndAgent, Agent {
     

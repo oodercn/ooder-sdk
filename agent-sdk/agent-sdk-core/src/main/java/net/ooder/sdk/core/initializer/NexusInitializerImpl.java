@@ -4,7 +4,7 @@ import net.ooder.sdk.api.initializer.NexusInitializer;
 import net.ooder.sdk.api.initializer.SceneGroupLoader;
 import net.ooder.sdk.api.scene.SceneDefinition;
 import net.ooder.sdk.api.scene.SceneManager;
-import net.ooder.sdk.api.skill.*;
+import net.ooder.skills.api.*;
 import net.ooder.sdk.common.enums.DiscoveryMethod;
 import net.ooder.sdk.discovery.git.GitDiscoveryConfig;
 import net.ooder.sdk.discovery.git.GitRepositoryDiscoverer;

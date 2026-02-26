@@ -1,6 +1,7 @@
 package net.ooder.sdk;
 
-import net.ooder.sdk.api.skill.SkillPackageManager;
+import net.ooder.skills.api.InterfaceDefinition;
+import net.ooder.skills.api.SkillPackageManager;
 import net.ooder.sdk.infra.config.interfaceconf.InterfaceConfigManager;
 import net.ooder.sdk.core.driver.loader.InterfaceDriverLoader;
 import net.ooder.sdk.core.driver.discovery.DriverDiscovery;
@@ -55,7 +56,7 @@ public interface OoderSdk {
     
     void unregisterDriver(String interfaceId, String skillId);
     
-    void registerInterface(net.ooder.sdk.api.skill.InterfaceDefinition definition);
+    void registerInterface(InterfaceDefinition definition);
     
     void unregisterInterface(String interfaceId);
     

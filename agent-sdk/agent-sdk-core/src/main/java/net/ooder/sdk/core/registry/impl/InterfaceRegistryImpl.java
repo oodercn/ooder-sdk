@@ -1,7 +1,7 @@
 package net.ooder.sdk.core.registry.impl;
 
-import net.ooder.sdk.api.skill.InterfaceDefinition;
-import net.ooder.sdk.api.skill.InterfaceDependency;
+import net.ooder.skills.api.InterfaceDefinition;
+import net.ooder.skills.api.InterfaceDependency;
 import net.ooder.sdk.core.registry.InterfaceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,8 +1,8 @@
 package net.ooder.sdk.deployment.impl;
 
-import net.ooder.sdk.api.skill.SkillRegistry;
-import net.ooder.sdk.api.skill.InstalledSkill;
-import net.ooder.sdk.core.skill.installer.SkillInstaller;
+import net.ooder.skills.api.SkillInstaller;
+import net.ooder.skills.api.SkillRegistry;
+import net.ooder.skills.api.InstalledSkill;
 import net.ooder.sdk.deployment.BlueGreenDeploymentManager;
 import net.ooder.sdk.deployment.DeploymentConfig;
 import net.ooder.sdk.deployment.DeploymentResult;

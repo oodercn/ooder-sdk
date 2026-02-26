@@ -17,11 +17,33 @@
     <description>Core Agent SDK implementation</description>
 
     <dependencies>
-        <!-- 依赖 skills-framework -->
+        <!-- API层 -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>agent-sdk-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Scene引擎 -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>scene-engine</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Skills框架 -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>skills-framework</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- LLM SDK (可选) -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>llm-sdk</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
 
         <!-- Spring Boot -->

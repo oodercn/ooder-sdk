@@ -60,7 +60,7 @@ public interface CapRegistry {
         private int totalCapabilities;
         private int enabledCapabilities;
         private int healthyCapabilities;
-        private Map<CapabilityType, Integer> typeDistribution;
+        private Map<String, Integer> typeDistribution;
 
         public String getDomainId() { return domainId; }
         public void setDomainId(String domainId) { this.domainId = domainId; }
@@ -70,7 +70,7 @@ public interface CapRegistry {
         public void setEnabledCapabilities(int enabledCapabilities) { this.enabledCapabilities = enabledCapabilities; }
         public int getHealthyCapabilities() { return healthyCapabilities; }
         public void setHealthyCapabilities(int healthyCapabilities) { this.healthyCapabilities = healthyCapabilities; }
-        public Map<CapabilityType, Integer> getTypeDistribution() { return typeDistribution; }
-        public void setTypeDistribution(Map<CapabilityType, Integer> typeDistribution) { this.typeDistribution = typeDistribution; }
+        public Map<String, Integer> getTypeDistribution() { return typeDistribution; }
+        public void setTypeDistribution(Map<String, Integer> typeDistribution) { this.typeDistribution = typeDistribution; }
     }
 }

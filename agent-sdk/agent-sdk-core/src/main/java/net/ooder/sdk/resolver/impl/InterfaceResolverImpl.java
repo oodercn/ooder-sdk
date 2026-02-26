@@ -1,7 +1,7 @@
 package net.ooder.sdk.resolver.impl;
 
-import net.ooder.sdk.api.skill.InterfaceDefinition;
-import net.ooder.sdk.api.skill.InterfaceDependency;
+import net.ooder.skills.api.InterfaceDefinition;
+import net.ooder.skills.api.InterfaceDependency;
 import net.ooder.sdk.core.driver.loader.InterfaceDriverLoader;
 import net.ooder.sdk.core.registry.InterfaceRegistry;
 import net.ooder.sdk.resolver.InterfaceResolver;

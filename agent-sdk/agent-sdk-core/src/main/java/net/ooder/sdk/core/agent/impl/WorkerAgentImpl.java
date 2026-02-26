@@ -1,7 +1,8 @@
 package net.ooder.sdk.core.agent.impl;
 
 import net.ooder.sdk.api.agent.WorkerAgent;
-import net.ooder.sdk.api.skill.SkillService;
+import net.ooder.skills.api.SkillRequest;
+import net.ooder.skills.api.SkillService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,7 +180,7 @@ public class WorkerAgentImpl implements WorkerAgent {
         
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Object result = skill.execute(new net.ooder.sdk.api.skill.SkillRequest());
+                Object result = skill.execute(new SkillRequest());
                 workerStatus.set(WorkerAgentStatus.IDLE);
                 return result;
             } catch (Exception e) {

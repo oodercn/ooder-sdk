@@ -1,7 +1,7 @@
 package net.ooder.sdk.core.registry;
 
-import net.ooder.sdk.api.skill.InterfaceDefinition;
-import net.ooder.sdk.api.skill.InterfaceDependency;
+import net.ooder.skills.api.InterfaceDefinition;
+import net.ooder.skills.api.InterfaceDependency;
 
 import java.util.List;
 import java.util.Optional;

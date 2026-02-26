@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import net.ooder.sdk.api.agent.Agent;
 import net.ooder.sdk.api.agent.McpAgent;
 import net.ooder.sdk.api.scene.SceneGroup;
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillPackage;
 import net.ooder.sdk.common.enums.AgentType;
 import net.ooder.sdk.core.agent.model.AgentConfig;
 import net.ooder.sdk.core.agent.model.AgentStateInfo;

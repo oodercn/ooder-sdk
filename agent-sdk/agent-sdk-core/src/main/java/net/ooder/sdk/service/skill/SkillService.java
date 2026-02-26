@@ -7,15 +7,15 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.ooder.sdk.api.skill.InstallRequest;
-import net.ooder.sdk.api.skill.InstallResult;
-import net.ooder.sdk.api.skill.InstalledSkill;
-import net.ooder.sdk.api.skill.SkillManifest;
-import net.ooder.sdk.api.skill.SkillPackage;
-import net.ooder.sdk.api.skill.SkillPackageManager;
-import net.ooder.sdk.api.skill.UninstallResult;
-import net.ooder.sdk.api.skill.UpdateResult;
-import net.ooder.sdk.common.enums.DiscoveryMethod;
+import net.ooder.skills.api.InstallRequest;
+import net.ooder.skills.api.InstallResult;
+import net.ooder.skills.api.InstalledSkill;
+import net.ooder.skills.api.SkillManifest;
+import net.ooder.skills.api.SkillPackage;
+import net.ooder.skills.api.SkillPackageManager;
+import net.ooder.skills.api.UninstallResult;
+import net.ooder.skills.api.UpdateResult;
+import net.ooder.skills.common.enums.DiscoveryMethod;
 
 public class SkillService {
     

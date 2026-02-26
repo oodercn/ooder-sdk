@@ -1,6 +1,6 @@
 package net.ooder.sdk.discovery.git;
 
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillPackage;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

@@ -1,8 +1,8 @@
 package net.ooder.sdk.service.llm;
 
-import net.ooder.sdk.api.llm.ChatRequest;
-import net.ooder.sdk.api.llm.FunctionDef;
-import net.ooder.sdk.api.llm.TokenUsage;
+import net.ooder.llm.api.ChatRequest;
+import net.ooder.llm.api.FunctionDef;
+import net.ooder.llm.api.TokenUsage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * @author ooder Team
  * @since 0.7.1
  */
-public class LlmServiceImpl implements net.ooder.sdk.api.llm.LlmService {
+public class LlmServiceImpl implements net.ooder.llm.api.LlmService {
 
     private static final Logger log = LoggerFactory.getLogger(LlmServiceImpl.class);
 

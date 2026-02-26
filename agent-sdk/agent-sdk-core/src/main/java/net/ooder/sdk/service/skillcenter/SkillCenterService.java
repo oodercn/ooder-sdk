@@ -7,8 +7,8 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.ooder.sdk.api.skill.SkillCenterClient;
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillCenterClient;
+import net.ooder.skills.api.SkillPackage;
 import net.ooder.sdk.service.skillcenter.RemoteDeploymentService.DeploymentResult;
 
 public class SkillCenterService {

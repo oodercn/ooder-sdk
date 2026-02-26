@@ -1,8 +1,8 @@
 package net.ooder.sdk.impl;
 
 import net.ooder.sdk.OoderSdk;
-import net.ooder.sdk.api.skill.InterfaceDefinition;
-import net.ooder.sdk.api.skill.SkillPackageManager;
+import net.ooder.skills.api.InterfaceDefinition;
+import net.ooder.skills.api.SkillPackageManager;
 import net.ooder.sdk.infra.config.interfaceconf.InterfaceConfigManager;
 import net.ooder.sdk.infra.config.interfaceconf.impl.InterfaceConfigManagerImpl;
 import net.ooder.sdk.core.driver.loader.InterfaceDriverLoader;

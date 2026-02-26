@@ -1,8 +1,8 @@
 package net.ooder.sdk.migration.impl;
 
-import net.ooder.sdk.api.skill.SkillRegistry;
-import net.ooder.sdk.api.skill.InstalledSkill;
 import net.ooder.sdk.migration.*;
+import net.ooder.skills.api.InstalledSkill;
+import net.ooder.skills.api.SkillRegistry;
 
 import java.nio.file.*;
 import java.time.LocalDateTime;

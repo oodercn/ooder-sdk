@@ -14,11 +14,19 @@ import net.ooder.sdk.api.metadata.MetadataQueryService;
 import net.ooder.sdk.api.scene.CapabilityInvoker;
 import net.ooder.sdk.api.scene.SceneGroupManager;
 import net.ooder.sdk.api.scene.SceneManager;
-import net.ooder.sdk.api.skill.SkillCenterClient;
-import net.ooder.sdk.api.skill.SkillPackageManager;
+import net.ooder.sdk.core.agent.factory.AgentFactoryImpl;
+import net.ooder.sdk.core.metadata.impl.ChangeLogServiceImpl;
+import net.ooder.sdk.core.metadata.impl.MetadataQueryServiceImpl;
+import net.ooder.engine.scene.core.SceneGroupManagerImpl;
+import net.ooder.engine.scene.core.SceneManagerImpl;
+import net.ooder.sdk.core.capability.impl.CapabilityInvokerImpl;
+import net.ooder.skills.api.InstallRequest;
+import net.ooder.skills.api.SkillCenterClient;
+import net.ooder.skills.api.SkillPackageManager;
 import net.ooder.sdk.common.enums.AgentType;
 import net.ooder.sdk.infra.config.SDKConfiguration;
 import net.ooder.sdk.infra.lifecycle.LifecycleManager;
+import net.ooder.skills.core.impl.SkillPackageManagerImpl;
 
 public class OoderSDK {
     
@@ -153,7 +161,7 @@ public class OoderSDK {
     public CompletableFuture<Void> installSkill(String skillId) {
         return skillPackageManager.discover(skillId, null)
             .thenCompose(pkg -> {
-                net.ooder.sdk.api.skill.InstallRequest request = new net.ooder.sdk.api.skill.InstallRequest();
+                InstallRequest request = new InstallRequest();
                 request.setSkillId(skillId);
                 return skillPackageManager.install(request);
             })
@@ -316,25 +324,25 @@ public class OoderSDK {
                 configuration = new SDKConfiguration();
             }
             if (agentFactory == null) {
-                agentFactory = new net.ooder.sdk.core.agent.factory.AgentFactoryImpl();
+                agentFactory = new AgentFactoryImpl();
             }
             if (skillPackageManager == null) {
-                skillPackageManager = new net.ooder.sdk.core.skill.impl.SkillPackageManagerImpl();
+                skillPackageManager = new SkillPackageManagerImpl();
             }
             if (sceneManager == null) {
-                sceneManager = new net.ooder.sdk.core.scene.impl.SceneManagerImpl();
+                sceneManager = new SceneManagerImpl();
             }
             if (sceneGroupManager == null) {
-                sceneGroupManager = new net.ooder.sdk.core.scene.impl.SceneGroupManagerImpl();
+                sceneGroupManager = new SceneGroupManagerImpl();
             }
             if (capabilityInvoker == null) {
-                capabilityInvoker = new net.ooder.sdk.core.scene.impl.CapabilityInvokerImpl();
+                capabilityInvoker = new CapabilityInvokerImpl();
             }
             if (metadataQueryService == null) {
-                metadataQueryService = new net.ooder.sdk.core.metadata.impl.MetadataQueryServiceImpl();
+                metadataQueryService = new MetadataQueryServiceImpl();
             }
             if (changeLogService == null) {
-                changeLogService = new net.ooder.sdk.core.metadata.impl.ChangeLogServiceImpl();
+                changeLogService = new ChangeLogServiceImpl();
             }
             return new OoderSDK(this);
         }

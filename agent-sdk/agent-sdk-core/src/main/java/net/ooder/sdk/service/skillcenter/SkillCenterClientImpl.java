@@ -20,9 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.ooder.sdk.api.skill.SkillCenterClient;
-import net.ooder.sdk.api.skill.SkillManifest;
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillCenterClient;
+import net.ooder.skills.api.SkillManifest;
+import net.ooder.skills.api.SkillPackage;
 
 public class SkillCenterClientImpl implements SkillCenterClient {
     

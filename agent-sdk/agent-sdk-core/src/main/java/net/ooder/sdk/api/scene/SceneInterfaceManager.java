@@ -1,6 +1,6 @@
 package net.ooder.sdk.api.scene;
 
-import net.ooder.sdk.api.skill.InterfaceDefinition;
+import net.ooder.skills.api.InterfaceDefinition;
 
 import java.util.List;
 import java.util.Map;

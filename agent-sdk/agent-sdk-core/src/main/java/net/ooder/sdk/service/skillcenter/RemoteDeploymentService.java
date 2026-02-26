@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillPackage;
 import net.ooder.sdk.common.enums.DiscoveryMethod;
 import net.ooder.sdk.common.enums.SkillStatus;
 import net.ooder.sdk.infra.exception.SkillException;

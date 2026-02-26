@@ -7,15 +7,15 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.ooder.skills.core.discovery.LocalDiscoverer;
+import net.ooder.skills.core.discovery.SkillCenterDiscoverer;
+import net.ooder.skills.core.discovery.UdpDiscoverer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.ooder.sdk.api.skill.SkillDiscoverer;
-import net.ooder.sdk.api.skill.SkillPackage;
+import net.ooder.skills.api.SkillDiscoverer;
+import net.ooder.skills.api.SkillPackage;
 import net.ooder.sdk.common.enums.DiscoveryMethod;
-import net.ooder.sdk.core.skill.discovery.LocalDiscoverer;
-import net.ooder.sdk.core.skill.discovery.SkillCenterDiscoverer;
-import net.ooder.sdk.core.skill.discovery.UdpDiscoverer;
 
 public class DiscoveryService {
     
