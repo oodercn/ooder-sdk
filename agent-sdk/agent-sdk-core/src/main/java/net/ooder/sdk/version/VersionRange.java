@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author Ooder Team
  * @version 2.3
- * @since 2.3.0
+ * @since 2.3
  */
 public class VersionRange {
 

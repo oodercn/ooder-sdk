@@ -1,13 +1,14 @@
 package net.ooder.sdk.a2a.message;
 
 /**
- * 状态变更消息
+ * 状态变更消息（泛型版本）
  *
+ * @param <T> 数据类型
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
-public class StateChangeMessage extends A2AMessage {
+public class StateChangeMessage<T> extends A2AMessage<T> {
 
     private String fromState;
     private String toState;
@@ -16,35 +17,44 @@ public class StateChangeMessage extends A2AMessage {
     public StateChangeMessage() {
         super(A2AMessageType.STATE_CHANGE);
     }
-
-    public static Builder builder() {
-        return new Builder();
+    
+    public static StateChangeMessage<Void> createGeneric() {
+        return new StateChangeMessage<>();
     }
 
-    public static class Builder {
-        private StateChangeMessage message = new StateChangeMessage();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
 
-        public Builder skillId(String skillId) {
+    public static class Builder<T> {
+        private StateChangeMessage<T> message = new StateChangeMessage<>();
+
+        public Builder<T> skillId(String skillId) {
             message.setSkillId(skillId);
             return this;
         }
 
-        public Builder fromState(String fromState) {
+        public Builder<T> fromState(String fromState) {
             message.setFromState(fromState);
             return this;
         }
 
-        public Builder toState(String toState) {
+        public Builder<T> toState(String toState) {
             message.setToState(toState);
             return this;
         }
 
-        public Builder reason(String reason) {
+        public Builder<T> reason(String reason) {
             message.setReason(reason);
             return this;
         }
+        
+        public Builder<T> data(T data) {
+            message.setData(data);
+            return this;
+        }
 
-        public StateChangeMessage build() {
+        public StateChangeMessage<T> build() {
             return message;
         }
     }

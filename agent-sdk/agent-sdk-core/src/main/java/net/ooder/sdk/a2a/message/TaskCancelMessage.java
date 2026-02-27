@@ -1,38 +1,48 @@
 package net.ooder.sdk.a2a.message;
 
 /**
- * 任务取消消息
+ * 任务取消消息（泛型版本）
  *
+ * @param <T> 数据类型
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
-public class TaskCancelMessage extends A2AMessage {
+public class TaskCancelMessage<T> extends A2AMessage<T> {
 
     private String taskId;
 
     public TaskCancelMessage() {
         super(A2AMessageType.TASK_CANCEL);
     }
-
-    public static Builder builder() {
-        return new Builder();
+    
+    public static TaskCancelMessage<Void> createGeneric() {
+        return new TaskCancelMessage<>();
     }
 
-    public static class Builder {
-        private TaskCancelMessage message = new TaskCancelMessage();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
 
-        public Builder skillId(String skillId) {
+    public static class Builder<T> {
+        private TaskCancelMessage<T> message = new TaskCancelMessage<>();
+
+        public Builder<T> skillId(String skillId) {
             message.setSkillId(skillId);
             return this;
         }
 
-        public Builder taskId(String taskId) {
+        public Builder<T> taskId(String taskId) {
             message.setTaskId(taskId);
             return this;
         }
+        
+        public Builder<T> data(T data) {
+            message.setData(data);
+            return this;
+        }
 
-        public TaskCancelMessage build() {
+        public TaskCancelMessage<T> build() {
             return message;
         }
     }

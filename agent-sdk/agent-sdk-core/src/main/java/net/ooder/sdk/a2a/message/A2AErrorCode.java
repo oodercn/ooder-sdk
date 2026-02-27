@@ -6,8 +6,8 @@ package net.ooder.sdk.a2a.message;
  * <p>根据Ooder-A2A规范v1.0定义的错误码</p>
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public enum A2AErrorCode {
 

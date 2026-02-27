@@ -18,9 +18,9 @@
 
     <modules>
         <module>agent-sdk-api</module>
+        <module>llm-sdk-api</module>
         <module>llm-sdk</module>
         <module>skills-framework</module>
-        <module>scene-engine</module>
         <module>agent-sdk-core</module>
     </modules>
 

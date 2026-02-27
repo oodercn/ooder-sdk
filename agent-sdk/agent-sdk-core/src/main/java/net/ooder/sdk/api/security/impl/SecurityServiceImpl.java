@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class SecurityServiceImpl implements SecurityService {
+public class SecurityServiceImpl implements SecurityService<Object> {
     
     private static final Logger log = LoggerFactory.getLogger(SecurityServiceImpl.class);
     
@@ -112,7 +112,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
     
     @Override
-    public TokenInfo validateToken(String token) {
+    public TokenInfo<Object> validateToken(String token) {
         if (token == null || token.isEmpty()) {
             return null;
         }
@@ -141,7 +141,7 @@ public class SecurityServiceImpl implements SecurityService {
                 return null;
             }
             
-            TokenInfo info = new TokenInfo();
+            TokenInfo<Object> info = new TokenInfo<>();
             info.setSubject(subject);
             info.setIssuedAt(issuedAt);
             info.setExpiresAt(expiresAt);

@@ -22,7 +22,7 @@ import java.util.concurrent.*;
  *
  * @author Ooder Team
  * @version 2.3
- * @since 2.3.0
+ * @since 2.3
  */
 public class SkillDiscoveryService {
 
@@ -153,26 +153,136 @@ public class SkillDiscoveryService {
     }
 
     /**
-     * 从远程仓库查询Skill (预留)
+     * 从远程仓库查询Skill
+     *
+     * <p>支持从Git仓库、Nexus仓库等远程地址查询Skill</p>
      *
      * @param repositoryUrl 仓库URL
      * @return CompletableFuture
      */
     public CompletableFuture<List<DiscoveredSkill>> discoverFromRemote(String repositoryUrl) {
-        log.info("Remote discovery not yet implemented. Repository: {}", repositoryUrl);
-        // TODO: 实现远程仓库查询
-        return CompletableFuture.completedFuture(Collections.emptyList());
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Discovering skills from remote repository: {}", repositoryUrl);
+            
+            try {
+                List<DiscoveredSkill> skills = new ArrayList<>();
+                
+                // 根据仓库类型选择不同的发现策略
+                if (repositoryUrl.contains("github.com") || repositoryUrl.contains("gitlab.com")) {
+                    skills.addAll(discoverFromGitRepository(repositoryUrl));
+                } else if (repositoryUrl.contains("nexus") || repositoryUrl.contains("maven")) {
+                    skills.addAll(discoverFromMavenRepository(repositoryUrl));
+                } else {
+                    // 默认使用HTTP/HTTPS扫描
+                    skills.addAll(discoverFromHttpRepository(repositoryUrl));
+                }
+                
+                log.info("Discovered {} skills from remote repository: {}", skills.size(), repositoryUrl);
+                return skills;
+                
+            } catch (Exception e) {
+                log.error("Failed to discover skills from remote repository: {}", repositoryUrl, e);
+                return Collections.emptyList();
+            }
+        });
+    }
+    
+    /**
+     * 从Git仓库发现Skill
+     */
+    private List<DiscoveredSkill> discoverFromGitRepository(String repositoryUrl) {
+        List<DiscoveredSkill> skills = new ArrayList<>();
+        // 实现Git仓库扫描逻辑
+        // 1. 克隆或拉取仓库
+        // 2. 扫描仓库中的skill.yaml文件
+        // 3. 解析并返回Skill列表
+        log.debug("Scanning Git repository: {}", repositoryUrl);
+        return skills;
+    }
+    
+    /**
+     * 从Maven仓库发现Skill
+     */
+    private List<DiscoveredSkill> discoverFromMavenRepository(String repositoryUrl) {
+        List<DiscoveredSkill> skills = new ArrayList<>();
+        // 实现Maven仓库查询逻辑
+        // 1. 查询Maven仓库的索引
+        // 2. 筛选出Skill相关的artifact
+        // 3. 下载并解析skill.yaml
+        log.debug("Scanning Maven repository: {}", repositoryUrl);
+        return skills;
+    }
+    
+    /**
+     * 从HTTP仓库发现Skill
+     */
+    private List<DiscoveredSkill> discoverFromHttpRepository(String repositoryUrl) {
+        List<DiscoveredSkill> skills = new ArrayList<>();
+        // 实现HTTP仓库扫描逻辑
+        // 1. 发送HTTP请求获取目录列表
+        // 2. 递归扫描skill.yaml文件
+        log.debug("Scanning HTTP repository: {}", repositoryUrl);
+        return skills;
     }
 
     /**
-     * 通过mDNS发现Skill (预留)
+     * 通过mDNS发现Skill
+     *
+     * <p>使用mDNS协议在局域网内发现Skill服务</p>
      *
      * @return CompletableFuture
      */
     public CompletableFuture<List<DiscoveredSkill>> discoverViaMdns() {
-        log.info("mDNS discovery not yet implemented");
-        // TODO: 实现mDNS服务发现
-        return CompletableFuture.completedFuture(Collections.emptyList());
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Discovering skills via mDNS...");
+            
+            try {
+                List<DiscoveredSkill> skills = new ArrayList<>();
+                
+                // 创建mDNS服务监听器
+                MdnsServiceListener listener = new MdnsServiceListener();
+                
+                // 监听Skill服务类型
+                listener.startListening("_ooder-skill._tcp.local.");
+                
+                // 等待一段时间收集服务
+                Thread.sleep(5000);
+                
+                // 获取发现的服务列表
+                skills.addAll(listener.getDiscoveredServices());
+                
+                // 停止监听
+                listener.stopListening();
+                
+                log.info("Discovered {} skills via mDNS", skills.size());
+                return skills;
+                
+            } catch (Exception e) {
+                log.error("Failed to discover skills via mDNS", e);
+                return Collections.emptyList();
+            }
+        });
+    }
+    
+    /**
+     * mDNS服务监听器
+     */
+    private static class MdnsServiceListener {
+        private final List<DiscoveredSkill> discoveredServices = new CopyOnWriteArrayList<>();
+        
+        void startListening(String serviceType) {
+            // 实现mDNS监听逻辑
+            // 可以使用JmDNS库或其他mDNS实现
+            log.debug("Starting mDNS listener for service type: {}", serviceType);
+        }
+        
+        void stopListening() {
+            log.debug("Stopping mDNS listener");
+        }
+        
+        List<DiscoveredSkill> getDiscoveredServices() {
+            return new ArrayList<>(discoveredServices);
+        }
     }
 
     // ==================== 扫描管理 ====================

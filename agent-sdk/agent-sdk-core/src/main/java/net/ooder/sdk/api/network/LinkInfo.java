@@ -4,12 +4,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Link Information
+ * Link Information（泛型版本）
  *
+ * @param <M> 元数据类型
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
-public class LinkInfo {
+public class LinkInfo<M> {
 
     private String linkId;
     private String sourceId;
@@ -26,7 +27,15 @@ public class LinkInfo {
     private double packetLossRate;
     private String qualityLevel;
     private LinkQualityInfo quality;
-    private Map<String, Object> metadata;
+    /** 链接元数据 */
+    private Map<String, M> metadata;
+    
+    /**
+     * 创建通用链接信息（向后兼容）
+     */
+    public static LinkInfo<Object> createGeneric() {
+        return new LinkInfo<>();
+    }
 
     public LinkInfo() {
         this.createTime = System.currentTimeMillis();
@@ -107,10 +116,23 @@ public class LinkInfo {
     public String getQualityLevel() { return qualityLevel; }
     public void setQualityLevel(String qualityLevel) { this.qualityLevel = qualityLevel; }
 
-    public Map<String, Object> getMetadata() { return metadata; }
-    public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
-    public void addMetadata(String key, Object value) { this.metadata.put(key, value); }
-    public Object getMetadata(String key) { return this.metadata.get(key); }
+    /**
+     * 获取链接元数据
+     * @return 元数据映射
+     */
+    public Map<String, M> getMetadata() { return metadata; }
+    /**
+     * 设置链接元数据
+     * @param metadata 元数据映射
+     */
+    public void setMetadata(Map<String, M> metadata) { this.metadata = metadata; }
+    public void addMetadata(String key, M value) { this.metadata.put(key, value); }
+    /**
+     * 获取指定 key 的元数据值
+     * @param key 元数据键
+     * @return 元数据值
+     */
+    public M getMetadata(String key) { return this.metadata.get(key); }
 
     @Override
     public String toString() {

@@ -4,7 +4,7 @@ package net.ooder.sdk.api.scheduler;
  * Task Status Enum
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public enum TaskStatus {
     PENDING,

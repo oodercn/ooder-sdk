@@ -1,6 +1,10 @@
 package net.ooder.sdk.orchestration;
 
-import net.ooder.sdk.story.*;
+// Story 和 Will 类已从外部 llm-sdk 导入
+import net.ooder.sdk.story.UserStory;
+import net.ooder.sdk.story.StoryStep;
+import net.ooder.sdk.story.StoryContext;
+import net.ooder.sdk.will.WillExpression;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,11 +12,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface StoryOrchestrator {
     
-    CompletableFuture<OrchestrationResult> orchestrate(UserStory story);
+    <T> CompletableFuture<OrchestrationResult<T>> orchestrate(UserStory story);
     
-    CompletableFuture<OrchestrationResult> orchestrate(WillTransformer.WillExpression will);
+    <T> CompletableFuture<OrchestrationResult<T>> orchestrate(WillExpression will);
     
-    CompletableFuture<OrchestrationResult> resume(String storyId);
+    <T> CompletableFuture<OrchestrationResult<T>> resume(String storyId);
     
     void pause(String storyId);
     
@@ -30,13 +34,17 @@ public interface StoryOrchestrator {
     
     void setContextProvider(ContextProvider provider);
     
-    class OrchestrationResult {
+    /**
+     * 编排结果（泛型版本）
+     * @param <T> 结果类型
+     */
+    class OrchestrationResult<T> {
         private String storyId;
         private boolean success;
         private String message;
-        private Object finalResult;
+        private T finalResult;
         private long totalExecutionTime;
-        private List<StepExecutionRecord> stepRecords;
+        private List<StepExecutionRecord<?>> stepRecords;
         
         public String getStoryId() { return storyId; }
         public void setStoryId(String storyId) { this.storyId = storyId; }
@@ -47,30 +55,38 @@ public interface StoryOrchestrator {
         public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
         
-        public Object getFinalResult() { return finalResult; }
-        public void setFinalResult(Object finalResult) { this.finalResult = finalResult; }
+        public T getFinalResult() { return finalResult; }
+        public void setFinalResult(T finalResult) { this.finalResult = finalResult; }
         
         public long getTotalExecutionTime() { return totalExecutionTime; }
         public void setTotalExecutionTime(long totalExecutionTime) { this.totalExecutionTime = totalExecutionTime; }
         
-        public List<StepExecutionRecord> getStepRecords() { return stepRecords; }
-        public void setStepRecords(List<StepExecutionRecord> stepRecords) { this.stepRecords = stepRecords; }
+        public List<StepExecutionRecord<?>> getStepRecords() { return stepRecords; }
+        public void setStepRecords(List<StepExecutionRecord<?>> stepRecords) { this.stepRecords = stepRecords; }
         
-        public static OrchestrationResult success(String storyId, Object result) {
-            OrchestrationResult r = new OrchestrationResult();
+        public static <T> OrchestrationResult<T> success(String storyId, T result) {
+            OrchestrationResult<T> r = new OrchestrationResult<>();
             r.setStoryId(storyId);
             r.setSuccess(true);
             r.setFinalResult(result);
             return r;
         }
         
-        public static OrchestrationResult failure(String storyId, String message) {
-            OrchestrationResult r = new OrchestrationResult();
+        public static <T> OrchestrationResult<T> failure(String storyId, String message) {
+            OrchestrationResult<T> r = new OrchestrationResult<>();
             r.setStoryId(storyId);
             r.setSuccess(false);
             r.setMessage(message);
             return r;
         }
+    }
+    
+    /**
+     * 非泛型 OrchestrationResult（向后兼容）
+     */
+    @Deprecated
+    default OrchestrationResult<Object> orchestrateLegacy(UserStory story) {
+        throw new UnsupportedOperationException("Use orchestrate() instead");
     }
     
     class OrchestrationStatus {
@@ -100,11 +116,15 @@ public interface StoryOrchestrator {
         public void setTotalSteps(int totalSteps) { this.totalSteps = totalSteps; }
     }
     
-    class StepExecutionRecord {
+    /**
+     * 步骤执行记录（泛型版本）
+     * @param <R> 结果类型
+     */
+    class StepExecutionRecord<R> {
         private String stepId;
         private String capabilityId;
         private boolean success;
-        private Object result;
+        private R result;
         private String message;
         private long executionTime;
         private long timestamp;
@@ -118,8 +138,8 @@ public interface StoryOrchestrator {
         public boolean isSuccess() { return success; }
         public void setSuccess(boolean success) { this.success = success; }
         
-        public Object getResult() { return result; }
-        public void setResult(Object result) { this.result = result; }
+        public R getResult() { return result; }
+        public void setResult(R result) { this.result = result; }
         
         public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
@@ -129,6 +149,24 @@ public interface StoryOrchestrator {
         
         public long getTimestamp() { return timestamp; }
         public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+        
+        public static <R> StepExecutionRecord<R> success(String stepId, R result) {
+            StepExecutionRecord<R> record = new StepExecutionRecord<>();
+            record.setStepId(stepId);
+            record.setSuccess(true);
+            record.setResult(result);
+            record.setTimestamp(System.currentTimeMillis());
+            return record;
+        }
+        
+        public static <R> StepExecutionRecord<R> failure(String stepId, String message) {
+            StepExecutionRecord<R> record = new StepExecutionRecord<>();
+            record.setStepId(stepId);
+            record.setSuccess(false);
+            record.setMessage(message);
+            record.setTimestamp(System.currentTimeMillis());
+            return record;
+        }
     }
     
     interface OrchestrationListener {
@@ -137,9 +175,9 @@ public interface StoryOrchestrator {
         
         void onStepStarted(String storyId, StoryStep step);
         
-        void onStepCompleted(String storyId, StoryStep step, StepExecutionRecord record);
+        void onStepCompleted(String storyId, StoryStep step, StepExecutionRecord<?> record);
         
-        void onStoryCompleted(String storyId, OrchestrationResult result);
+        void onStoryCompleted(String storyId, OrchestrationResult<?> result);
         
         void onStoryFailed(String storyId, Throwable error);
         

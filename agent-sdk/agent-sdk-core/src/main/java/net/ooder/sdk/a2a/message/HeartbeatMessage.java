@@ -1,38 +1,48 @@
 package net.ooder.sdk.a2a.message;
 
 /**
- * 心跳消息
+ * 心跳消息（泛型版本）
  *
+ * @param <T> 数据类型
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
-public class HeartbeatMessage extends A2AMessage {
+public class HeartbeatMessage<T> extends A2AMessage<T> {
 
     private long sequence;
 
     public HeartbeatMessage() {
         super(A2AMessageType.HEARTBEAT);
     }
-
-    public static Builder builder() {
-        return new Builder();
+    
+    public static HeartbeatMessage<Void> createGeneric() {
+        return new HeartbeatMessage<>();
     }
 
-    public static class Builder {
-        private HeartbeatMessage message = new HeartbeatMessage();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
 
-        public Builder skillId(String skillId) {
+    public static class Builder<T> {
+        private HeartbeatMessage<T> message = new HeartbeatMessage<>();
+
+        public Builder<T> skillId(String skillId) {
             message.setSkillId(skillId);
             return this;
         }
 
-        public Builder sequence(long sequence) {
+        public Builder<T> sequence(long sequence) {
             message.setSequence(sequence);
             return this;
         }
+        
+        public Builder<T> data(T data) {
+            message.setData(data);
+            return this;
+        }
 
-        public HeartbeatMessage build() {
+        public HeartbeatMessage<T> build() {
             return message;
         }
     }

@@ -30,13 +30,14 @@ import java.util.stream.Collectors;
  * <p>Thread-safe JSON file-based storage implementation.</p>
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public class StorageServiceImpl implements StorageService {
 
     private static final Logger log = LoggerFactory.getLogger(StorageServiceImpl.class);
 
     private final ObjectMapper objectMapper;
+    /** 内存缓存，存储序列化后的对象 */
     private final Map<String, Object> cache;
     private final ExecutorService executorService;
     private String basePath;
@@ -219,6 +220,10 @@ public class StorageServiceImpl implements StorageService {
         return CompletableFuture.supplyAsync(() -> delete(key), executorService);
     }
 
+    /**
+     * 批量保存数据
+     * @param batch 批量数据，key 为存储键，value 为任意类型对象
+     */
     @Override
     public void saveBatch(Map<String, Object> batch) {
         log.debug("Saving batch of {} items", batch.size());
@@ -233,6 +238,11 @@ public class StorageServiceImpl implements StorageService {
         return CompletableFuture.runAsync(() -> saveBatch(batch), executorService);
     }
 
+    /**
+     * 批量加载数据
+     * @param keys 存储键列表
+     * @return 批量数据，key 为存储键，value 为反序列化后的对象
+     */
     @Override
     public Map<String, Object> loadBatch(List<String> keys) {
         log.debug("Loading batch of {} items", keys.size());
@@ -249,6 +259,65 @@ public class StorageServiceImpl implements StorageService {
     @Override
     public CompletableFuture<Map<String, Object>> loadBatchAsync(List<String> keys) {
         return CompletableFuture.supplyAsync(() -> loadBatch(keys), executorService);
+    }
+
+    /**
+     * 批量保存数据（类型安全版本）
+     * @param batch 批量数据，key 为存储键，value 为指定类型对象
+     * @param type 数据类型
+     * @param <T> 类型参数
+     */
+    @Override
+    public <T> void saveBatch(Map<String, T> batch, Class<T> type) {
+        log.debug("Saving typed batch of {} items with type {}", batch.size(), type.getSimpleName());
+        for (Map.Entry<String, T> entry : batch.entrySet()) {
+            save(entry.getKey(), entry.getValue());
+        }
+        log.debug("Typed batch save completed");
+    }
+
+    /**
+     * 异步批量保存数据（类型安全版本）
+     * @param batch 批量数据，key 为存储键，value 为指定类型对象
+     * @param type 数据类型
+     * @param <T> 类型参数
+     * @return CompletableFuture
+     */
+    @Override
+    public <T> CompletableFuture<Void> saveBatchAsync(Map<String, T> batch, Class<T> type) {
+        return CompletableFuture.runAsync(() -> saveBatch(batch, type), executorService);
+    }
+
+    /**
+     * 批量加载数据（类型安全版本）
+     * @param keys 存储键列表
+     * @param type 数据类型
+     * @param <T> 类型参数
+     * @return 批量数据，key 为存储键，value 为指定类型对象
+     */
+    @Override
+    public <T> Map<String, T> loadBatch(List<String> keys, Class<T> type) {
+        log.debug("Loading typed batch of {} items with type {}", keys.size(), type.getSimpleName());
+        Map<String, T> result = new HashMap<>();
+        for (String key : keys) {
+            Optional<T> data = load(key, type);
+            if (data.isPresent()) {
+                result.put(key, data.get());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 异步批量加载数据（类型安全版本）
+     * @param keys 存储键列表
+     * @param type 数据类型
+     * @param <T> 类型参数
+     * @return CompletableFuture
+     */
+    @Override
+    public <T> CompletableFuture<Map<String, T>> loadBatchAsync(List<String> keys, Class<T> type) {
+        return CompletableFuture.supplyAsync(() -> loadBatch(keys, type), executorService);
     }
 
     @Override

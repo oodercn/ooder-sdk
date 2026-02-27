@@ -4,15 +4,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 能力声明接口
+ * 能力声明接口（泛型版本）
  *
  * <p>定义Skill的能力声明规范</p>
  *
+ * @param <M> 元数据类型
+ * @param <D> 默认值类型
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
-public interface CapabilityDeclaration {
+public interface CapabilityDeclaration<M, D> {
 
     /**
      * 获取能力ID
@@ -40,7 +42,7 @@ public interface CapabilityDeclaration {
      *
      * @return 参数定义列表
      */
-    List<ParameterDefinition> getInputParameters();
+    List<ParameterDefinition<D>> getInputParameters();
 
     /**
      * 获取输出定义
@@ -54,17 +56,25 @@ public interface CapabilityDeclaration {
      *
      * @return 元数据映射
      */
-    Map<String, Object> getMetadata();
+    Map<String, M> getMetadata();
+    
+    /**
+     * 创建通用能力声明（向后兼容）
+     */
+    static CapabilityDeclaration<Object, Object> createGeneric() {
+        throw new UnsupportedOperationException("Use implementation class");
+    }
 
     /**
-     * 参数定义
+     * 参数定义（泛型版本）
+     * @param <D> 默认值类型
      */
-    class ParameterDefinition {
+    class ParameterDefinition<D> {
         private String name;
         private String type;
         private String description;
         private boolean required;
-        private Object defaultValue;
+        private D defaultValue;
 
         public ParameterDefinition() {}
 
@@ -83,8 +93,8 @@ public interface CapabilityDeclaration {
         public void setDescription(String description) { this.description = description; }
         public boolean isRequired() { return required; }
         public void setRequired(boolean required) { this.required = required; }
-        public Object getDefaultValue() { return defaultValue; }
-        public void setDefaultValue(Object defaultValue) { this.defaultValue = defaultValue; }
+        public D getDefaultValue() { return defaultValue; }
+        public void setDefaultValue(D defaultValue) { this.defaultValue = defaultValue; }
     }
 
     /**

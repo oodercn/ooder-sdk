@@ -21,7 +21,12 @@
         <!-- 使用 agent-sdk 的 Driver 接口 -->
         <dependency>
             <groupId>net.ooder</groupId>
-            <artifactId>agent-sdk</artifactId>
+            <artifactId>agent-sdk-api</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>agent-sdk-core</artifactId>
             <version>2.3</version>
         </dependency>
     </dependencies>

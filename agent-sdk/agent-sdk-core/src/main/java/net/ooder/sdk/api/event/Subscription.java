@@ -4,7 +4,7 @@ package net.ooder.sdk.api.event;
  * Subscription handle for event bus subscribers
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public class Subscription {
 

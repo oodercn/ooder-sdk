@@ -4,11 +4,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public interface CapabilityRouter {
+/**
+ * 能力路由器接口（泛型版本）
+ *
+ * @param <P> 参数类型
+ * @param <D> 结果数据类型
+ * @author Ooder Team
+ * @version 2.3
+ * @since 2.3
+ */
+public interface CapabilityRouter<P, D> {
     
-    CompletableFuture<RouteResult> route(String capabilityId, Map<String, Object> params);
+    CompletableFuture<RouteResult<D>> route(String capabilityId, Map<String, P> params);
     
-    CompletableFuture<RouteResult> route(String capabilityId, Map<String, Object> params, RouteOptions options);
+    CompletableFuture<RouteResult<D>> route(String capabilityId, Map<String, P> params, RouteOptions options);
     
     boolean canRoute(String capabilityId);
     
@@ -16,14 +25,18 @@ public interface CapabilityRouter {
     
     CapabilityInfo getCapabilityInfo(String capabilityId);
     
-    void registerExecutor(String capabilityId, CapabilityExecutor executor);
+    void registerExecutor(String capabilityId, CapabilityExecutor<P, D> executor);
     
     void unregisterExecutor(String capabilityId);
     
-    class RouteResult {
+    /**
+     * 路由结果（泛型版本）
+     * @param <D> 结果数据类型
+     */
+    class RouteResult<D> {
         private String capabilityId;
         private boolean success;
-        private Object data;
+        private D data;
         private String message;
         private long executionTime;
         private String executorId;
@@ -34,8 +47,8 @@ public interface CapabilityRouter {
         public boolean isSuccess() { return success; }
         public void setSuccess(boolean success) { this.success = success; }
         
-        public Object getData() { return data; }
-        public void setData(Object data) { this.data = data; }
+        public D getData() { return data; }
+        public void setData(D data) { this.data = data; }
         
         public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
@@ -46,16 +59,16 @@ public interface CapabilityRouter {
         public String getExecutorId() { return executorId; }
         public void setExecutorId(String executorId) { this.executorId = executorId; }
         
-        public static RouteResult success(String capabilityId, Object data) {
-            RouteResult r = new RouteResult();
+        public static <D> RouteResult<D> success(String capabilityId, D data) {
+            RouteResult<D> r = new RouteResult<>();
             r.setCapabilityId(capabilityId);
             r.setSuccess(true);
             r.setData(data);
             return r;
         }
         
-        public static RouteResult failure(String capabilityId, String message) {
-            RouteResult r = new RouteResult();
+        public static <D> RouteResult<D> failure(String capabilityId, String message) {
+            RouteResult<D> r = new RouteResult<>();
             r.setCapabilityId(capabilityId);
             r.setSuccess(false);
             r.setMessage(message);
@@ -113,12 +126,24 @@ public interface CapabilityRouter {
         public void setSchema(Map<String, Object> schema) { this.schema = schema; }
     }
     
-    interface CapabilityExecutor {
+    /**
+     * 能力执行器接口（泛型版本）
+     * @param <P> 参数类型
+     * @param <D> 结果数据类型
+     */
+    interface CapabilityExecutor<P, D> {
         
-        CompletableFuture<RouteResult> execute(Map<String, Object> params);
+        CompletableFuture<RouteResult<D>> execute(Map<String, P> params);
         
         String getExecutorId();
         
         boolean isAvailable();
+    }
+    
+    /**
+     * 创建通用路由器（向后兼容）
+     */
+    static CapabilityRouter<Object, Object> createGeneric() {
+        throw new UnsupportedOperationException("Use implementation class");
     }
 }

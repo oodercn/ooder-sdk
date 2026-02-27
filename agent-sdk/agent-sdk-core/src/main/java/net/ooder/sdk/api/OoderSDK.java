@@ -17,8 +17,8 @@ import net.ooder.sdk.api.scene.SceneManager;
 import net.ooder.sdk.core.agent.factory.AgentFactoryImpl;
 import net.ooder.sdk.core.metadata.impl.ChangeLogServiceImpl;
 import net.ooder.sdk.core.metadata.impl.MetadataQueryServiceImpl;
-import net.ooder.engine.scene.core.SceneGroupManagerImpl;
-import net.ooder.engine.scene.core.SceneManagerImpl;
+// SceneManager 和 SceneGroupManager 的实现已移至外部 scene-engine 工程
+// 如需使用，请单独引入 scene-engine 依赖
 import net.ooder.sdk.core.capability.impl.CapabilityInvokerImpl;
 import net.ooder.skills.api.InstallRequest;
 import net.ooder.skills.api.SkillCenterClient;
@@ -319,6 +319,36 @@ public class OoderSDK {
             return this;
         }
         
+        /**
+         * 创建默认的 SceneManager
+         * <p>注意：SceneManager 的完整实现已移至外部 scene-engine 工程</p>
+         * <p>此方法返回 null，如需使用 Scene 功能，请：</p>
+         * <ul>
+         *   <li>1. 引入外部 scene-engine 依赖</li>
+         *   <li>2. 通过 Builder.sceneManager() 注入实现</li>
+         * </ul>
+         */
+        private SceneManager createDefaultSceneManager() {
+            // SceneManager 的完整实现已移至外部 scene-engine 工程
+            // 如需使用，请引入 scene-engine 依赖或通过 Builder 注入
+            return null;
+        }
+        
+        /**
+         * 创建默认的 SceneGroupManager
+         * <p>注意：SceneGroupManager 的完整实现已移至外部 scene-engine 工程</p>
+         * <p>此方法返回 null，如需使用 Scene 功能，请：</p>
+         * <ul>
+         *   <li>1. 引入外部 scene-engine 依赖</li>
+         *   <li>2. 通过 Builder.sceneGroupManager() 注入实现</li>
+         * </ul>
+         */
+        private SceneGroupManager createDefaultSceneGroupManager() {
+            // SceneGroupManager 的完整实现已移至外部 scene-engine 工程
+            // 如需使用，请引入 scene-engine 依赖或通过 Builder 注入
+            return null;
+        }
+        
         public OoderSDK build() {
             if (configuration == null) {
                 configuration = new SDKConfiguration();
@@ -329,11 +359,13 @@ public class OoderSDK {
             if (skillPackageManager == null) {
                 skillPackageManager = new SkillPackageManagerImpl();
             }
+            // SceneManager 和 SceneGroupManager 的实现已移至外部 scene-engine 工程
+            // 如需使用，请通过 Builder 注入或单独引入 scene-engine 依赖
             if (sceneManager == null) {
-                sceneManager = new SceneManagerImpl();
+                sceneManager = createDefaultSceneManager();
             }
             if (sceneGroupManager == null) {
-                sceneGroupManager = new SceneGroupManagerImpl();
+                sceneGroupManager = createDefaultSceneGroupManager();
             }
             if (capabilityInvoker == null) {
                 capabilityInvoker = new CapabilityInvokerImpl();

@@ -1,13 +1,14 @@
 package net.ooder.sdk.a2a.message;
 
 /**
- * 错误消息
+ * 错误消息（泛型版本）
  *
+ * @param <T> 数据类型
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
-public class ErrorMessage extends A2AMessage {
+public class ErrorMessage<T> extends A2AMessage<T> {
 
     private int errorCode;
     private String errorMessage;
@@ -16,35 +17,47 @@ public class ErrorMessage extends A2AMessage {
     public ErrorMessage() {
         super(A2AMessageType.ERROR);
     }
-
-    public static Builder builder() {
-        return new Builder();
+    
+    /**
+     * 创建通用错误消息（向后兼容）
+     */
+    public static ErrorMessage<Void> createGeneric() {
+        return new ErrorMessage<>();
     }
 
-    public static class Builder {
-        private ErrorMessage message = new ErrorMessage();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
 
-        public Builder skillId(String skillId) {
+    public static class Builder<T> {
+        private ErrorMessage<T> message = new ErrorMessage<>();
+
+        public Builder<T> skillId(String skillId) {
             message.setSkillId(skillId);
             return this;
         }
 
-        public Builder errorCode(int errorCode) {
+        public Builder<T> errorCode(int errorCode) {
             message.setErrorCode(errorCode);
             return this;
         }
 
-        public Builder errorMessage(String errorMessage) {
+        public Builder<T> errorMessage(String errorMessage) {
             message.setErrorMessage(errorMessage);
             return this;
         }
 
-        public Builder suggestion(String suggestion) {
+        public Builder<T> suggestion(String suggestion) {
             message.setSuggestion(suggestion);
             return this;
         }
+        
+        public Builder<T> data(T data) {
+            message.setData(data);
+            return this;
+        }
 
-        public ErrorMessage build() {
+        public ErrorMessage<T> build() {
             return message;
         }
     }

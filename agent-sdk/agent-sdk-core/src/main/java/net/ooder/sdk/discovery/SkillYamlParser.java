@@ -26,7 +26,7 @@ import java.util.jar.JarFile;
  *
  * @author Ooder Team
  * @version 2.3
- * @since 2.3.0
+ * @since 2.3
  */
 public class SkillYamlParser {
 

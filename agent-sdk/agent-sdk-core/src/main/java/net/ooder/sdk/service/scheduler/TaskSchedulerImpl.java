@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Task Scheduler Implementation
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public class TaskSchedulerImpl implements TaskScheduler {
 

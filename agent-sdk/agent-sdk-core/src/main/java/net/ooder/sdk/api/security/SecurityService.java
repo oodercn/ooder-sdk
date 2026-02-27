@@ -40,9 +40,16 @@ import java.util.concurrent.CompletableFuture;
  * </pre>
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
-public interface SecurityService {
+/**
+ * Security Service Interface（泛型版本）
+ *
+ * @param <C> Token声明类型
+ * @author ooder Team
+ * @since 2.3
+ */
+public interface SecurityService<C> {
 
     // ==================== Key Management ====================
 
@@ -139,7 +146,7 @@ public interface SecurityService {
      * @param expireInMillis expiration time
      * @return generated token
      */
-    String generateToken(String subject, java.util.Map<String, Object> claims, long expireInMillis);
+    String generateToken(String subject, java.util.Map<String, C> claims, long expireInMillis);
 
     /**
      * Validate a token
@@ -147,7 +154,14 @@ public interface SecurityService {
      * @param token token to validate
      * @return token information
      */
-    TokenInfo validateToken(String token);
+    TokenInfo<C> validateToken(String token);
+    
+    /**
+     * 创建通用安全服务（向后兼容）
+     */
+    static SecurityService<Object> createGeneric() {
+        throw new UnsupportedOperationException("Use implementation class");
+    }
 
     /**
      * Revoke a token

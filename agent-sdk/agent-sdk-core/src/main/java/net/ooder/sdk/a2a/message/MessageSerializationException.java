@@ -4,8 +4,8 @@ package net.ooder.sdk.a2a.message;
  * 消息序列化异常
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public class MessageSerializationException extends Exception {
 

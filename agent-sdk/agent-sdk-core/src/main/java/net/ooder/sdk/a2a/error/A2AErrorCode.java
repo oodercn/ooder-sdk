@@ -6,8 +6,8 @@ package net.ooder.sdk.a2a.error;
  * <p>定义了A2A通信中可能发生的错误类型及其处理建议</p>
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public enum A2AErrorCode {
 

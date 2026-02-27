@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @param <T> the type being referenced
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public abstract class TypeReference<T> {
     

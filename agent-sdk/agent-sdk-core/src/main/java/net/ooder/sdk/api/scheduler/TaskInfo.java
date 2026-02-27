@@ -4,7 +4,7 @@ package net.ooder.sdk.api.scheduler;
  * Task Information
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public class TaskInfo {
 

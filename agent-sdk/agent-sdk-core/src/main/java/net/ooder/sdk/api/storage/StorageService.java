@@ -41,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
  * </pre>
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public interface StorageService {
 
@@ -149,12 +149,31 @@ public interface StorageService {
     void saveBatch(Map<String, Object> batch);
 
     /**
+     * Save multiple items in batch with type safety
+     *
+     * @param batch map of key-value pairs to save
+     * @param type  the type of values
+     * @param <T>   the type parameter
+     */
+    <T> void saveBatch(Map<String, T> batch, Class<T> type);
+
+    /**
      * Save multiple items asynchronously
      *
      * @param batch map of key-value pairs to save
      * @return CompletableFuture with void
      */
     CompletableFuture<Void> saveBatchAsync(Map<String, Object> batch);
+
+    /**
+     * Save multiple items asynchronously with type safety
+     *
+     * @param batch map of key-value pairs to save
+     * @param type  the type of values
+     * @param <T>   the type parameter
+     * @return CompletableFuture with void
+     */
+    <T> CompletableFuture<Void> saveBatchAsync(Map<String, T> batch, Class<T> type);
 
     /**
      * Load multiple items by keys
@@ -165,12 +184,32 @@ public interface StorageService {
     Map<String, Object> loadBatch(List<String> keys);
 
     /**
+     * Load multiple items by keys with type safety
+     *
+     * @param keys list of keys to load
+     * @param type the expected type
+     * @param <T>  the type parameter
+     * @return map of key-value pairs (only existing keys)
+     */
+    <T> Map<String, T> loadBatch(List<String> keys, Class<T> type);
+
+    /**
      * Load multiple items asynchronously
      *
      * @param keys list of keys to load
      * @return CompletableFuture with map of key-value pairs
      */
     CompletableFuture<Map<String, Object>> loadBatchAsync(List<String> keys);
+
+    /**
+     * Load multiple items asynchronously with type safety
+     *
+     * @param keys list of keys to load
+     * @param type the expected type
+     * @param <T>  the type parameter
+     * @return CompletableFuture with map of key-value pairs
+     */
+    <T> CompletableFuture<Map<String, T>> loadBatchAsync(List<String> keys, Class<T> type);
 
     // ==================== Configuration ====================
 

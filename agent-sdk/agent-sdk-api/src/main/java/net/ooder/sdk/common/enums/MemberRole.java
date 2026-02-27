@@ -4,8 +4,9 @@ package net.ooder.sdk.common.enums;
 public enum MemberRole {
     PRIMARY("primary", "Primary agent with full control"),
     BACKUP("backup", "Backup agent ready for failover"),
-    OBSERVER("observer", "Observer agent with read-only access");
-    
+    OBSERVER("observer", "Observer agent with read-only access"),
+    MEMBER("member", "Regular member with limited access");
+
     private final String code;
     private final String description;
     

@@ -23,9 +23,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Security Service Implementation
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
-public class SecurityServiceImpl implements SecurityService {
+public class SecurityServiceImpl implements SecurityService<Object> {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
@@ -209,8 +209,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public TokenInfo validateToken(String token) {
-        TokenInfo info = new TokenInfo();
+    public TokenInfo<Object> validateToken(String token) {
+        TokenInfo<Object> info = new TokenInfo<>();
 
         if (token == null || token.isEmpty()) {
             info.setValid(false);

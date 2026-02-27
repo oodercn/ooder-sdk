@@ -5,7 +5,7 @@ package net.ooder.sdk.discovery;
  *
  * @author Ooder Team
  * @version 2.3
- * @since 2.3.0
+ * @since 2.3
  */
 public class SkillParseException extends Exception {
 

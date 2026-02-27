@@ -1,12 +1,13 @@
 package net.ooder.sdk.api.security;
 
 /**
- * Token Information
+ * Token Information（泛型版本）
  *
+ * @param <C> 声明类型
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
-public class TokenInfo {
+public class TokenInfo<C> {
 
     private String subject;
     private String issuer;
@@ -14,10 +15,18 @@ public class TokenInfo {
     private long expiresAt;
     private boolean valid;
     private String error;
-    private java.util.Map<String, Object> claims;
+    /** Token 声明信息 */
+    private java.util.Map<String, C> claims;
 
     public TokenInfo() {
-        this.claims = new java.util.HashMap<String, Object>();
+        this.claims = new java.util.HashMap<String, C>();
+    }
+    
+    /**
+     * 创建通用 TokenInfo（向后兼容）
+     */
+    public static TokenInfo<Object> createGeneric() {
+        return new TokenInfo<>();
     }
 
     public String getSubject() { return subject; }
@@ -38,8 +47,16 @@ public class TokenInfo {
     public String getError() { return error; }
     public void setError(String error) { this.error = error; }
 
-    public java.util.Map<String, Object> getClaims() { return claims; }
-    public void setClaims(java.util.Map<String, Object> claims) { this.claims = claims; }
+    /**
+     * 获取 Token 声明
+     * @return 声明映射
+     */
+    public java.util.Map<String, C> getClaims() { return claims; }
+    /**
+     * 设置 Token 声明
+     * @param claims 声明映射
+     */
+    public void setClaims(java.util.Map<String, C> claims) { this.claims = claims; }
 
     public boolean isExpired() {
         return expiresAt > 0 && System.currentTimeMillis() > expiresAt;

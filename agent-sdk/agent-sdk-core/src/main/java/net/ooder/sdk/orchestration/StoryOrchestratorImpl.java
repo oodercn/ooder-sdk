@@ -1,6 +1,10 @@
 package net.ooder.sdk.orchestration;
 
-import net.ooder.sdk.story.*;
+// Story 和 Will 类已从外部 llm-sdk 导入
+import net.ooder.sdk.story.UserStory;
+import net.ooder.sdk.story.StoryStep;
+import net.ooder.sdk.story.StoryContext;
+import net.ooder.sdk.will.WillExpression;
 import net.ooder.sdk.orchestration.CapabilityRouter.RouteResult;
 
 import org.slf4j.Logger;
@@ -18,20 +22,18 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
     private final Map<String, UserStory> stories = new ConcurrentHashMap<>();
     private final List<OrchestrationListener> listeners = new CopyOnWriteArrayList<>();
     
-    private CapabilityRouter capabilityRouter;
+    private CapabilityRouter<Object, Object> capabilityRouter;
     private ContextProvider contextProvider;
-    private WillTransformer willTransformer;
     private final ExecutorService executor = Executors.newCachedThreadPool();
     
     public StoryOrchestratorImpl() {
-        this.willTransformer = new WillTransformerImpl();
     }
     
     @Override
-    public CompletableFuture<OrchestrationResult> orchestrate(UserStory story) {
+    public <T> CompletableFuture<OrchestrationResult<T>> orchestrate(UserStory story) {
         if (story == null) {
             return CompletableFuture.completedFuture(
-                OrchestrationResult.failure("unknown", "Story cannot be null"));
+                OrchestrationResult.<T>failure("unknown", "Story cannot be null"));
         }
         
         String storyId = story.getStoryId();
@@ -53,11 +55,11 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
         story.setStatus(UserStory.StoryStatus.IN_PROGRESS);
         notifyStoryStarted(story);
         
-        return CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.<OrchestrationResult<T>>supplyAsync(() -> {
             long startTime = System.currentTimeMillis();
-            OrchestrationResult result = new OrchestrationResult();
+            OrchestrationResult<T> result = new OrchestrationResult<>();
             result.setStoryId(storyId);
-            List<StepExecutionRecord> records = new ArrayList<>();
+            List<StepExecutionRecord<?>> records = new ArrayList<>();
             
             try {
                 for (StoryStep step : story.getSteps()) {
@@ -121,19 +123,20 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
     }
     
     @Override
-    public CompletableFuture<OrchestrationResult> orchestrate(WillTransformer.WillExpression will) {
-        UserStory story = willTransformer.transform(will);
-        return orchestrate(story);
+    public <T> CompletableFuture<OrchestrationResult<T>> orchestrate(WillExpression will) {
+        // Will 到 Story 的转换由外部 llm-sdk 的 WillTransformer 实现
+        // 这里仅提供 Story 编排功能
+        throw new UnsupportedOperationException("Will to Story transformation should be done by external llm-sdk WillTransformer");
     }
     
-    private boolean canExecuteStep(StoryStep step, List<StepExecutionRecord> records) {
+    private boolean canExecuteStep(StoryStep step, List<StepExecutionRecord<?>> records) {
         List<String> dependencies = step.getDependencies();
         if (dependencies == null || dependencies.isEmpty()) {
             return true;
         }
         
         Set<String> completedSteps = new HashSet<>();
-        for (StepExecutionRecord record : records) {
+        for (StepExecutionRecord<?> record : records) {
             if (record.isSuccess()) {
                 completedSteps.add(record.getStepId());
             }
@@ -142,8 +145,9 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
         return completedSteps.containsAll(dependencies);
     }
     
-    private StepExecutionRecord executeStep(String storyId, StoryStep step, StoryContext context) {
-        StepExecutionRecord record = new StepExecutionRecord();
+    @SuppressWarnings("unchecked")
+    private <R> StepExecutionRecord<R> executeStep(String storyId, StoryStep step, StoryContext context) {
+        StepExecutionRecord<R> record = new StepExecutionRecord<>();
         record.setStepId(step.getStepId());
         record.setCapabilityId(step.getCapabilityId());
         record.setTimestamp(System.currentTimeMillis());
@@ -158,7 +162,7 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
                 RouteResult routeResult = capabilityRouter.route(step.getCapabilityId(), params).join();
                 
                 record.setSuccess(routeResult.isSuccess());
-                record.setResult(routeResult.getData());
+                record.setResult((R) routeResult.getData());
                 record.setMessage(routeResult.getMessage());
                 
                 context.addExecutionRecord(toExecutionRecord(record));
@@ -176,7 +180,7 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
         return record;
     }
     
-    private StoryContext.ExecutionRecord toExecutionRecord(StepExecutionRecord record) {
+    private StoryContext.ExecutionRecord toExecutionRecord(StepExecutionRecord<?> record) {
         StoryContext.ExecutionRecord er = new StoryContext.ExecutionRecord();
         er.setStepId(record.getStepId());
         er.setCapabilityId(record.getCapabilityId());
@@ -192,11 +196,11 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
     }
     
     @Override
-    public CompletableFuture<OrchestrationResult> resume(String storyId) {
+    public <T> CompletableFuture<OrchestrationResult<T>> resume(String storyId) {
         UserStory story = stories.get(storyId);
         if (story == null) {
             return CompletableFuture.completedFuture(
-                OrchestrationResult.failure(storyId, "Story not found"));
+                OrchestrationResult.<T>failure(storyId, "Story not found"));
         }
         
         OrchestrationStatus status = statuses.get(storyId);
@@ -204,7 +208,7 @@ public class StoryOrchestratorImpl implements StoryOrchestrator {
             status.setStatus("RUNNING");
         }
         
-        return orchestrate(story);
+        return this.<T>orchestrate(story);
     }
     
     @Override

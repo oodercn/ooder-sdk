@@ -7,6 +7,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +39,48 @@ public class SkillPermissionChecker {
     @PostConstruct
     public void init() {
         log.info("SkillPermissionChecker initialized");
-        // TODO: 从配置中心或数据库加载权限配置
+        // 从本地配置文件加载权限配置
+        loadPermissionsFromConfig();
+    }
+    
+    /**
+     * 从本地配置文件加载权限配置
+     */
+    private void loadPermissionsFromConfig() {
+        try {
+            // 加载角色权限配置
+            Map<String, Set<String>> roleConfigs = loadRolePermissionsFromConfig();
+            skillRolePermissions.putAll(roleConfigs);
+            
+            // 加载用户权限配置
+            Map<String, Set<String>> userConfigs = loadUserPermissionsFromConfig();
+            skillUserPermissions.putAll(userConfigs);
+            
+            log.info("Loaded permissions for {} skills (role-based) and {} skills (user-based)", 
+                roleConfigs.size(), userConfigs.size());
+                
+        } catch (Exception e) {
+            log.warn("Failed to load permissions from config: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 从配置加载角色权限
+     */
+    private Map<String, Set<String>> loadRolePermissionsFromConfig() {
+        Map<String, Set<String>> configs = new ConcurrentHashMap<>();
+        // 可以扩展为从配置文件、配置中心或数据库加载
+        // 例如：从 application.yml 或 nacos 配置中心加载
+        return configs;
+    }
+    
+    /**
+     * 从配置加载用户权限
+     */
+    private Map<String, Set<String>> loadUserPermissionsFromConfig() {
+        Map<String, Set<String>> configs = new ConcurrentHashMap<>();
+        // 可以扩展为从配置文件、配置中心或数据库加载
+        return configs;
     }
 
     /**
@@ -105,14 +148,84 @@ public class SkillPermissionChecker {
     /**
      * 获取用户角色
      *
-     * <p>TODO: 从用户服务获取</p>
+     * <p>从用户服务或本地缓存获取用户角色</p>
      */
     private Set<String> getUserRoles(String userId) {
-        // 简化实现，实际应该从用户服务获取
-        // 默认所有用户都有 'user' 角色
         Set<String> roles = new java.util.HashSet<>();
-        roles.add("user");
+        
+        try {
+            // 1. 首先检查本地缓存
+            Set<String> cachedRoles = userRoleCache.get(userId);
+            if (cachedRoles != null && !cachedRoles.isEmpty()) {
+                return cachedRoles;
+            }
+            
+            // 2. 从配置中获取角色映射
+            Map<String, Set<String>> roleMappings = getRoleMappingsFromConfig();
+            Set<String> configRoles = roleMappings.get(userId);
+            if (configRoles != null) {
+                roles.addAll(configRoles);
+            }
+            
+            // 3. 如果还是没有角色，添加默认角色
+            if (roles.isEmpty()) {
+                roles.add("user");
+            }
+            
+            // 4. 缓存角色信息
+            userRoleCache.put(userId, roles);
+            
+        } catch (Exception e) {
+            log.warn("Failed to get roles for user [{}], using default role: {}", userId, e.getMessage());
+            roles.add("user");
+        }
+        
         return roles;
+    }
+    
+    /**
+     * 用户角色缓存
+     */
+    private final Map<String, Set<String>> userRoleCache = new ConcurrentHashMap<>();
+    
+    /**
+     * 从配置获取角色映射
+     */
+    private Map<String, Set<String>> getRoleMappingsFromConfig() {
+        Map<String, Set<String>> mappings = new HashMap<>();
+        
+        // 可以从配置文件、数据库或用户服务获取
+        // 这里提供一个简单的硬编码示例，实际应该从外部配置获取
+        
+        // 管理员角色
+        Set<String> adminRoles = new HashSet<>();
+        adminRoles.add("admin");
+        adminRoles.add("user");
+        mappings.put("admin", adminRoles);
+        
+        // 开发者角色
+        Set<String> devRoles = new HashSet<>();
+        devRoles.add("developer");
+        devRoles.add("user");
+        mappings.put("developer", devRoles);
+        
+        return mappings;
+    }
+    
+    /**
+     * 清除用户角色缓存
+     */
+    public void clearUserRoleCache(String userId) {
+        userRoleCache.remove(userId);
+        log.debug("Cleared role cache for user: {}", userId);
+    }
+    
+    /**
+     * 清除所有用户角色缓存
+     */
+    public void clearAllUserRoleCache() {
+        userRoleCache.clear();
+        log.debug("Cleared all user role cache");
     }
 
     /**

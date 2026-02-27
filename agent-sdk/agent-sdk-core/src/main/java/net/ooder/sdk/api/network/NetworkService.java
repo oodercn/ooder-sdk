@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
  * </pre>
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public interface NetworkService {
 

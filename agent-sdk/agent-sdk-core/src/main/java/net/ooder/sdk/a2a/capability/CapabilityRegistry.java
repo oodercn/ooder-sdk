@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
  * <p>管理所有Skill的能力声明</p>
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public class CapabilityRegistry {
 

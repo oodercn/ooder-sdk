@@ -44,7 +44,7 @@ import net.ooder.sdk.api.storage.StorageService;
  * </pre>
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public interface TaskScheduler {
 

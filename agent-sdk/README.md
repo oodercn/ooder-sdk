@@ -1,225 +1,201 @@
-# Ooder Agent SDK
+# Ooder Agent SDK 2.3
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.7.3-blue.svg)]()
-[![Java](https://img.shields.io/badge/Java-8+-green.svg)](https://openjdk.org/)
+[![Maven Central](https://img.shields.io/badge/Maven%20Central-v2.3-blue)](https://central.sonatype.com/artifact/net.ooder/agent-sdk)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Java](https://img.shields.io/badge/Java-8%2B-orange)](https://www.java.com/)
 
-## 概述
+## 简介
 
-Ooder Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供 Agent 生命周期管理、技能发现与安装、场景配置、网络通信等核心能力。
+Ooder Agent SDK 是一个面向南向协议实现的轻量级 Agent SDK，提供完整的 Agent 生命周期管理、能力编排、场景管理和协议适配功能。
 
-## 版本信息
+## 架构特点
 
-| 版本 | 发布日期 | 说明 |
-|------|----------|------|
-| **0.7.3** | 2026-02-20 | 协议增强、云托管、GitHub/Gitee 发现 |
-| 0.7.2 | 2026-02-17 | 能力中心、南北向协议完善 |
-| 0.7.1 | 2026-02-15 | 场景驱动架构 |
-| 0.6.6 | 2026-01-31 | 配置体系优化 |
-
-## 0.7.3 新特性
-
-### 协议体系
-
-| 协议 | 说明 |
-|------|------|
-| DiscoveryProtocol | 9 种发现方法 |
-| LoginProtocol | 本地认证，离线支持 |
-| CollaborationProtocol | 场景组协作 |
-| OfflineService | 离线服务 |
-| EventBus | 事件总线 |
-| CloudHostingProtocol | K8s 云托管 |
-
-### 发现方法
-
-```java
-public enum DiscoveryMethod {
-    UDP_BROADCAST,      // UDP 广播
-    DHT_KADEMLIA,       // DHT 发现
-    MDNS_DNS_SD,        // mDNS 服务发现
-    SKILL_CENTER,       // 技能中心
-    LOCAL_FS,           // 本地文件系统
-    GITHUB,             // GitHub 仓库 (v0.7.3)
-    GITEE,              // Gitee 仓库 (v0.7.3)
-    GIT_REPOSITORY,     // 通用 Git 仓库 (v0.7.3)
-    AUTO                // 自动检测
-}
-```
-
-## 模块结构
+### 1. 模块化设计
 
 ```
-agent-sdk/
-├── src/main/java/net/ooder/sdk/
-│   ├── api/                       # API 接口
-│   │   ├── OoderSDK.java          # SDK 入口
-│   │   ├── agent/                 # Agent 接口
-│   │   ├── skill/                 # 技能接口
-│   │   ├── scene/                 # 场景接口
-│   │   ├── event/                 # 事件接口
-│   │   ├── network/               # 网络接口
-│   │   └── security/              # 安全接口
-│   ├── capability/                # 能力中心
-│   ├── common/                    # 公共模块
-│   │   ├── annotation/            # 注解
-│   │   ├── enums/                 # 枚举
-│   │   └── constants/             # 常量
-│   ├── core/                      # 核心实现
-│   │   ├── agent/                 # Agent 实现
-│   │   ├── scene/                 # 场景实现
-│   │   ├── skill/                 # 技能实现
-│   │   ├── collaboration/         # 协作模块
-│   │   └── transport/             # 传输层
-│   ├── infra/                     # 基础设施
-│   │   ├── config/                # 配置
-│   │   ├── lifecycle/             # 生命周期
-│   │   └── exception/             # 异常
-│   ├── northbound/                # 北向协议
-│   ├── discovery/                 # 发现服务
-│   └── nexus/                     # Nexus 服务
-└── pom.xml
+agent-sdk (父工程)
+├── agent-sdk-api          # API 接口和模型定义
+├── llm-sdk-api           # LLM 轻量级 API
+├── skills-framework      # 技能框架
+└── agent-sdk-core        # 核心实现
+    └── 依赖外部 llm-sdk (完整实现)
 ```
+
+### 2. 依赖关系
+
+```
+agent-sdk-api (无依赖)
+    ↑
+    ├── llm-sdk-api → agent-sdk-api
+    ├── skills-framework → agent-sdk-api
+    └── agent-sdk-core → api + llm-sdk-api + skills-framework + 外部llm-sdk
+```
+
+### 3. 核心功能
+
+- **Agent 管理**: 完整的 Agent 生命周期管理
+- **能力编排**: Story/Will 编排引擎
+- **场景管理**: Scene 和 SceneGroup 管理
+- **协议适配**: A2A、REACH 南向协议支持
+- **技能框架**: 技能加载、生成和运行时支持
+- **LLM 集成**: 通过外部 llm-sdk 提供完整 LLM 能力
 
 ## 快速开始
 
-### 添加依赖
+### Maven 依赖
 
 ```xml
+<!-- 完整 SDK -->
 <dependency>
     <groupId>net.ooder</groupId>
-    <artifactId>agent-sdk</artifactId>
-    <version>0.7.3</version>
+    <artifactId>agent-sdk-core</artifactId>
+    <version>2.3</version>
+</dependency>
+
+<!-- 或仅使用 API -->
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>agent-sdk-api</artifactId>
+    <version>2.3</version>
 </dependency>
 ```
 
-### 初始化 SDK
+### 基础使用
 
 ```java
 import net.ooder.sdk.api.OoderSDK;
-import net.ooder.sdk.infra.config.SDKConfiguration;
 
-SDKConfiguration config = new SDKConfiguration();
-config.setAgentId("my-agent-001");
-config.setAgentName("My Agent");
-config.setEndpoint("http://localhost:8080");
-
-OoderSDK sdk = OoderSDK.builder()
-    .configuration(config)
-    .build();
-
-sdk.initialize();
-sdk.start();
+public class AgentApplication {
+    public static void main(String[] args) {
+        // 创建 SDK 实例
+        OoderSDK sdk = OoderSDK.builder()
+            .agentId("my-agent")
+            .agentName("My Agent")
+            .build();
+        
+        // 启动 Agent
+        sdk.start();
+        
+        // 使用能力
+        CapabilityResult result = sdk.getCapabilityInvoker()
+            .invoke("capability-id", params);
+    }
+}
 ```
 
-### 创建 End Agent
+## 模块说明
 
-```java
-import net.ooder.sdk.api.agent.EndAgent;
-import net.ooder.sdk.api.scene.SceneManager;
+### agent-sdk-api
 
-EndAgent endAgent = sdk.createEndAgent();
-endAgent.start();
+核心 API 接口和模型定义，包括：
+- Agent 接口定义
+- 能力 (Capability) 接口
+- 场景 (Scene) 接口
+- 命令 (Command) 接口
+- 事件 (Event) 接口
 
-// 获取场景管理器
-SceneManager sceneManager = sdk.getSceneManager();
+### llm-sdk-api
+
+LLM 轻量级 API，提供：
+- LLM 服务接口
+- 聊天请求/响应模型
+- 函数定义模型
+
+### skills-framework
+
+技能框架，提供：
+- 技能加载机制
+- 技能代码生成
+- 运行时支持
+
+### agent-sdk-core
+
+核心实现，包括：
+- Agent 实现
+- 能力编排引擎
+- 协议适配器 (A2A, REACH)
+- 南向协议闭环实现
+
+## 工程结构
+
+### 内部模块
+
+```
+agent-sdk/
+├── agent-sdk-api          # API 接口和模型定义
+├── llm-sdk-api           # LLM 轻量级 API
+├── llm-sdk               # LLM 完整实现 (已合并)
+├── skills-framework      # 技能框架
+└── agent-sdk-core        # 核心实现
 ```
 
-### 安装技能
+### llm-sdk (内部模块)
 
-```java
-import net.ooder.sdk.api.skill.SkillPackageManager;
-import net.ooder.sdk.api.skill.InstallRequest;
-import net.ooder.sdk.api.skill.InstallResult;
-import net.ooder.sdk.common.enums.DiscoveryMethod;
+位于 `agent-sdk/llm-sdk`，提供：
+- 完整 LLM 驱动实现 (BaiduWenxin, Spark, Mock)
+- Story/Will 完整实现
+- Memory 管理
+- NLP 处理
+- 多 LLM 适配和调度
 
-SkillPackageManager packageManager = sdk.getSkillPackageManager();
+**依赖关系**: agent-sdk-core → llm-sdk
 
-InstallRequest request = new InstallRequest();
-request.setSkillId("skill-org-feishu");
-request.setVersion("0.7.3");
+### scene-engine (外部工程)
 
-InstallResult result = packageManager.install(request).join();
+位于 `E:\github\ooder-sdk\scene-engine`，提供：
+- 完整 Scene 引擎实现
+- 安全、审计功能
+- 多种 Skill 实现
+
+**依赖关系**: scene-engine → agent-sdk (单向)
+
+## 版本历史
+
+### 2.3 (当前版本)
+
+- 重构模块化结构
+- 分离 llm-sdk-api (轻量级) 和 llm-sdk (完整版)
+- 移除 scene-engine 模块 (移至外部工程)
+- 统一版本号为 2.3
+- 清理重复代码
+
+### 0.7.3 (历史版本)
+
+- 初始版本
+- 包含 scene-engine 和 llm-sdk 作为内部模块
+
+## 构建
+
+```bash
+# 编译
+mvn clean compile
+
+# 打包
+mvn clean package
+
+# 安装到本地仓库
+mvn clean install
+
+# 跳过测试
+mvn clean install -DskipTests
 ```
 
-## 核心 API
+## 文档
 
-### OoderSDK
-
-| 方法 | 说明 |
-|------|------|
-| `initialize()` | 初始化 SDK |
-| `start()` | 启动 SDK |
-| `stop()` | 停止 SDK |
-| `shutdown()` | 关闭 SDK |
-| `createEndAgent()` | 创建 End Agent |
-| `createRouteAgent()` | 创建 Route Agent |
-| `createMcpAgent()` | 创建 MCP Agent |
-| `getSkillPackageManager()` | 获取技能包管理器 |
-| `getSceneManager()` | 获取场景管理器 |
-| `getSceneGroupManager()` | 获取场景组管理器 |
-| `getCapabilityInvoker()` | 获取能力调用器 |
-| `diagnoseServices()` | 诊断服务状态 |
-
-### SkillPackageManager
-
-| 方法 | 说明 |
-|------|------|
-| `install(request)` | 安装技能 |
-| `uninstall(skillId)` | 卸载技能 |
-| `update(skillId, version)` | 更新技能 |
-| `discover(skillId, method)` | 发现技能 |
-| `listInstalled()` | 列出已安装技能 |
-| `isInstalled(skillId)` | 检查技能是否已安装 |
-| `search(query, method)` | 搜索技能 |
-| `getDependencies(skillId)` | 获取技能依赖 |
-| `installDependencies(skillId)` | 安装技能依赖 |
-
-
-
-## 配置参考
-
-```yaml
-sdk:
-  agentId: my-agent-001
-  agentName: My Agent
-  endpoint: http://localhost:8080
-  udpPort: 9080
-  
-  discovery:
-    udp:
-      enabled: true
-      multicastGroup: 224.0.0.1
-      port: 54321
-    github:
-      enabled: true
-      defaultOwner: ooderCN
-      defaultRepo: skills
-    gitee:
-      enabled: true
-      defaultOwner: ooderCN
-      defaultRepo: skills
-      
-  skill:
-    rootPath: ./data/skills
-    
-  healthCheck:
-    heartbeatInterval: 5000
-    timeout: 30000
-```
-
-## 相关项目
-
-| 项目 | 说明 |
-|------|------|
-| [super-Agent](https://github.com/ooderCN/super-Agent) | 核心框架 |
-| [ooder-Nexus](https://github.com/ooderCN/ooder-Nexus) | 分发枢纽 |
-| [skills](https://github.com/ooderCN/skills) | 能力库 |
-| [common](https://github.com/ooderCN/common) | 企业开发包 |
+- [架构设计](docs/architecture/OVERALL_ARCHITECTURE.md)
+- [核心抽象层](docs/architecture/CORE_ABSTRACTION_LAYER.md)
+- [南北向架构](docs/architecture/NORTHBOUND_SOUTHBOUND_ARCHITECTURE.md)
+- [快速开始](docs/guides/QUICK_START.md)
 
 ## 许可证
 
 MIT License
 
----
+## 作者
 
-**Made with ❤️ by Ooder Team**
+- IhyTdX (18683731@qq.com)
+
+## 相关链接
+
+- [GitHub](https://github.com/oodercn/super-Agent)
+- [Maven Central](https://central.sonatype.com/artifact/net.ooder/agent-sdk)

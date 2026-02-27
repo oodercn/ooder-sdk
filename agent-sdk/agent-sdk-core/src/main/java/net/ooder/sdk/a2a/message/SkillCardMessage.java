@@ -6,8 +6,8 @@ import net.ooder.sdk.a2a.capability.SkillCard;
  * Skill卡片消息
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public class SkillCardMessage extends A2AMessage {
 

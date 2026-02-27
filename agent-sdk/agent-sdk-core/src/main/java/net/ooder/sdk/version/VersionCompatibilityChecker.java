@@ -6,8 +6,8 @@ package net.ooder.sdk.version;
  * <p>提供版本兼容性检查、升级/降级决策等功能</p>
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public class VersionCompatibilityChecker {
 

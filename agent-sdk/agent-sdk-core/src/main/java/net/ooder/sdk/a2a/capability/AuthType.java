@@ -6,8 +6,8 @@ package net.ooder.sdk.a2a.capability;
  * <p>定义了A2A通信中支持的各种认证方式</p>
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public enum AuthType {
 

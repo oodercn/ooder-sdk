@@ -216,6 +216,35 @@ public class StorageServiceImpl implements StorageService {
     }
     
     @Override
+    public <T> void saveBatch(Map<String, T> batch, Class<T> type) {
+        for (Map.Entry<String, T> entry : batch.entrySet()) {
+            save(entry.getKey(), entry.getValue());
+        }
+    }
+    
+    @Override
+    public <T> CompletableFuture<Void> saveBatchAsync(Map<String, T> batch, Class<T> type) {
+        return CompletableFuture.runAsync(() -> saveBatch(batch, type), executor);
+    }
+    
+    @Override
+    public <T> Map<String, T> loadBatch(List<String> keys, Class<T> type) {
+        Map<String, T> result = new HashMap<>();
+        for (String key : keys) {
+            Optional<T> value = load(key, type);
+            if (value.isPresent()) {
+                result.put(key, value.get());
+            }
+        }
+        return result;
+    }
+    
+    @Override
+    public <T> CompletableFuture<Map<String, T>> loadBatchAsync(List<String> keys, Class<T> type) {
+        return CompletableFuture.supplyAsync(() -> loadBatch(keys, type), executor);
+    }
+    
+    @Override
     public String getBasePath() {
         return basePath.toString();
     }

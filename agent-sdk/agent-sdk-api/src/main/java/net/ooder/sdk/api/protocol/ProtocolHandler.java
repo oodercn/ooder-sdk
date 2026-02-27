@@ -9,7 +9,7 @@ import net.ooder.sdk.api.command.CommandResult;
  * <p>Handles specific protocol commands.</p>
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public interface ProtocolHandler {
 

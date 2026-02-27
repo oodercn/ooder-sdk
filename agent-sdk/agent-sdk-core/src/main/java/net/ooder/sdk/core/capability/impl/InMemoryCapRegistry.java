@@ -23,6 +23,8 @@ public class InMemoryCapRegistry implements CapRegistry {
 
     private final List<CapRegistryListener> listeners = new CopyOnWriteArrayList<>();
 
+    private final Map<String, List<Capability>> versionHistory = new ConcurrentHashMap<>();
+
     @Override
     public void register(Capability capability) throws CapRegistryException {
         if (capability == null) {
@@ -54,6 +56,8 @@ public class InMemoryCapRegistry implements CapRegistry {
         domainAddresses
             .computeIfAbsent(capability.getAddress().getDomainId(), k -> ConcurrentHashMap.newKeySet())
             .add(capability.getAddress().getAddress());
+
+        recordVersion(capability);
 
         notifyRegistered(capability);
     }
@@ -230,11 +234,77 @@ public class InMemoryCapRegistry implements CapRegistry {
         capabilities.clear();
         addressIndex.clear();
         domainAddresses.clear();
+        versionHistory.clear();
     }
 
     @Override
     public int size() {
         return capabilities.size();
+    }
+
+    /**
+     * 获取能力的版本历史
+     *
+     * @param capId 能力ID
+     * @return 该能力的所有历史版本列表，按注册时间排序
+     */
+    public List<Capability> getVersionHistory(String capId) {
+        return versionHistory.getOrDefault(capId, Collections.emptyList());
+    }
+
+    /**
+     * 获取能力的特定版本
+     *
+     * @param capId 能力ID
+     * @param version 版本号
+     * @return 指定版本的能力，如果不存在返回null
+     */
+    public Capability getVersion(String capId, String version) {
+        List<Capability> history = versionHistory.get(capId);
+        if (history == null) return null;
+
+        return history.stream()
+            .filter(cap -> version.equals(cap.getVersion()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    /**
+     * 获取能力的最新版本
+     *
+     * @param capId 能力ID
+     * @return 最新版本的能力
+     */
+    public Capability getLatestVersion(String capId) {
+        List<Capability> history = versionHistory.get(capId);
+        if (history == null || history.isEmpty()) return null;
+
+        return history.get(history.size() - 1);
+    }
+
+    /**
+     * 检查是否存在指定版本
+     *
+     * @param capId 能力ID
+     * @param version 版本号
+     * @return 是否存在该版本
+     */
+    public boolean hasVersion(String capId, String version) {
+        return getVersion(capId, version) != null;
+    }
+
+    /**
+     * 获取所有版本的能力ID列表
+     *
+     * @return 所有有版本历史的能力ID
+     */
+    public Set<String> getAllVersionedCapabilities() {
+        return new HashSet<>(versionHistory.keySet());
+    }
+
+    private void recordVersion(Capability capability) {
+        String capId = capability.getCapabilityId();
+        versionHistory.computeIfAbsent(capId, k -> new CopyOnWriteArrayList<>()).add(capability);
     }
 
     private String extractDomainFromSkillId(String skillId) {

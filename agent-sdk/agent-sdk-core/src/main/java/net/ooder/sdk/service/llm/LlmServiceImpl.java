@@ -23,7 +23,7 @@ import java.util.function.Consumer;
  * <p>Implements streaming, multi-model, token management, and embedding.</p>
  *
  * @author ooder Team
- * @since 0.7.1
+ * @since 2.3
  */
 public class LlmServiceImpl implements net.ooder.llm.api.LlmService {
 

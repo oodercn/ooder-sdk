@@ -4,35 +4,44 @@ package net.ooder.sdk.a2a.message;
  * 任务获取消息
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
-public class TaskGetMessage extends A2AMessage {
+public class TaskGetMessage<T> extends A2AMessage<T> {
 
     private String taskId;
 
     public TaskGetMessage() {
         super(A2AMessageType.TASK_GET);
     }
-
-    public static Builder builder() {
-        return new Builder();
+    
+    public static TaskGetMessage<Void> createGeneric() {
+        return new TaskGetMessage<>();
     }
 
-    public static class Builder {
-        private TaskGetMessage message = new TaskGetMessage();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
 
-        public Builder skillId(String skillId) {
+    public static class Builder<T> {
+        private TaskGetMessage<T> message = new TaskGetMessage<>();
+
+        public Builder<T> skillId(String skillId) {
             message.setSkillId(skillId);
             return this;
         }
 
-        public Builder taskId(String taskId) {
+        public Builder<T> taskId(String taskId) {
             message.setTaskId(taskId);
             return this;
         }
+        
+        public Builder<T> data(T data) {
+            message.setData(data);
+            return this;
+        }
 
-        public TaskGetMessage build() {
+        public TaskGetMessage<T> build() {
             return message;
         }
     }

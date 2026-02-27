@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
  * <p>负责A2A消息的序列化和反序列化</p>
  *
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
 public class MessageSerializer {
 

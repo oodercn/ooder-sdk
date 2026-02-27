@@ -1,13 +1,14 @@
 package net.ooder.sdk.a2a.message;
 
 /**
- * 确认消息
+ * 确认消息（泛型版本）
  *
+ * @param <T> 数据类型
  * @author Ooder Team
- * @version 1.0
- * @since 2.3.0
+ * @version 2.3
+ * @since 2.3
  */
-public class AckMessage extends A2AMessage {
+public class AckMessage<T> extends A2AMessage<T> {
 
     private String originalMessageId;
     private boolean success;
@@ -15,30 +16,39 @@ public class AckMessage extends A2AMessage {
     public AckMessage() {
         super(A2AMessageType.ACK);
     }
-
-    public static Builder builder() {
-        return new Builder();
+    
+    public static AckMessage<Void> createGeneric() {
+        return new AckMessage<>();
     }
 
-    public static class Builder {
-        private AckMessage message = new AckMessage();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
 
-        public Builder skillId(String skillId) {
+    public static class Builder<T> {
+        private AckMessage<T> message = new AckMessage<>();
+
+        public Builder<T> skillId(String skillId) {
             message.setSkillId(skillId);
             return this;
         }
 
-        public Builder originalMessageId(String originalMessageId) {
+        public Builder<T> originalMessageId(String originalMessageId) {
             message.setOriginalMessageId(originalMessageId);
             return this;
         }
 
-        public Builder success(boolean success) {
+        public Builder<T> success(boolean success) {
             message.setSuccess(success);
             return this;
         }
+        
+        public Builder<T> data(T data) {
+            message.setData(data);
+            return this;
+        }
 
-        public AckMessage build() {
+        public AckMessage<T> build() {
             return message;
         }
     }

@@ -5,7 +5,7 @@ package net.ooder.sdk.version;
  *
  * @author Ooder Team
  * @version 2.3
- * @since 2.3.0
+ * @since 2.3
  */
 public class VersionParseException extends Exception {
 

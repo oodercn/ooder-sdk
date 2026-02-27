@@ -24,13 +24,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Scene引擎 -->
-        <dependency>
-            <groupId>net.ooder</groupId>
-            <artifactId>scene-engine</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- Skills框架 -->
         <dependency>
             <groupId>net.ooder</groupId>
@@ -38,12 +31,18 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- LLM SDK (可选) -->
+        <!-- LLM SDK API (轻量级API) -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>llm-sdk-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- LLM SDK (完整实现) -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>llm-sdk</artifactId>
-            <version>${project.version}</version>
-            <optional>true</optional>
+            <version>2.3</version>
         </dependency>
 
         <!-- Spring Boot -->
