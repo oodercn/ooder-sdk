@@ -11,10 +11,15 @@
     </parent>
 
     <artifactId>scene-engine</artifactId>
+    <version>2.3</version>
     <packaging>jar</packaging>
 
     <name>Scene Engine</name>
     <description>Scene Engine - Core module with security, audit and state management</description>
+
+    <properties>
+        <agent-sdk.version>2.3</agent-sdk.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -25,11 +30,13 @@
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>agent-sdk-api</artifactId>
+            <version>${agent-sdk.version}</version>
         </dependency>
 
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>agent-sdk-core</artifactId>
+            <version>${agent-sdk.version}</version>
         </dependency>
 
         <dependency>
