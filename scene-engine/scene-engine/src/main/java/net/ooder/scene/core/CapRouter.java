@@ -2,6 +2,8 @@ package net.ooder.scene.core;
 
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.capability.CapabilityEvent;
+import net.ooder.sdk.api.capability.CapRegistry;
+import net.ooder.sdk.api.capability.Capability;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,13 +33,6 @@ public class CapRouter {
             return CapResponse.failure(request.getRequestId(), capId, "Capability not found");
         }
 
-        CapAddress address = new CapAddress(capId);
-        if (!address.isValid()) {
-            publishCapabilityEvent(CapabilityEvent.invocationFailed(this, capId, 
-                request.getRequestId(), "Invalid capability address"));
-            return CapResponse.failure(request.getRequestId(), capId, "Invalid capability address");
-        }
-
         CapHandler handler = handlers.get(capId);
         CapResponse response;
         if (handler != null) {
@@ -47,8 +42,8 @@ public class CapRouter {
         }
         
         if (response.isSuccess()) {
-            CapabilityInfo info = registry.getCapability(capId);
-            String capName = info != null ? info.getName() : capId;
+            Capability capability = registry.findById(capId);
+            String capName = capability != null ? capability.getName() : capId;
             publishCapabilityEvent(CapabilityEvent.invoked(this, capId, capName, request.getRequestId()));
         } else {
             publishCapabilityEvent(CapabilityEvent.invocationFailed(this, capId, 

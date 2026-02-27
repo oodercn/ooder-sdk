@@ -163,8 +163,8 @@ public class WorkflowEngineImpl implements WorkflowEngine {
     private Map<String, Object> buildInputParams(WorkflowStep step, WorkflowContext context) {
         Map<String, Object> params = new HashMap<>();
         
-        if (step.getInput() != null) {
-            for (Map.Entry<String, Object> entry : step.getInput().entrySet()) {
+        if (step.getInputs() != null) {
+            for (Map.Entry<String, Object> entry : step.getInputs().entrySet()) {
                 Object value = entry.getValue();
                 if (value instanceof String) {
                     value = resolveVariable((String) value, context);
@@ -202,7 +202,7 @@ public class WorkflowEngineImpl implements WorkflowEngine {
             return true;
         }
         
-        String expression = step.getCondition().getExpression();
+        String expression = step.getCondition();
         if (expression == null || expression.isEmpty()) {
             return true;
         }

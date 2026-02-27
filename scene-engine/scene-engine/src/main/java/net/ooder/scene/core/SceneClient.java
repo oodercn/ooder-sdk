@@ -1,5 +1,7 @@
 package net.ooder.scene.core;
 
+import net.ooder.sdk.api.capability.Capability;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -50,7 +52,7 @@ public interface SceneClient {
 
     Object invokeCapability(String skillId, String capability, Map<String, Object> params);
 
-    List<CapabilityInfo> listCapabilities(String skillId);
+    List<Capability> listCapabilities(String skillId);
 
     UserSettings getSettings();
 

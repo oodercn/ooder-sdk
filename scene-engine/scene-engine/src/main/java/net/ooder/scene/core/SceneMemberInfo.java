@@ -1,6 +1,6 @@
 package net.ooder.scene.core;
 
-import net.ooder.scene.core.MemberRole;
+import net.ooder.sdk.common.enums.MemberRole;
 
 /**
  * 场景成员信息
@@ -38,6 +38,6 @@ public class SceneMemberInfo {
     public void setLastHeartbeat(long lastHeartbeat) { this.lastHeartbeat = lastHeartbeat; }
 
     public boolean isPrimary() {
-        return MemberRole.PRIMARY.equals(role);
+        return role != null && role.isPrimary();
     }
 }

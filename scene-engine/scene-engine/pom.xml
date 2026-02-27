@@ -24,7 +24,12 @@
         
         <dependency>
             <groupId>net.ooder</groupId>
-            <artifactId>agent-sdk</artifactId>
+            <artifactId>agent-sdk-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>agent-sdk-core</artifactId>
         </dependency>
 
         <dependency>

@@ -1,6 +1,6 @@
 package net.ooder.scene.core.driver;
 
-import net.ooder.scene.core.InterfaceDefinition;
+import net.ooder.sdk.core.InterfaceDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,16 +87,16 @@ public class DriverRegistry {
         logger.info("All drivers cleared");
     }
     
-    public HealthStatus getHealthStatus(String category) {
+    public net.ooder.sdk.core.driver.HealthStatus getHealthStatus(String category) {
         Driver driver = drivers.get(category);
         if (driver != null) {
             return driver.getHealthStatus();
         }
-        return HealthStatus.UNKNOWN;
+        return net.ooder.sdk.core.driver.HealthStatus.UNKNOWN;
     }
     
-    public Map<String, HealthStatus> getAllHealthStatus() {
-        Map<String, HealthStatus> status = new java.util.HashMap<String, HealthStatus>();
+    public Map<String, net.ooder.sdk.core.driver.HealthStatus> getAllHealthStatus() {
+        Map<String, net.ooder.sdk.core.driver.HealthStatus> status = new java.util.HashMap<String, net.ooder.sdk.core.driver.HealthStatus>();
         for (Map.Entry<String, Driver> entry : drivers.entrySet()) {
             status.put(entry.getKey(), entry.getValue().getHealthStatus());
         }

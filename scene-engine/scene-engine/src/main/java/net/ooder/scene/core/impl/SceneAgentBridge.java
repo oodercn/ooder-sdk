@@ -6,6 +6,7 @@ import net.ooder.sdk.api.agent.SceneAgent;
 import net.ooder.sdk.api.capability.CapAddress;
 import net.ooder.sdk.api.capability.CapRegistry;
 import net.ooder.sdk.api.capability.Capability;
+import net.ooder.sdk.core.capability.impl.InMemoryCapRegistry;
 
 import java.util.Map;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class SceneAgentBridge implements SceneAgentCore, SceneAgent {
         this.state = SceneAgentState.INITIALIZED;
         this.sceneEngineContext = new net.ooder.scene.core.SceneContext(agentId);
         this.skills = new ConcurrentHashMap<>();
-        this.capRegistry = new net.ooder.sdk.api.cap.impl.InMemoryCapRegistry();
+        this.capRegistry = new InMemoryCapRegistry();
         this.agentStatus = SceneAgent.AgentStatus.CREATED;
     }
 

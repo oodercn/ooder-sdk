@@ -3,6 +3,8 @@ package net.ooder.scene;
 import net.ooder.scene.core.*;
 import net.ooder.scene.engine.*;
 import net.ooder.scene.session.*;
+import net.ooder.scene.provider.model.user.UserInfo;
+import net.ooder.scene.provider.model.config.SystemConfig;
 
 import java.util.*;
 
@@ -185,13 +187,13 @@ public class ZeroConfigIntegrationTest {
             UserInfo userInfo = new UserInfo();
             userInfo.setUserId("user-001");
             userInfo.setUsername("testuser");
-            userInfo.setNickname("Test User");
+            userInfo.setDisplayName("Test User");
             userInfo.setEmail("test@example.com");
-            userInfo.setPhone("13800138000");
+            userInfo.setDepartment("Engineering");
             
             assertEquals("user-001", userInfo.getUserId());
             assertEquals("testuser", userInfo.getUsername());
-            assertEquals("Test User", userInfo.getNickname());
+            assertEquals("Test User", userInfo.getDisplayName());
             assertEquals("test@example.com", userInfo.getEmail());
             
             System.out.println("  [OK] UserId: " + userInfo.getUserId());
@@ -215,20 +217,24 @@ public class ZeroConfigIntegrationTest {
 
         try {
             SystemConfig systemConfig = new SystemConfig();
-            systemConfig.setConfigId("config-001");
+            systemConfig.setEnvironment("development");
+            systemConfig.setDataPath("/data");
+            systemConfig.setTempPath("/tmp");
+            systemConfig.setMaxMemoryMB(1024);
+            systemConfig.setCpuCores(4);
             
-            Map<String, Object> settings = new HashMap<String, Object>();
-            settings.put("mqtt.port", 1883);
-            settings.put("mqtt.provider", "lightweight-mqtt");
-            systemConfig.setSettings(settings);
+            Map<String, Object> extra = new HashMap<String, Object>();
+            extra.put("mqtt.port", 1883);
+            extra.put("mqtt.provider", "lightweight-mqtt");
+            systemConfig.setExtra(extra);
             
-            assertEquals("config-001", systemConfig.getConfigId());
-            assertEquals(Integer.valueOf(1883), systemConfig.getSetting("mqtt.port", 0));
-            assertEquals("lightweight-mqtt", systemConfig.getSetting("mqtt.provider", ""));
+            assertEquals("development", systemConfig.getEnvironment());
+            assertEquals("/data", systemConfig.getDataPath());
+            assertEquals(Integer.valueOf(4), Integer.valueOf(systemConfig.getCpuCores()));
             
-            System.out.println("  [OK] ConfigId: " + systemConfig.getConfigId());
-            System.out.println("  [OK] mqtt.port: " + systemConfig.getSetting("mqtt.port", 0));
-            System.out.println("  [OK] mqtt.provider: " + systemConfig.getSetting("mqtt.provider", ""));
+            System.out.println("  [OK] Environment: " + systemConfig.getEnvironment());
+            System.out.println("  [OK] DataPath: " + systemConfig.getDataPath());
+            System.out.println("  [OK] CpuCores: " + systemConfig.getCpuCores());
             
             System.out.println("  [PASS] System config test passed");
             passedTests++;

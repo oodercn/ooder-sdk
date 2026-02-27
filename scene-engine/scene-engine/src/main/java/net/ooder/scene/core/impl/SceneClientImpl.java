@@ -1,6 +1,7 @@
 package net.ooder.scene.core.impl;
 
 import net.ooder.scene.core.*;
+import net.ooder.sdk.api.capability.Capability;
 import net.ooder.scene.provider.HeartbeatProvider;
 import net.ooder.scene.provider.SceneProvider;
 import net.ooder.scene.provider.UserSettingsProvider;
@@ -175,7 +176,7 @@ public class SceneClientImpl implements SceneClient {
     }
 
     @Override
-    public List<CapabilityInfo> listCapabilities(String skillId) {
+    public List<Capability> listCapabilities(String skillId) {
         SkillService skillService = engine.getSkillService();
         if (skillService != null) {
             return skillService.listCapabilities(skillId);

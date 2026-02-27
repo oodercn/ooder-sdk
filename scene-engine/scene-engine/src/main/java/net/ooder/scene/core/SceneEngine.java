@@ -1,5 +1,6 @@
 package net.ooder.scene.core;
 
+import net.ooder.scene.engine.EngineStatus;
 import net.ooder.scene.session.SessionInfo;
 
 /**

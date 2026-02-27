@@ -2,6 +2,7 @@ package net.ooder.scene.core.impl;
 
 import net.ooder.engine.ConnectInfo;
 import net.ooder.scene.core.*;
+import net.ooder.scene.engine.EngineStatus;
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.SceneEventType;
 import net.ooder.scene.provider.HeartbeatProvider;
@@ -112,8 +113,8 @@ public class SceneEngineImpl implements SceneEngine {
 
         // 发布登录事件
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new net.ooder.scene.event.security.LoginEvent(
-                this, SceneEventType.LOGIN_SUCCESS, session.getUserId(), username, true, null
+            eventPublisher.publish(net.ooder.scene.event.security.LoginEvent.success(
+                this, username, session.getUserId()
             ));
         }
 
@@ -134,12 +135,13 @@ public class SceneEngineImpl implements SceneEngine {
 
     @Override
     public void logout(String sessionId) {
+        SessionInfo session = sessionManager.getSession(sessionId);
         sessionManager.destroySession(sessionId);
 
         // 发布登出事件
-        if (eventPublisher != null) {
-            eventPublisher.publishEvent(new net.ooder.scene.event.security.LogoutEvent(
-                this, SceneEventType.LOGOUT, sessionId
+        if (eventPublisher != null && session != null) {
+            eventPublisher.publish(new net.ooder.scene.event.security.LogoutEvent(
+                this, session.getUserId(), session.getUsername(), sessionId
             ));
         }
     }
@@ -177,8 +179,8 @@ public class SceneEngineImpl implements SceneEngine {
 
         // 发布引擎启动事件
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new net.ooder.scene.event.engine.EngineEvent(
-                this, SceneEventType.ENGINE_STARTED, engineName, "SceneEngine started"
+            eventPublisher.publish(net.ooder.scene.event.engine.EngineEvent.started(
+                this, engineName, engineName
             ));
         }
     }
@@ -196,8 +198,8 @@ public class SceneEngineImpl implements SceneEngine {
 
         // 发布引擎停止事件
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new net.ooder.scene.event.engine.EngineEvent(
-                this, SceneEventType.ENGINE_STOPPED, engineName, "SceneEngine stopped"
+            eventPublisher.publish(net.ooder.scene.event.engine.EngineEvent.stopped(
+                this, engineName, engineName
             ));
         }
     }
@@ -226,8 +228,8 @@ public class SceneEngineImpl implements SceneEngine {
 
         // 发布 Skill 注册事件
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new net.ooder.scene.event.skill.SkillEvent(
-                this, SceneEventType.SKILL_INSTALLED, skillId, "Skill registered: " + skillId
+            eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.installed(
+                this, skillId, skillId, "1.0.0"
             ));
         }
     }
@@ -244,8 +246,8 @@ public class SceneEngineImpl implements SceneEngine {
 
         // 发布 Skill 卸载事件
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new net.ooder.scene.event.skill.SkillEvent(
-                this, SceneEventType.SKILL_UNINSTALLED, skillId, "Skill unregistered: " + skillId
+            eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.uninstalled(
+                this, skillId, skillId
             ));
         }
     }
@@ -261,8 +263,8 @@ public class SceneEngineImpl implements SceneEngine {
 
             // 发布 Skill 启动事件
             if (eventPublisher != null) {
-                eventPublisher.publishEvent(new net.ooder.scene.event.skill.SkillEvent(
-                    this, SceneEventType.SKILL_STARTED, skillId, "Skill started: " + skillId
+                eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.started(
+                    this, skillId, skillId
                 ));
             }
         }
@@ -279,8 +281,8 @@ public class SceneEngineImpl implements SceneEngine {
 
             // 发布 Skill 停止事件
             if (eventPublisher != null) {
-                eventPublisher.publishEvent(new net.ooder.scene.event.skill.SkillEvent(
-                    this, SceneEventType.SKILL_STOPPED, skillId, "Skill stopped: " + skillId
+                eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.stopped(
+                    this, skillId, skillId
                 ));
             }
         }

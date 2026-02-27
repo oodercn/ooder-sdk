@@ -2,9 +2,12 @@ package net.ooder.scene.core.provider;
 
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.capability.CapabilityEvent;
-import net.ooder.scene.core.CapabilityInfo;
-import net.ooder.scene.core.CapRegistry;
+import net.ooder.sdk.api.capability.CapRegistry;
+import net.ooder.sdk.api.capability.Capability;
+import net.ooder.sdk.api.capability.CapabilityStatus;
+import net.ooder.sdk.core.capability.impl.InMemoryCapRegistry;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,7 +17,7 @@ public class CapRegistryService {
     private SceneEventPublisher eventPublisher;
 
     public CapRegistryService() {
-        this.registry = new CapRegistry();
+        this.registry = new InMemoryCapRegistry();
         this.versionManagers = new ConcurrentHashMap<>();
     }
     
@@ -22,25 +25,30 @@ public class CapRegistryService {
         this.eventPublisher = eventPublisher;
     }
 
-    public void registerCapability(CapabilityInfo info) {
-        registry.registerCapability(info.getCapId(), info);
+    public void registerCapability(Capability capability) {
+        try {
+            registry.register(capability);
+            
+            String capId = capability.getCapabilityId();
+            if (!versionManagers.containsKey(capId)) {
+                versionManagers.put(capId, new CapVersionManager(capId));
+            }
 
-        if (!versionManagers.containsKey(info.getCapId())) {
-            versionManagers.put(info.getCapId(), new CapVersionManager(info.getCapId()));
+            CapVersionManager manager = versionManagers.get(capId);
+            manager.addVersion(capability.getVersion(), capability);
+            
+            publishCapabilityEvent(CapabilityEvent.registered(this, capId, 
+                capability.getName(), capability.getSkillId()));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to register capability", e);
         }
-
-        CapVersionManager manager = versionManagers.get(info.getCapId());
-        manager.addVersion(info.getVersion(), info);
-        
-        publishCapabilityEvent(CapabilityEvent.registered(this, info.getCapId(), 
-            info.getName(), info.getSkillId()));
     }
 
-    public CapabilityInfo getCapability(String capId) {
-        return registry.getCapability(capId);
+    public Capability getCapability(String capId) {
+        return registry.findById(capId);
     }
 
-    public CapabilityInfo getCapability(String capId, String version) {
+    public Capability getCapability(String capId, String version) {
         CapVersionManager manager = versionManagers.get(capId);
         if (manager != null) {
             return manager.getVersion(version);
@@ -49,21 +57,25 @@ public class CapRegistryService {
     }
 
     public void unregisterCapability(String capId) {
-        CapabilityInfo info = registry.getCapability(capId);
-        String capName = info != null ? info.getName() : null;
-        
-        registry.unregisterCapability(capId);
-        versionManagers.remove(capId);
-        
-        publishCapabilityEvent(CapabilityEvent.unregistered(this, capId, capName));
+        try {
+            Capability capability = registry.findById(capId);
+            String capName = capability != null ? capability.getName() : null;
+            
+            registry.unregister(capId);
+            versionManagers.remove(capId);
+            
+            publishCapabilityEvent(CapabilityEvent.unregistered(this, capId, capName));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to unregister capability", e);
+        }
     }
 
     public boolean hasCapability(String capId) {
         return registry.hasCapability(capId);
     }
 
-    public Map<String, CapabilityInfo> getAllCapabilities() {
-        return registry.getAllCapabilities();
+    public List<Capability> getAllCapabilities() {
+        return registry.findAll();
     }
     
     private void publishCapabilityEvent(CapabilityEvent event) {
@@ -74,22 +86,22 @@ public class CapRegistryService {
 
     private static class CapVersionManager {
         private String capId;
-        private Map<String, CapabilityInfo> versions;
+        private Map<String, Capability> versions;
 
         public CapVersionManager(String capId) {
             this.capId = capId;
             this.versions = new ConcurrentHashMap<>();
         }
 
-        public void addVersion(String version, CapabilityInfo info) {
-            versions.put(version, info);
+        public void addVersion(String version, Capability capability) {
+            versions.put(version, capability);
         }
 
-        public CapabilityInfo getVersion(String version) {
+        public Capability getVersion(String version) {
             return versions.get(version);
         }
 
-        public Map<String, CapabilityInfo> getAllVersions() {
+        public Map<String, Capability> getAllVersions() {
             return versions;
         }
     }

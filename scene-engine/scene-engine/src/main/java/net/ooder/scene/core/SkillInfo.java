@@ -1,5 +1,7 @@
 package net.ooder.scene.core;
 
+import net.ooder.sdk.api.capability.Capability;
+
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +20,7 @@ public class SkillInfo {
     private String categoryIcon;
     private int categorySort;
     private List<String> tags;
-    private List<CapabilityInfo> capabilities;
+    private List<Capability> capabilities;
     private Map<String, Object> metadata;
     private long installCount;
     private long createdAt;
@@ -52,8 +54,8 @@ public class SkillInfo {
     public void setCategorySort(int categorySort) { this.categorySort = categorySort; }
     public List<String> getTags() { return tags; }
     public void setTags(List<String> tags) { this.tags = tags; }
-    public List<CapabilityInfo> getCapabilities() { return capabilities; }
-    public void setCapabilities(List<CapabilityInfo> capabilities) { this.capabilities = capabilities; }
+    public List<Capability> getCapabilities() { return capabilities; }
+    public void setCapabilities(List<Capability> capabilities) { this.capabilities = capabilities; }
     public Map<String, Object> getMetadata() { return metadata; }
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
     public long getInstallCount() { return installCount; }
