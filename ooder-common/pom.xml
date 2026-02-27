@@ -161,14 +161,10 @@
     <modules>
         <module>ooder-config</module>
         <module>ooder-common-client</module>
-        <module>ooder-database</module>
         <module>ooder-vfs-web</module>
         <module>ooder-server</module>
         <module>ooder-org-web</module>
-        <module>ooder-index-web</module>
         <module>ooder-msg-web</module>
-        <!-- ooder-iot-webclient 依赖缺失模块，暂时排除 -->
-        <!-- <module>ooder-iot-webclient</module> -->
     </modules>
 
     <repositories>

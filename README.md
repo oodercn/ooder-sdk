@@ -10,11 +10,28 @@ Ooder Agent 平台软件开发工具包，包含 Agent SDK、通用组件和场�
 
 ```
 ooder-sdk/
-├── agent-sdk/          # Agent SDK 核心模块 (v0.7.3)
-├── ooder-annotation/   # 注解模块 (v2.2)
-├── ooder-common/       # 通用组件模块 (v2.2)
-├── scene-engine/       # 场景引擎 (v0.7.3)
-├── pom.xml             # 父 POM
+├── agent-sdk/              # Agent SDK 核心模块 (v2.3)
+│   ├── agent-sdk-api/      # API 接口层
+│   ├── agent-sdk-core/     # 核心实现层
+│   ├── skills-framework/   # Skills 框架
+│   ├── llm-sdk-api/        # LLM SDK API
+│   └── llm-sdk/            # LLM SDK 实现
+├── ooder-api/              # 基础 API 接口
+├── ooder-util/             # 工具类模块
+├── ooder-annotation/       # 注解模块 (v2.3)
+├── ooder-common/           # 通用组件模块 (v2.3)
+│   ├── ooder-config/       # 场景配置管理
+│   ├── ooder-common-client/# 客户端核心组件
+│   ├── ooder-server/       # 服务器核心
+│   ├── ooder-vfs-web/      # VFS Web 服务
+│   ├── ooder-org-web/      # 组织人员服务
+│   └── ooder-msg-web/      # 消息服务
+├── ooder-infra-core/       # 基础设施核心
+├── ooder-infra-driver/     # 基础设施驱动
+├── ooder-codegen/          # 代码生成器
+├── ooder-codegen-cli/      # 代码生成器 CLI
+├── scene-engine/           # 场景引擎 (v2.3)
+├── pom.xml                 # 父 POM
 ├── README.md
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
@@ -25,15 +42,52 @@ ooder-sdk/
 
 ### agent-sdk
 
-Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
+Agent SDK 是 Ooder Agent 平台的核心开发工具包，采用分层架构设计：
 
+| 子模块 | 说明 |
+|--------|------|
+| agent-sdk-api | API 接口层 - 定义 Agent、Capability、Skill 等核心接口 |
+| agent-sdk-core | 核心实现层 - 实现 API 接口，依赖 skills-framework |
+| skills-framework | Skills 框架 - 提供 Skill 生命周期管理、发现、安装等功能 |
+| llm-sdk-api | LLM SDK API - 定义 LLM 驱动接口 |
+| llm-sdk | LLM SDK 实现 - 实现各种 LLM 驱动（百度文心等） |
+
+**特性：**
 - Agent 生命周期管理（End Agent、Route Agent、MCP Agent）
 - 技能发现与安装（支持 GitHub/Gitee/本地文件系统）
 - 场景配置与协作
+- LLM 集成（支持百度文心等）
 - 网络通信（P2P、UDP、WebSocket）
 - 安全认证
 
 详细文档请参阅 [agent-sdk/README.md](agent-sdk/README.md)
+
+### ooder-common
+
+通用组件模块提供企业级开发组件：
+
+| 子模块 | 说明 | 依赖关系 |
+|--------|------|----------|
+| ooder-config | 场景配置管理 - 提供场景配置、能力配置等 | 独立 |
+| ooder-common-client | 客户端核心组件 - 集群、缓存、VFS、组织、服务器等 | 依赖 ooder-config |
+| ooder-server | 服务器核心 - Session、JDSServer、集群管理 | 依赖 ooder-common-client |
+| ooder-vfs-web | VFS Web 服务 - 虚拟文件系统服务 | 依赖 ooder-common-client, ooder-server |
+| ooder-org-web | 组织人员服务 - 组织架构和人员管理 | 依赖 ooder-common-client, ooder-server |
+| ooder-msg-web | 消息服务 - 消息发送和接收 | 依赖 ooder-common-client, ooder-org-web, ooder-vfs-web |
+
+### scene-engine
+
+场景引擎提供场景驱动的业务编排能力：
+
+| 功能模块 | 说明 |
+|----------|------|
+| 核心引擎 | SceneEngine、SceneManager、WorkflowEngine |
+| 协议层 | EngineProtocolProvider、协议适配器 |
+| 技能集成 | SkillProviderRegistry、SkillService |
+| 会话管理 | SessionManager、TokenManager |
+| 事件系统 | EventEngine、事件监听和处理 |
+
+**依赖：** agent-sdk-api、agent-sdk-core、ooder-common 各子模块
 
 ### ooder-annotation
 
@@ -46,33 +100,13 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
 | 数据绑定 | @DBField, @DBTable, @DBPrimaryKey 等 |
 | Agent | @Agent, @AgentCapability, @Skill 等 |
 
-### ooder-common
+### ooder-infra-core & ooder-infra-driver
 
-通用组件模块提供企业级开发组件：
+基础设施模块，提供底层驱动支持。
 
-| 子模块 | 说明 |
-|--------|------|
-| ooder-common-client | 客户端通用组件 |
-| ooder-config | 配置管理 |
-| ooder-database | 数据库组件 |
-| ooder-msg-web | 消息服务 |
-| ooder-org-web | 组织架构服务 |
-| ooder-vfs-web | 虚拟文件系统 |
-| ooder-server | 服务器组件 |
+### ooder-codegen & ooder-codegen-cli
 
-### scene-engine
-
-场景引擎提供场景驱动的业务编排能力：
-
-| 子模块 | 说明 |
-|--------|------|
-| scene-engine | 核心引擎 |
-| scene-gateway | 场景网关 |
-| drivers/mqtt | MQTT 协议驱动 |
-| drivers/msg | 消息驱动 |
-| drivers/org | 组织架构驱动 |
-| drivers/vfs | VFS 驱动 |
-| skill-* | 技能模块 |
+代码生成器模块，用于生成模板代码。
 
 ## 快速开始
 
@@ -83,21 +117,21 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
 
 ### 添加依赖
 
-**Agent SDK:**
+**Agent SDK API:**
 ```xml
 <dependency>
     <groupId>net.ooder</groupId>
-    <artifactId>agent-sdk</artifactId>
-    <version>0.7.3</version>
+    <artifactId>agent-sdk-api</artifactId>
+    <version>2.3</version>
 </dependency>
 ```
 
-**Ooder Annotation:**
+**Agent SDK Core:**
 ```xml
 <dependency>
     <groupId>net.ooder</groupId>
-    <artifactId>ooder-annotation</artifactId>
-    <version>2.2</version>
+    <artifactId>agent-sdk-core</artifactId>
+    <version>2.3</version>
 </dependency>
 ```
 
@@ -106,52 +140,17 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，提供：
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>scene-engine</artifactId>
-    <version>0.7.3</version>
+    <version>2.3</version>
 </dependency>
 ```
 
-### 代码示例
-
-#### 创建 End Agent
-
-```java
-import net.ooder.sdk.OoderSDK;
-import net.ooder.sdk.api.agent.EndAgent;
-import net.ooder.sdk.infra.config.SDKConfiguration;
-
-public class MyEndAgent {
-    public static void main(String[] args) {
-        SDKConfiguration config = new SDKConfiguration();
-        config.setAgentId("my-end-agent-001");
-        config.setAgentName("My End Agent");
-        config.setAgentType(AgentType.END);
-        
-        OoderSDK sdk = OoderSDK.builder()
-            .configuration(config)
-            .build();
-        
-        sdk.initialize();
-        sdk.start();
-    }
-}
-```
-
-#### 使用注解定义 Skill
-
-```java
-import net.ooder.annotation.Agent;
-import net.ooder.annotation.AgentCapability;
-import net.ooder.annotation.Skill;
-
-@Agent(id = "my-agent", name = "My Agent")
-@AgentCapability(name = "data-processing")
-public class MyAgent {
-    
-    @Skill(id = "data-extract", name = "数据提取")
-    public ExtractResult extractData(ExtractRequest request) {
-        return new ExtractResult();
-    }
-}
+**Ooder Annotation:**
+```xml
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>ooder-annotation</artifactId>
+    <version>2.3</version>
+</dependency>
 ```
 
 ### 构建项目
@@ -181,18 +180,29 @@ mvn clean install
 │                                                                 │
 │  SDK 层 (agent-sdk)                                             │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │ Agent 管理 │ 技能发现 │ 场景配置 │ P2P 网络 │ 安全认证    │   │
+│  │ agent-sdk-api: Agent、Capability、Skill 接口定义          │   │
+│  ├─────────────────────────────────────────────────────────┤   │
+│  │ agent-sdk-core: 核心实现，依赖 skills-framework          │   │
+│  ├─────────────────────────────────────────────────────────┤   │
+│  │ skills-framework: Skill 生命周期、发现、安装             │   │
+│  ├─────────────────────────────────────────────────────────┤   │
+│  │ llm-sdk-api / llm-sdk: LLM 驱动接口和实现                │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 │  引擎层 (scene-engine)                                          │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ 场景引擎        │  │ 协议驱动        │  │ 技能模块        │ │
+│  │ 场景引擎        │  │ 协议驱动        │  │ 技能集成        │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
 │                                                                 │
 │  基础层 (ooder-common + ooder-annotation)                       │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ 通用组件        │  │ 注解定义        │  │ 工具类          │ │
+│  │ ooder-config    │  │ ooder-common-*  │  │ ooder-server    │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                 │
+│  基础设施层 (ooder-infra-*)                                     │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │ infra-core      │  │ infra-driver    │                      │
+│  └─────────────────┘  └─────────────────┘                      │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -201,16 +211,22 @@ mvn clean install
 
 | 版本 | 说明 |
 |------|------|
-| 1.0.0 | 统一 SDK 发布，包含 agent-sdk、ooder-annotation、ooder-common、scene-engine |
+| 2.3 | 架构重构：agent-sdk 拆分为 api/core/skills-framework/llm-sdk 模块 |
+| 2.2 | ooder-common 和 ooder-annotation 版本升级 |
+| 1.0.0 | 统一 SDK 发布 |
 
 ### 子模块版本
 
 | 模块 | 版本 |
 |------|------|
-| agent-sdk | 0.7.3 |
-| ooder-annotation | 2.2 |
-| ooder-common | 2.2 |
-| scene-engine | 0.7.3 |
+| agent-sdk-api | 2.3 |
+| agent-sdk-core | 2.3 |
+| skills-framework | 2.3 |
+| llm-sdk-api | 2.3 |
+| llm-sdk | 2.3 |
+| ooder-annotation | 2.3 |
+| ooder-common-all | 2.3 |
+| scene-engine | 2.3 |
 
 详细变更请参阅 [CHANGELOG.md](CHANGELOG.md)
 

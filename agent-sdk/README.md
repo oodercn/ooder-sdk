@@ -151,8 +151,12 @@ agent-sdk/
 
 ## 版本历史
 
-### 2.3 (当前版本)
+### 2.3.0 (当前版本)
 
+- **泛型化改造** - 核心 API 全面支持泛型
+  - 24 个核心类已泛型化
+  - 提供类型安全的 API
+  - 向后兼容
 - 重构模块化结构
 - 分离 llm-sdk-api (轻量级) 和 llm-sdk (完整版)
 - 移除 scene-engine 模块 (移至外部工程)
@@ -163,6 +167,61 @@ agent-sdk/
 
 - 初始版本
 - 包含 scene-engine 和 llm-sdk 作为内部模块
+
+## 泛型化 API
+
+### 概述
+
+从 2.3.0 版本开始，Ooder Agent SDK 的核心 API 已全面支持泛型，提供类型安全的编程体验。
+
+### 已泛型化的核心类
+
+| 类/接口 | 泛型参数 | 说明 |
+|---------|----------|------|
+| `StorageService<T>` | T - 存储类型 | 类型安全的存储服务 |
+| `CapabilityRouter<P, D>` | P - 参数类型, D - 结果类型 | 泛型能力路由 |
+| `SecurityService<C>` | C - 声明类型 | 泛型安全服务 |
+| `OrchestrationResult<T>` | T - 结果类型 | 泛型编排结果 |
+| `StepExecutionRecord<R>` | R - 记录类型 | 泛型执行记录 |
+| `A2AMessage<T>` | T - 数据类型 | 泛型 A2A 消息 |
+| `NlpInteractionApi<M>` | M - 元数据类型 | 泛型 NLP 接口 |
+| `SceneConfig<P>` | P - 属性类型 | 泛型场景配置 |
+| `LinkInfo<M>` | M - 元数据类型 | 泛型链接信息 |
+| `TokenInfo<C>` | C - 声明类型 | 泛型 Token 信息 |
+| `ConfigUpdateMessage<C>` | C - 配置类型 | 泛型配置更新消息 |
+| `ChatRequest<P>` | P - 参数类型 | 泛型聊天请求 |
+| `TaskSendMessage<P>` | P - 参数类型 | 泛型任务发送消息 |
+| `CapabilityDeclaration<M, D>` | M - 元数据类型, D - 默认值类型 | 泛型能力声明 |
+| `SceneStore<C>` | C - 配置类型 | 泛型场景存储 |
+
+### 使用示例
+
+```java
+// StorageService 泛型使用
+StorageService<User> storage = ...;
+Optional<User> user = storage.load("user:001", User.class);
+Map<String, User> users = storage.loadBatch(keys, User.class);
+
+// OrchestrationResult 泛型使用
+OrchestrationResult<Order> result = orchestrator.orchestrate(story);
+Order order = result.getFinalResult(); // 无需强制类型转换
+
+// A2AMessage 泛型使用
+A2AMessage<TaskRequest> message = A2AMessage.taskSend("skill-001", taskRequest);
+TaskRequest request = message.getData();
+
+// 向后兼容
+A2AMessage<Map<String, Object>> generic = A2AMessage.createGeneric();
+```
+
+### 迁移指南
+
+1. **新代码**: 直接使用泛型版本
+2. **现有代码**: 使用 `Object` 作为类型参数保持兼容
+   ```java
+   StorageService<Object> storage = ...;
+   ChatRequest<Object> request = ChatRequest.createGeneric();
+   ```
 
 ## 构建
 

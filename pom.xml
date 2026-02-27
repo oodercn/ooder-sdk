@@ -195,21 +195,15 @@
         <module>ooder-infra-core</module>
         <module>ooder-infra-driver</module>
         
-        <!-- Skills 层 -->
-        <module>vfs-skill</module>
-        <module>org-skill</module>
-        
         <!-- 代码生成器 -->
         <module>ooder-codegen</module>
         <module>ooder-codegen-cli</module>
         
-        <!-- 现有模块 -->
+        <!-- 核心模块 -->
         <module>agent-sdk</module>
         <module>ooder-annotation</module>
         <module>ooder-common</module>
         <module>scene-engine</module>
-        <module>llm-sdk</module>
-        <module>skills</module>
     </modules>
 
     <dependencyManagement>
@@ -337,12 +331,6 @@
                 <groupId>net.ooder</groupId>
                 <artifactId>scene-engine</artifactId>
                 <version>${scene-engine.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>llm-sdk</artifactId>
-                <version>${llm-sdk.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
