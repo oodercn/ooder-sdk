@@ -4,378 +4,121 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.ooder</groupId>
-    <artifactId>scene-engine-parent</artifactId>
-    <version>2.3</version>
-    <packaging>pom</packaging>
+    <parent>
+        <groupId>net.ooder</groupId>
+        <artifactId>scene-engine-parent</artifactId>
+        <version>2.3</version>
+    </parent>
 
-    <name>Scene Engine Parent</name>
-    <description>Scene Engine - Enterprise Scene Service Engine</description>
-    <url>https://gitee.com/ooderCN/scene-engine</url>
+    <artifactId>scene-engine</artifactId>
+    <packaging>jar</packaging>
 
-    <organization>
-        <name>ooder</name>
-        <url>https://gitee.com/ooderCN</url>
-    </organization>
-
-    <developers>
-        <developer>
-            <name>IhyTdX</name>
-            <email>18683731@qq.com</email>
-            <organization>ooder</organization>
-            <organizationUrl>https://gitee.com/ooderCN</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+8</timezone>
-        </developer>
-    </developers>
-
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
-            <distribution>repo</distribution>
-            <comments>MIT License</comments>
-        </license>
-    </licenses>
-
-    <scm>
-        <url>https://gitee.com/ooderCN/scene-engine</url>
-        <connection>scm:git:https://gitee.com/ooderCN/scene-engine.git</connection>
-        <developerConnection>scm:git:https://gitee.com/ooderCN/scene-engine.git</developerConnection>
-        <tag>v0.8.0</tag>
-    </scm>
-
-    <modules>
-        <module>scene-engine</module>
-        <module>skill-org</module>
-        <module>skill-vfs</module>
-        <module>skill-msg</module>
-        <module>skill-mqtt</module>
-        <module>skill-agent</module>
-        <module>skill-security</module>
-        <module>skill-business</module>
-        <module>skill-ai</module>
-        <module>scene-gateway</module>
-    </modules>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        
-        <spring-boot.version>2.7.0</spring-boot.version>
-        <ooder.version>2.2</ooder.version>
-        <ooder-common.version>2.2</ooder-common.version>
-        <agent-sdk.version>2.3</agent-sdk.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>scene-engine</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skill-org</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skill-vfs</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skill-msg</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skill-mqtt</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skill-agent</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skill-business</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skill-ai</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>agent-sdk</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>agent-sdk-api</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>agent-sdk-core</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>skills-framework</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>llm-sdk-api</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>llm-sdk</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>ooder-org-web</artifactId>
-                <version>${ooder.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>ooder-common</artifactId>
-                <version>${ooder.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>agentsdk</artifactId>
-                <version>${ooder.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <name>Scene Engine</name>
+    <description>Scene Engine - Core module with security, audit and state management</description>
 
     <dependencies>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
         
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <groupId>net.ooder</groupId>
+            <artifactId>agent-sdk-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>agent-sdk-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-annotation</artifactId>
+            <version>${ooder-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-config</artifactId>
+            <version>${ooder-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-common-client</artifactId>
+            <version>${ooder-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-server</artifactId>
+            <version>${ooder-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-vfs-web</artifactId>
+            <version>${ooder-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-org-web</artifactId>
+            <version>${ooder-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-msg-web</artifactId>
+            <version>${ooder-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>3.4.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.28</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.5.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.8.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>central</id>
-            <name>Maven Central</name>
-            <url>https://repo.maven.apache.org/maven2/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>aliyunmaven</id>
-            <name>Aliyun Maven</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>central</id>
-            <name>Maven Central</name>
-            <url>https://repo.maven.apache.org/maven2/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-        <pluginRepository>
-            <id>aliyunmaven</id>
-            <name>Aliyun Maven</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
-
-    <distributionManagement>
-        <repository>
-            <id>central</id>
-            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
-        </repository>
-        <snapshotRepository>
-            <id>central</id>
-            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
-        </snapshotRepository>
-    </distributionManagement>
-
+    
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring-boot.version}</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
-                    <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
-                        <encoding>UTF-8</encoding>
-                    </configuration>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.1</version>
-                    <executions>
-                        <execution>
-                            <id>attach-sources</id>
-                            <goals>
-                                <goal>jar-no-fork</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.3.2</version>
-                    <configuration>
-                        <source>${java.version}</source>
-                        <additionalJOption>-Xdoclint:none</additionalJOption>
-                        <failOnError>false</failOnError>
-                        <charset>UTF-8</charset>
-                        <encoding>UTF-8</encoding>
-                        <docencoding>UTF-8</docencoding>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>attach-javadocs</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-gpg-plugin</artifactId>
-                    <version>1.6</version>
-                    <executions>
-                        <execution>
-                            <id>sign-artifacts</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>sign</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.sonatype.central</groupId>
-                    <artifactId>central-publishing-maven-plugin</artifactId>
-                    <version>0.4.0</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                        <publishingServerId>central</publishingServerId>
-                        <tokenAuth>true</tokenAuth>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.sonatype.central</groupId>
-                <artifactId>central-publishing-maven-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
             </plugin>
         </plugins>
     </build>
