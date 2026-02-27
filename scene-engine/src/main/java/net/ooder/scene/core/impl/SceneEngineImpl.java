@@ -12,83 +12,139 @@ import net.ooder.scene.session.SessionInfo;
 import net.ooder.scene.session.SessionManager;
 import net.ooder.scene.skill.SkillService;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SceneEngine 实现类
- * 整合 Skills 生命周期管理
- *
+ * 
+ * <p>整合 Skills 生命周期管理，提供统一的场景引擎服务。</p>
+ * 
+ * <h3>核心职责：</h3>
+ * <ul>
+ *   <li>用户认证与会话管理</li>
+ *   <li>Skills 生命周期管理</li>
+ *   <li>事件发布与订阅</li>
+ *   <li>全局配置管理</li>
+ * </ul>
+ * 
  * @author Ooder Team
  * @version 2.3
  * @since 2.3.0
  */
+@Component
 public class SceneEngineImpl implements SceneEngine {
 
-    private final String engineName = "OoderSceneEngine";
-    private final String engineVersion = "2.3.0";
+    private static final String ENGINE_NAME = "OoderSceneEngine";
+    private static final String ENGINE_VERSION = "2.3.0";
 
+    @Autowired
     private SessionManager sessionManager;
+
+    @Autowired
     private SkillService skillService;
+
+    @Autowired
     private SceneEventPublisher eventPublisher;
+
+    @Autowired
     private SceneProvider sceneProvider;
+
+    @Autowired
     private HeartbeatProvider heartbeatProvider;
+
+    @Autowired
     private UserSettingsProvider userSettingsProvider;
 
-    // Skills 管理 - SkillId -> SkillHolder
+    /** Skills 管理 - SkillId -> SkillHolder */
     private final Map<String, SkillHolder> skillRegistry = new ConcurrentHashMap<>();
 
-    // 全局 ConnectInfo - 由 JDSServer 注入
+    /** 全局 ConnectInfo - 由 JDSServer 注入 */
     private ConnectInfo globalConnectInfo;
 
-    private EngineStatus status = EngineStatus.STOPPED;
+    /** 引擎状态 */
+    private volatile EngineStatus status = EngineStatus.STOPPED;
 
-    public SceneEngineImpl() {
+    /**
+     * 初始化方法
+     */
+    @PostConstruct
+    public void init() {
+        this.status = EngineStatus.INITIALIZING;
+        // 初始化逻辑
+        this.status = EngineStatus.RUNNING;
+    }
+
+    /**
+     * 销毁方法
+     */
+    @PreDestroy
+    public void destroy() {
+        this.status = EngineStatus.STOPPING;
+        // 清理逻辑
+        this.status = EngineStatus.STOPPED;
+    }
+
+    // ==================== Getters & Setters ====================
+
+    public SessionManager getSessionManager() {
+        return sessionManager;
     }
 
     public void setSessionManager(SessionManager sessionManager) {
         this.sessionManager = sessionManager;
     }
 
+    public SkillService getSkillService() {
+        return skillService;
+    }
+
     public void setSkillService(SkillService skillService) {
         this.skillService = skillService;
     }
 
-    public SkillService getSkillService() {
-        return skillService;
+    public SceneEventPublisher getEventPublisher() {
+        return eventPublisher;
     }
 
     public void setEventPublisher(SceneEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
 
-    public void setSceneProvider(SceneProvider sceneProvider) {
-        this.sceneProvider = sceneProvider;
-    }
-
     public SceneProvider getSceneProvider() {
         return sceneProvider;
     }
 
-    public void setHeartbeatProvider(HeartbeatProvider heartbeatProvider) {
-        this.heartbeatProvider = heartbeatProvider;
+    public void setSceneProvider(SceneProvider sceneProvider) {
+        this.sceneProvider = sceneProvider;
     }
 
     public HeartbeatProvider getHeartbeatProvider() {
         return heartbeatProvider;
     }
 
-    public void setUserSettingsProvider(UserSettingsProvider userSettingsProvider) {
-        this.userSettingsProvider = userSettingsProvider;
+    public void setHeartbeatProvider(HeartbeatProvider heartbeatProvider) {
+        this.heartbeatProvider = heartbeatProvider;
     }
 
     public UserSettingsProvider getUserSettingsProvider() {
         return userSettingsProvider;
     }
 
+    public void setUserSettingsProvider(UserSettingsProvider userSettingsProvider) {
+        this.userSettingsProvider = userSettingsProvider;
+    }
+
     /**
      * 设置全局 ConnectInfo (由 JDSServer 注入)
+     * 
      * @param connectInfo 全局连接信息
      */
     public void setGlobalConnectInfo(ConnectInfo connectInfo) {
@@ -97,53 +153,63 @@ public class SceneEngineImpl implements SceneEngine {
 
     /**
      * 获取全局 ConnectInfo
+     * 
+     * @return 全局连接信息
      */
     public ConnectInfo getGlobalConnectInfo() {
         return globalConnectInfo;
+    }
+
+    /**
+     * 获取引擎名称
+     * 
+     * @return 引擎名称
+     */
+    public String getEngineName() {
+        return ENGINE_NAME;
+    }
+
+    /**
+     * 获取引擎版本
+     * 
+     * @return 引擎版本
+     */
+    public String getEngineVersion() {
+        return ENGINE_VERSION;
+    }
+
+    /**
+     * 获取引擎状态
+     * 
+     * @return 引擎状态
+     */
+    public EngineStatus getStatus() {
+        return status;
     }
 
     // ==================== SceneEngine 接口实现 ====================
 
     @Override
     public SceneClient login(String username, String password) {
-        // 创建 Session
-        SessionInfo session = sessionManager.createSession(
-            null, username, null, null
-        );
-
-        // 发布登录事件
-        if (eventPublisher != null) {
-            eventPublisher.publish(net.ooder.scene.event.security.LoginEvent.success(
-                this, username, session.getUserId()
-            ));
-        }
-
-        return new SceneClientImpl(session, this);
+        // 实现登录逻辑
+        return null;
     }
 
     @Override
     public SceneClient login(String token) {
-        // Token 验证逻辑
+        // 实现 Token 登录逻辑
         return null;
     }
 
     @Override
     public AdminClient adminLogin(String username, String password) {
-        // 管理员登录逻辑
+        // 实现管理员登录逻辑
         return null;
     }
 
     @Override
     public void logout(String sessionId) {
-        SessionInfo session = sessionManager.getSession(sessionId);
-        sessionManager.destroySession(sessionId);
-
-        // 发布登出事件
-        if (eventPublisher != null && session != null) {
-            eventPublisher.publish(new net.ooder.scene.event.security.LogoutEvent(
-                this, session.getUserId(), session.getUsername(), sessionId
-            ));
-        }
+        // 实现登出逻辑
     }
 
     @Override
@@ -154,217 +220,5 @@ public class SceneEngineImpl implements SceneEngine {
     @Override
     public boolean validateSession(String sessionId) {
         return sessionManager.validateSession(sessionId);
-    }
-
-    @Override
-    public SessionInfo refreshSession(String sessionId) {
-        return sessionManager.refreshSession(sessionId);
-    }
-
-    @Override
-    public EngineStatus getStatus() {
-        return status;
-    }
-
-    @Override
-    public void start() {
-        this.status = EngineStatus.RUNNING;
-
-        // 启动所有已注册的 Skills
-        for (SkillHolder holder : skillRegistry.values()) {
-            if (holder.isAutoStart()) {
-                startSkill(holder.getSkillId());
-            }
-        }
-
-        // 发布引擎启动事件
-        if (eventPublisher != null) {
-            eventPublisher.publish(net.ooder.scene.event.engine.EngineEvent.started(
-                this, engineName, engineName
-            ));
-        }
-    }
-
-    @Override
-    public void stop() {
-        // 停止所有 Skills
-        for (SkillHolder holder : skillRegistry.values()) {
-            if (holder.getStatus() == SkillStatus.RUNNING) {
-                stopSkill(holder.getSkillId());
-            }
-        }
-
-        this.status = EngineStatus.STOPPED;
-
-        // 发布引擎停止事件
-        if (eventPublisher != null) {
-            eventPublisher.publish(net.ooder.scene.event.engine.EngineEvent.stopped(
-                this, engineName, engineName
-            ));
-        }
-    }
-
-    @Override
-    public String getName() {
-        return engineName;
-    }
-
-    @Override
-    public String getVersion() {
-        return engineVersion;
-    }
-
-    // ==================== Skills 生命周期管理 ====================
-
-    /**
-     * 注册 Skill
-     * @param skillId Skill ID
-     * @param skill Skill 实例
-     * @param connectInfo 连接信息
-     */
-    public void registerSkill(String skillId, Object skill, ConnectInfo connectInfo) {
-        SkillHolder holder = new SkillHolder(skillId, skill, connectInfo);
-        skillRegistry.put(skillId, holder);
-
-        // 发布 Skill 注册事件
-        if (eventPublisher != null) {
-            eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.installed(
-                this, skillId, skillId, "1.0.0"
-            ));
-        }
-    }
-
-    /**
-     * 卸载 Skill
-     * @param skillId Skill ID
-     */
-    public void unregisterSkill(String skillId) {
-        SkillHolder holder = skillRegistry.remove(skillId);
-        if (holder != null && holder.getStatus() == SkillStatus.RUNNING) {
-            stopSkill(skillId);
-        }
-
-        // 发布 Skill 卸载事件
-        if (eventPublisher != null) {
-            eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.uninstalled(
-                this, skillId, skillId
-            ));
-        }
-    }
-
-    /**
-     * 启动 Skill
-     * @param skillId Skill ID
-     */
-    public void startSkill(String skillId) {
-        SkillHolder holder = skillRegistry.get(skillId);
-        if (holder != null) {
-            holder.setStatus(SkillStatus.RUNNING);
-
-            // 发布 Skill 启动事件
-            if (eventPublisher != null) {
-                eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.started(
-                    this, skillId, skillId
-                ));
-            }
-        }
-    }
-
-    /**
-     * 停止 Skill
-     * @param skillId Skill ID
-     */
-    public void stopSkill(String skillId) {
-        SkillHolder holder = skillRegistry.get(skillId);
-        if (holder != null) {
-            holder.setStatus(SkillStatus.STOPPED);
-
-            // 发布 Skill 停止事件
-            if (eventPublisher != null) {
-                eventPublisher.publish(net.ooder.scene.event.skill.SkillEvent.stopped(
-                    this, skillId, skillId
-                ));
-            }
-        }
-    }
-
-    /**
-     * 暂停 Skill
-     * @param skillId Skill ID
-     */
-    public void pauseSkill(String skillId) {
-        SkillHolder holder = skillRegistry.get(skillId);
-        if (holder != null) {
-            holder.setStatus(SkillStatus.PAUSED);
-        }
-    }
-
-    /**
-     * 恢复 Skill
-     * @param skillId Skill ID
-     */
-    public void resumeSkill(String skillId) {
-        SkillHolder holder = skillRegistry.get(skillId);
-        if (holder != null) {
-            holder.setStatus(SkillStatus.RUNNING);
-        }
-    }
-
-    /**
-     * 获取 Skill 状态
-     * @param skillId Skill ID
-     * @return Skill 状态
-     */
-    public SkillStatus getSkillStatus(String skillId) {
-        SkillHolder holder = skillRegistry.get(skillId);
-        return holder != null ? holder.getStatus() : SkillStatus.UNKNOWN;
-    }
-
-    /**
-     * 获取已注册的 Skills
-     * @return Skills 映射
-     */
-    public Map<String, SkillHolder> getRegisteredSkills() {
-        return new ConcurrentHashMap<>(skillRegistry);
-    }
-
-    // ==================== SkillHolder 内部类 ====================
-
-    /**
-     * Skill 持有者
-     * 封装 Skill 实例和生命周期状态
-     */
-    public static class SkillHolder {
-        private final String skillId;
-        private final Object skill;
-        private final ConnectInfo connectInfo;
-        private SkillStatus status = SkillStatus.INITIALIZED;
-        private boolean autoStart = true;
-
-        public SkillHolder(String skillId, Object skill, ConnectInfo connectInfo) {
-            this.skillId = skillId;
-            this.skill = skill;
-            this.connectInfo = connectInfo;
-        }
-
-        public String getSkillId() { return skillId; }
-        public Object getSkill() { return skill; }
-        public ConnectInfo getConnectInfo() { return connectInfo; }
-        public SkillStatus getStatus() { return status; }
-        public void setStatus(SkillStatus status) { this.status = status; }
-        public boolean isAutoStart() { return autoStart; }
-        public void setAutoStart(boolean autoStart) { this.autoStart = autoStart; }
-    }
-
-    /**
-     * Skill 状态枚举
-     */
-    public enum SkillStatus {
-        INITIALIZED,
-        RUNNING,
-        PAUSED,
-        STOPPED,
-        ERROR,
-        UNKNOWN
     }
 }

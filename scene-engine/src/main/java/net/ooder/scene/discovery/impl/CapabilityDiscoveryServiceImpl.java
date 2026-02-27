@@ -2,22 +2,75 @@ package net.ooder.scene.discovery.impl;
 
 import net.ooder.scene.discovery.*;
 
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * 能力发现服务实现类
+ * 
+ * <p>统一能力发现服务的实现，整合多种发现方式，对外提供一致的发现流程接口。</p>
+ * 
+ * <h3>核心功能：</h3>
+ * <ul>
+ *   <li>管理多个发现提供者</li>
+ *   <li>根据发现范围选择合适的提供者</li>
+ *   <li>聚合多个提供者的发现结果</li>
+ *   <li>缓存发现结果</li>
+ * </ul>
+ * 
+ * <h3>发现源优先级：</h3>
+ * <ol>
+ *   <li>Local FS (50) - 本地缓存，所有范围</li>
+ *   <li>UDP Broadcast (100) - 个人网络、部门分享</li>
+ *   <li>mDNS (90) - 个人网络、部门分享</li>
+ *   <li>SkillCenter API (80) - 部门分享、公司管理、公共社区</li>
+ * </ol>
+ * 
+ * @author Ooder Team
+ * @version 2.3
+ * @since 0.8.0
+ */
+@Service
 public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryService {
-    private Map<String, DiscoveryProvider> providers;
-    private DiscoveryScope currentScope;
-    private Map<String, SceneDetail> sceneCache;
-    private Map<String, CapabilityDetail> capabilityCache;
 
-    public CapabilityDiscoveryServiceImpl() {
-        this.providers = new ConcurrentHashMap<>();
-        this.currentScope = DiscoveryScope.PERSONAL;
-        this.sceneCache = new ConcurrentHashMap<>();
-        this.capabilityCache = new ConcurrentHashMap<>();
+    /** 发现提供者注册表 */
+    private final Map<String, DiscoveryProvider> providers = new ConcurrentHashMap<>();
+
+    /** 当前发现范围 */
+    private volatile DiscoveryScope currentScope = DiscoveryScope.PERSONAL;
+
+    /** 场景详情缓存 */
+    private final Map<String, SceneDetail> sceneCache = new ConcurrentHashMap<>();
+
+    /** 能力详情缓存 */
+    private final Map<String, CapabilityDetail> capabilityCache = new ConcurrentHashMap<>();
+
+    /**
+     * 初始化方法
+     * 注册默认的发现提供者
+     */
+    @PostConstruct
+    public void init() {
+        // 可以在这里注册默认的发现提供者
+    }
+
+    /**
+     * 销毁方法
+     * 清理缓存和停止所有提供者
+     */
+    @PreDestroy
+    public void destroy() {
+        providers.values().forEach(DiscoveryProvider::stop);
+        providers.clear();
+        sceneCache.clear();
+        capabilityCache.clear();
     }
 
     @Override
@@ -100,10 +153,13 @@ public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryServic
     @Override
     public CompletableFuture<SceneDetail> getSceneDetail(String sceneId) {
         return CompletableFuture.supplyAsync(() -> {
-            if (sceneCache.containsKey(sceneId)) {
-                return sceneCache.get(sceneId);
+            // 先检查缓存
+            SceneDetail cached = sceneCache.get(sceneId);
+            if (cached != null) {
+                return cached;
             }
 
+            // 从发现提供者获取
             for (DiscoveryProvider provider : getActiveProviders()) {
                 try {
                     if (provider.isRunning()) {
@@ -199,10 +255,13 @@ public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryServic
     @Override
     public CompletableFuture<CapabilityDetail> getCapabilityDetail(String capId) {
         return CompletableFuture.supplyAsync(() -> {
-            if (capabilityCache.containsKey(capId)) {
-                return capabilityCache.get(capId);
+            // 先检查缓存
+            CapabilityDetail cached = capabilityCache.get(capId);
+            if (cached != null) {
+                return cached;
             }
 
+            // 从发现提供者获取
             for (DiscoveryProvider provider : getActiveProviders()) {
                 try {
                     if (provider.isRunning()) {
@@ -258,7 +317,10 @@ public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryServic
 
     @Override
     public void unregisterProvider(String providerName) {
-        providers.remove(providerName);
+        DiscoveryProvider provider = providers.remove(providerName);
+        if (provider != null) {
+            provider.stop();
+        }
     }
 
     @Override
@@ -271,6 +333,14 @@ public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryServic
         return currentScope;
     }
 
+    // ==================== 私有方法 ====================
+
+    /**
+     * 获取当前活跃的发现提供者列表
+     * 按优先级排序
+     * 
+     * @return 排序后的提供者列表
+     */
     private List<DiscoveryProvider> getActiveProviders() {
         return providers.values().stream()
                 .filter(p -> p.isApplicable(currentScope))
