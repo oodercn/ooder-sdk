@@ -63,8 +63,8 @@ public class SceneEngineImpl implements SceneEngine {
     @Autowired
     private UserSettingsProvider userSettingsProvider;
 
-    /** Skills 管理 - SkillId -> SkillHolder */
-    private final Map<String, SkillHolder> skillRegistry = new ConcurrentHashMap<>();
+    /** Skills 管理 - SkillId -> Skill */
+    private final Map<String, Object> skillRegistry = new ConcurrentHashMap<>();
 
     /** 全局 ConnectInfo - 由 JDSServer 注入 */
     private ConnectInfo globalConnectInfo;
@@ -170,11 +170,31 @@ public class SceneEngineImpl implements SceneEngine {
     }
 
     /**
+     * 获取名称
+     * 
+     * @return 名称
+     */
+    @Override
+    public String getName() {
+        return ENGINE_NAME;
+    }
+
+    /**
      * 获取引擎版本
      * 
      * @return 引擎版本
      */
     public String getEngineVersion() {
+        return ENGINE_VERSION;
+    }
+
+    /**
+     * 获取版本
+     * 
+     * @return 版本号
+     */
+    @Override
+    public String getVersion() {
         return ENGINE_VERSION;
     }
 
@@ -220,5 +240,23 @@ public class SceneEngineImpl implements SceneEngine {
     @Override
     public boolean validateSession(String sessionId) {
         return sessionManager.validateSession(sessionId);
+    }
+
+    @Override
+    public SessionInfo refreshSession(String sessionId) {
+        // 实现刷新会话逻辑
+        return sessionManager.getSession(sessionId);
+    }
+
+    @Override
+    public void start() {
+        // 实现启动逻辑
+        this.status = EngineStatus.RUNNING;
+    }
+
+    @Override
+    public void stop() {
+        // 实现停止逻辑
+        this.status = EngineStatus.STOPPED;
     }
 }
