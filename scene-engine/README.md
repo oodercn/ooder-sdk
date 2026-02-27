@@ -124,7 +124,9 @@ mvn clean package -DskipTests
 
 | 文档 | 说明 |
 |------|------|
-| [Agent 协议](docs/protocol/v0.7.3/agent-protocol.md) | v0.7.3 协议规范 |
+| [Agent 协议](docs/protocol/v2.3/agent-protocol.md) | v2.3 协议规范（推荐） |
+| [协议主文档](docs/protocol/v2.3/protocol-main.md) | v2.3 协议体系架构 |
+| [技能发现协议](docs/protocol/v2.3/skill-discovery-protocol.md) | v2.3 发现协议规范 |
 | [发现实现指南](docs/protocol/v0.8.0/discovery-implementation-guide.md) | v0.8.0 实现指南 |
 
 ## 许可证
