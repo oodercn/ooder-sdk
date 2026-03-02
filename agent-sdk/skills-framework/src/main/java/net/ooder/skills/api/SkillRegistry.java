@@ -54,4 +54,18 @@ public interface SkillRegistry {
      * 获取 Skill 的最新版本
      */
     String getLatestVersion(String skillId);
+
+    /**
+     * 获取 Skill 的 manifest 信息
+     * @param skillId Skill ID
+     * @return SkillManifest
+     */
+    SkillManifest getSkill(String skillId);
+
+    /**
+     * 获取 Skill 的所有可用版本
+     * @param skillId Skill ID
+     * @return 版本列表
+     */
+    List<String> getAvailableVersions(String skillId);
 }

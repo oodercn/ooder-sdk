@@ -410,4 +410,30 @@ public class SkillRegistryImpl implements SkillRegistry {
         }
         return null;
     }
+
+    @Override
+    public SkillManifest getSkill(String skillId) {
+        // 从SkillDefinition转换为SkillManifest
+        SkillDefinition def = definitions.get(skillId);
+        if (def == null) {
+            return null;
+        }
+
+        SkillManifest manifest = new SkillManifest();
+        manifest.setSkillId(skillId);
+        manifest.setVersion(getLatestVersion(skillId));
+        manifest.setSceneId(def.getSceneId());
+        // 其他字段根据需要填充
+        return manifest;
+    }
+
+    @Override
+    public List<String> getAvailableVersions(String skillId) {
+        // 简化实现：返回当前版本
+        String version = getLatestVersion(skillId);
+        if (version != null) {
+            return java.util.Collections.singletonList(version);
+        }
+        return java.util.Collections.emptyList();
+    }
 }

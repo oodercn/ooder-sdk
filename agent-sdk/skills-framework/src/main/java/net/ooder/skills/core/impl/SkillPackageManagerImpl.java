@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import net.ooder.skills.api.DependencyInfo;
 import net.ooder.skills.api.DependencyResult;
+import net.ooder.skills.api.InstallOptions;
 import net.ooder.skills.api.InstallProgress;
 import net.ooder.skills.api.InstallRequest;
 import net.ooder.skills.api.InstallResult;
@@ -23,12 +24,14 @@ import net.ooder.skills.api.InstallResultWithDependencies;
 import net.ooder.skills.api.InstalledSkill;
 import net.ooder.skills.api.InterfaceDefinition;
 import net.ooder.skills.api.InterfaceDependency;
+import net.ooder.skills.api.SceneTemplate;
 import net.ooder.skills.api.SkillCenterClient;
 import net.ooder.skills.api.SkillDiscoverer;
 import net.ooder.skills.api.SkillManifest;
 import net.ooder.skills.api.SkillPackage;
 import net.ooder.skills.api.SkillPackageManager;
 import net.ooder.skills.api.SkillPackageObserver;
+import net.ooder.skills.api.TemplateInstallResult;
 import net.ooder.skills.api.UninstallResult;
 import net.ooder.skills.api.UpdateResult;
 import net.ooder.skills.api.impl.DependencyInfoImpl;
@@ -838,5 +841,185 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
                 log.warn("Observer error during error notification", e);
             }
         }
+    }
+
+    @Override
+    public CompletableFuture<TemplateInstallResult> installFromTemplate(SceneTemplate template, InstallOptions options) {
+        // 处理 null options
+        final InstallOptions finalOptions = options != null ? options : InstallOptions.defaults();
+
+        return CompletableFuture.supplyAsync(() -> {
+            long startTime = System.currentTimeMillis();
+            TemplateInstallResult result = new TemplateInstallResult();
+            result.setTemplateId(template.getTemplateId());
+            result.setStatus("installing");
+
+            log.info("[installFromTemplate] Starting installation from template: {}", template.getTemplateId());
+
+            try {
+                // 1. 获取安装顺序
+                List<String> installOrder = getInstallOrder(template);
+                log.info("[installFromTemplate] Install order: {}", installOrder);
+
+                int totalSkills = installOrder.size();
+                int completedSkills = 0;
+
+                // 2. 按顺序安装每个 Skill
+                for (String skillId : installOrder) {
+                    SceneTemplate.SkillRef skillRef = findSkillRef(template, skillId);
+                    if (skillRef == null) {
+                        log.warn("[installFromTemplate] SkillRef not found for: {}", skillId);
+                        continue;
+                    }
+
+                    // 检查是否已安装
+                    boolean alreadyInstalled = isInstalled(skillId).join();
+                    if (alreadyInstalled && finalOptions.isSkipInstalled() && !finalOptions.isForceReinstall()) {
+                        log.info("[installFromTemplate] Skipping already installed skill: {}", skillId);
+                        result.addSkippedSkill(skillId);
+                        TemplateInstallResult.SkillInstallDetail detail = new TemplateInstallResult.SkillInstallDetail();
+                        detail.setSkillId(skillId);
+                        detail.setStatus("skipped");
+                        detail.setVersion(skillRef.getVersion());
+                        result.addSkillDetail(skillId, detail);
+                        completedSkills++;
+                        result.updateProgress((completedSkills * 100) / totalSkills);
+                        continue;
+                    }
+
+                    // 安装 Skill
+                    log.info("[installFromTemplate] Installing skill: {}", skillId);
+                    try {
+                        InstallRequest request = new InstallRequest();
+                        request.setSkillId(skillId);
+
+                        // 应用配置覆盖
+                        if (finalOptions.getConfigOverrides() != null && finalOptions.getConfigOverrides().containsKey(skillId)) {
+                            // 配置覆盖逻辑
+                        }
+
+                        InstallResult installResult = install(request).join();
+
+                        TemplateInstallResult.SkillInstallDetail detail = new TemplateInstallResult.SkillInstallDetail();
+                        detail.setSkillId(skillId);
+                        detail.setVersion(skillRef.getVersion());
+
+                        if (installResult.isSuccess()) {
+                            result.addInstalledSkill(skillId);
+                            detail.setStatus("installed");
+                            log.info("[installFromTemplate] Skill installed: {}", skillId);
+                        } else {
+                            result.addFailedSkill(skillId);
+                            detail.setStatus("failed");
+                            detail.setError(installResult.getError());
+                            log.error("[installFromTemplate] Failed to install skill: {} - {}",
+                                skillId, installResult.getError());
+
+                            // 如果 required，则中止安装
+                            if (skillRef.isRequired()) {
+                                result.setSuccess(false);
+                                result.setStatus("failed");
+                                result.setError("Required skill failed: " + skillId);
+                                result.setDuration(System.currentTimeMillis() - startTime);
+                                return result;
+                            }
+                        }
+
+                        result.addSkillDetail(skillId, detail);
+
+                    } catch (Exception e) {
+                        log.error("[installFromTemplate] Exception installing skill: {}", skillId, e);
+                        result.addFailedSkill(skillId);
+
+                        if (skillRef.isRequired()) {
+                            result.setSuccess(false);
+                            result.setStatus("failed");
+                            result.setError("Required skill failed: " + skillId + " - " + e.getMessage());
+                            result.setDuration(System.currentTimeMillis() - startTime);
+                            return result;
+                        }
+                    }
+
+                    completedSkills++;
+                    result.updateProgress((completedSkills * 100) / totalSkills);
+                }
+
+                // 3. 判断最终结果
+                boolean hasFailures = !result.getFailedSkills().isEmpty();
+                boolean hasInstalled = !result.getInstalledSkills().isEmpty();
+
+                if (hasFailures && hasInstalled) {
+                    result.setSuccess(true);
+                    result.setStatus("partial");
+                } else if (hasFailures) {
+                    result.setSuccess(false);
+                    result.setStatus("failed");
+                } else {
+                    result.setSuccess(true);
+                    result.setStatus("installed");
+                }
+
+                result.setDuration(System.currentTimeMillis() - startTime);
+
+                log.info("[installFromTemplate] Template installation completed: {} - installed: {}, skipped: {}, failed: {}",
+                    template.getTemplateId(),
+                    result.getInstalledSkills().size(),
+                    result.getSkippedSkills().size(),
+                    result.getFailedSkills().size());
+
+                return result;
+
+            } catch (Exception e) {
+                log.error("[installFromTemplate] Exception during template installation: {}", template.getTemplateId(), e);
+                result.setSuccess(false);
+                result.setStatus("failed");
+                result.setError(e.getMessage());
+                result.setDuration(System.currentTimeMillis() - startTime);
+                return result;
+            }
+        });
+    }
+
+    /**
+     * 获取安装顺序
+     */
+    private List<String> getInstallOrder(SceneTemplate template) {
+        List<String> order = new ArrayList<>();
+
+        if (template.getSkills() == null) {
+            return order;
+        }
+
+        // 先安装 required，再安装 optional
+        for (SceneTemplate.SkillRef skillRef : template.getSkills()) {
+            if (skillRef.isRequired()) {
+                order.add(skillRef.getSkillId());
+            }
+        }
+
+        for (SceneTemplate.SkillRef skillRef : template.getSkills()) {
+            if (!skillRef.isRequired()) {
+                order.add(skillRef.getSkillId());
+            }
+        }
+
+        return order;
+    }
+
+    /**
+     * 查找 SkillRef
+     */
+    private SceneTemplate.SkillRef findSkillRef(SceneTemplate template, String skillId) {
+        if (template.getSkills() == null) {
+            return null;
+        }
+
+        for (SceneTemplate.SkillRef skillRef : template.getSkills()) {
+            if (skillRef.getSkillId().equals(skillId)) {
+                return skillRef;
+            }
+        }
+
+        return null;
     }
 }

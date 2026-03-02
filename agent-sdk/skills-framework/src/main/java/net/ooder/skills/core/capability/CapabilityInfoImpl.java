@@ -15,6 +15,7 @@ public class CapabilityInfoImpl implements CapabilityInfo {
     private Map<String, Object> config;
     private CapabilityType type;
     private String sceneName;
+    private String version;
     
     public CapabilityInfoImpl() {}
     
@@ -57,4 +58,8 @@ public class CapabilityInfoImpl implements CapabilityInfo {
     
     public String getSceneName() { return sceneName; }
     public void setSceneName(String sceneName) { this.sceneName = sceneName; }
+
+    @Override
+    public String getVersion() { return version; }
+    public void setVersion(String version) { this.version = version; }
 }

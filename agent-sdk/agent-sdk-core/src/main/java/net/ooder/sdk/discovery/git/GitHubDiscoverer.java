@@ -15,17 +15,28 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * GitHub Repository Discoverer Implementation
  * 
- * Supports two modes:
- * 1. Single Repository Mode (default): All skills in one repository (e.g., oodercn/skills)
- * 2. Multi Repository Mode: Each skill is a separate repository
+ * <p>SDK层贫血模型实现：只负责数据获取，不做缓存判断和状态控制</p>
+ * 
+ * <p>设计原则：</p>
+ * <ul>
+ *   <li>无状态：每次调用都重新查询，不管理缓存</li>
+ *   <li>单一职责：只负责GitHub API调用和数据解析</li>
+ *   <li>贫血模型：返回原始数据，不做业务判断</li>
+ * </ul>
+ * 
+ * <p>支持两种模式：</p>
+ * <ol>
+ *   <li>Single Repository Mode (default): All skills in one repository</li>
+ *   <li>Multi Repository Mode: Each skill is a separate repository</li>
+ * </ol>
  *
  * @author ooder Team
  * @since 2.0
+ * @version 2.3 - 移除缓存逻辑，由SceneEngine层控制
  */
 public class GitHubDiscoverer implements GitRepositoryDiscoverer {
 
@@ -34,12 +45,10 @@ public class GitHubDiscoverer implements GitRepositoryDiscoverer {
 
     private final GitDiscoveryConfig config;
     private final ObjectMapper objectMapper;
-    private final ConcurrentHashMap<String, CacheEntry> cache;
 
     public GitHubDiscoverer(GitDiscoveryConfig config) {
         this.config = config;
         this.objectMapper = new ObjectMapper();
-        this.cache = new ConcurrentHashMap<>();
     }
 
     public GitHubDiscoverer() {
@@ -63,6 +72,14 @@ public class GitHubDiscoverer implements GitRepositoryDiscoverer {
         return config;
     }
 
+    /**
+     * 发现技能
+     * 
+     * <p>注意：SDK层不做缓存判断，每次调用都重新查询GitHub API</p>
+     * <p>缓存策略由SceneEngine层的DiscoveryCoordinator控制</p>
+     *
+     * @return 技能包列表（贫血模型，只包含原始数据）
+     */
     @Override
     public CompletableFuture<List<SkillPackage>> discoverSkills() {
         if (config.getDefaultOwner() == null || config.getDefaultOwner().isEmpty()) {
@@ -76,6 +93,15 @@ public class GitHubDiscoverer implements GitRepositoryDiscoverer {
         return discoverSkills(owner, config.getSkillsPath());
     }
 
+    /**
+     * 发现技能
+     * 
+     * <p>直接查询GitHub API，不做任何缓存判断</p>
+     *
+     * @param owner 仓库所有者
+     * @param skillsPath 技能路径
+     * @return 技能包列表
+     */
     @Override
     public CompletableFuture<List<SkillPackage>> discoverSkills(String owner, String skillsPath) {
         return CompletableFuture.supplyAsync(() -> {
@@ -139,14 +165,18 @@ public class GitHubDiscoverer implements GitRepositoryDiscoverer {
         return listSkillDirectories(owner, config.getSkillsPath());
     }
 
+    /**
+     * 列出技能目录
+     * 
+     * <p>注意：SDK层不做缓存，每次调用都重新查询</p>
+     *
+     * @param owner 仓库所有者
+     * @param skillsPath 技能路径
+     * @return 技能目录列表
+     */
     @Override
     public CompletableFuture<List<SkillDirectory>> listSkillDirectories(String owner, String skillsPath) {
-        String cacheKey = owner + "/" + skillsPath;
-        CacheEntry cached = cache.get(cacheKey);
-        if (cached != null && !cached.isExpired()) {
-            return CompletableFuture.completedFuture(cached.getDirectories());
-        }
-
+        // 移除缓存逻辑，直接查询GitHub API
         return CompletableFuture.supplyAsync(() -> {
             List<SkillDirectory> directories = new ArrayList<>();
             try {
@@ -176,8 +206,6 @@ public class GitHubDiscoverer implements GitRepositoryDiscoverer {
                         }
                     }
                 }
-
-                cache.put(cacheKey, new CacheEntry(directories, config.getCacheTtlMs()));
             } catch (Exception e) {
                 logger.error("Failed to list skill directories from {}/{}", owner, skillsPath, e);
             }
@@ -390,23 +418,5 @@ public class GitHubDiscoverer implements GitRepositoryDiscoverer {
         info.setAssets(assets);
 
         return info;
-    }
-
-    private static class CacheEntry {
-        private final List<SkillDirectory> directories;
-        private final long expireTime;
-
-        public CacheEntry(List<SkillDirectory> directories, long ttlMs) {
-            this.directories = directories;
-            this.expireTime = System.currentTimeMillis() + ttlMs;
-        }
-
-        public boolean isExpired() {
-            return System.currentTimeMillis() > expireTime;
-        }
-
-        public List<SkillDirectory> getDirectories() {
-            return directories;
-        }
     }
 }

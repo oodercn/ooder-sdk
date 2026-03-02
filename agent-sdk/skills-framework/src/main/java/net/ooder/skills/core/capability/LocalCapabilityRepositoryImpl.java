@@ -88,4 +88,13 @@ public class LocalCapabilityRepositoryImpl implements LocalCapabilityRepository 
     public int getCapabilityCount() {
         return capabilities.size();
     }
+
+    @Override
+    public String getCapabilityVersion(String capabilityId) {
+        CapabilityInfo capability = capabilities.get(capabilityId);
+        if (capability != null) {
+            return capability.getVersion();
+        }
+        return null;
+    }
 }

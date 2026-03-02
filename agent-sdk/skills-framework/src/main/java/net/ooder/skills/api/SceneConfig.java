@@ -4,13 +4,18 @@ package net.ooder.skills.api;
 import java.util.Map;
 
 public class SceneConfig {
-    
+
     private String sceneId;
     private String sceneName;
     private String sceneType;
     private String description;
     private boolean autoCreate;
     private Map<String, Object> properties;
+
+    /**
+     * 是否为自驱入口（mainFirst）
+     */
+    private boolean mainFirst;
     
     public String getSceneId() { return sceneId; }
     public void setSceneId(String sceneId) { this.sceneId = sceneId; }
@@ -29,4 +34,7 @@ public class SceneConfig {
     
     public Map<String, Object> getProperties() { return properties; }
     public void setProperties(Map<String, Object> properties) { this.properties = properties; }
+
+    public boolean isMainFirst() { return mainFirst; }
+    public void setMainFirst(boolean mainFirst) { this.mainFirst = mainFirst; }
 }

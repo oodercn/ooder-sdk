@@ -25,7 +25,17 @@ public interface SkillPackageManager {
      * @return 安装结果，包含成功/失败的依赖列表
      */
     CompletableFuture<InstallResultWithDependencies> installWithDependencies(String skillId, InstallRequest.InstallMode mode);
-    
+
+    /**
+     * 从场景模板安装（新增）
+     * 安装模板中定义的所有 Skills
+     *
+     * @param template 场景模板
+     * @param options 安装选项
+     * @return 模板安装结果
+     */
+    CompletableFuture<TemplateInstallResult> installFromTemplate(SceneTemplate template, InstallOptions options);
+
     CompletableFuture<UninstallResult> uninstall(String skillId);
     
     CompletableFuture<UpdateResult> update(String skillId, String version);

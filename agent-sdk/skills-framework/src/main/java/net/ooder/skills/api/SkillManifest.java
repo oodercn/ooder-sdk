@@ -15,9 +15,43 @@ public class SkillManifest {
     private String skillType;
     private List<Capability> capabilities;
     private List<Dependency> dependencies;
+    /**
+     * @deprecated 使用 {@link #collaborativeCapabilities} 替代
+     */
+    @Deprecated
     private List<String> collaborativeScenes;
+    
+    /**
+     * 协作能力ID列表（新术语）
+     */
+    private List<String> collaborativeCapabilities;
+    
+    /**
+     * @deprecated 使用 {@link #collaborativeCapabilityDependencies} 替代
+     */
+    @Deprecated
     private List<SceneDependency> collaborativeSceneDependencies;
+    
+    /**
+     * 协作能力依赖（新术语）
+     */
+    private List<SceneDependency> collaborativeCapabilityDependencies;
+    
+    /**
+     * @deprecated 使用 {@link #mainFirstScene} 替代
+     */
+    @Deprecated
     private SceneConfig primaryScene;
+    
+    /**
+     * 自驱入口场景配置（mainFirst）
+     */
+    private SceneConfig mainFirstScene;
+    
+    /**
+     * 场景能力定义列表
+     */
+    private List<SceneCapabilityDef> sceneCapabilities;
     private Map<String, Parameter> parameters;
     private Map<String, Object> config;
     private String author;
@@ -101,28 +135,117 @@ public class SkillManifest {
         this.dependencies = dependencies;
     }
     
+    /**
+     * @deprecated 使用 {@link #getCollaborativeCapabilities()} 替代
+     */
+    @Deprecated
     public List<String> getCollaborativeScenes() {
         return collaborativeScenes;
     }
     
+    /**
+     * @deprecated 使用 {@link #setCollaborativeCapabilities(List)} 替代
+     */
+    @Deprecated
     public void setCollaborativeScenes(List<String> collaborativeScenes) {
         this.collaborativeScenes = collaborativeScenes;
     }
     
+    /**
+     * 获取协作能力ID列表
+     * @return 协作能力ID列表
+     */
+    public List<String> getCollaborativeCapabilities() {
+        return collaborativeCapabilities != null ? collaborativeCapabilities : collaborativeScenes;
+    }
+    
+    /**
+     * 设置协作能力ID列表
+     * @param collaborativeCapabilities 协作能力ID列表
+     */
+    public void setCollaborativeCapabilities(List<String> collaborativeCapabilities) {
+        this.collaborativeCapabilities = collaborativeCapabilities;
+    }
+    
+    /**
+     * @deprecated 使用 {@link #getCollaborativeCapabilityDependencies()} 替代
+     */
+    @Deprecated
     public List<SceneDependency> getCollaborativeSceneDependencies() {
         return collaborativeSceneDependencies;
     }
     
+    /**
+     * @deprecated 使用 {@link #setCollaborativeCapabilityDependencies(List)} 替代
+     */
+    @Deprecated
     public void setCollaborativeSceneDependencies(List<SceneDependency> collaborativeSceneDependencies) {
         this.collaborativeSceneDependencies = collaborativeSceneDependencies;
     }
     
+    /**
+     * 获取协作能力依赖
+     * @return 协作能力依赖列表
+     */
+    public List<SceneDependency> getCollaborativeCapabilityDependencies() {
+        return collaborativeCapabilityDependencies != null ? 
+            collaborativeCapabilityDependencies : collaborativeSceneDependencies;
+    }
+    
+    /**
+     * 设置协作能力依赖
+     * @param collaborativeCapabilityDependencies 协作能力依赖列表
+     */
+    public void setCollaborativeCapabilityDependencies(List<SceneDependency> collaborativeCapabilityDependencies) {
+        this.collaborativeCapabilityDependencies = collaborativeCapabilityDependencies;
+    }
+    
+    /**
+     * @deprecated 使用 {@link #getMainFirstScene()} 替代
+     */
+    @Deprecated
     public SceneConfig getPrimaryScene() {
         return primaryScene;
     }
     
+    /**
+     * @deprecated 使用 {@link #setMainFirstScene(SceneConfig)} 替代
+     */
+    @Deprecated
     public void setPrimaryScene(SceneConfig primaryScene) {
         this.primaryScene = primaryScene;
+    }
+    
+    /**
+     * 获取自驱入口场景配置（mainFirst）
+     * @return 自驱入口场景配置
+     */
+    public SceneConfig getMainFirstScene() {
+        return mainFirstScene != null ? mainFirstScene : primaryScene;
+    }
+    
+    /**
+     * 设置自驱入口场景配置（mainFirst）
+     * @param mainFirstScene 自驱入口场景配置
+     */
+    public void setMainFirstScene(SceneConfig mainFirstScene) {
+        this.mainFirstScene = mainFirstScene;
+    }
+    
+    /**
+     * 获取场景能力定义列表
+     * @return 场景能力定义列表
+     */
+    public List<SceneCapabilityDef> getSceneCapabilities() {
+        return sceneCapabilities;
+    }
+    
+    /**
+     * 设置场景能力定义列表
+     * @param sceneCapabilities 场景能力定义列表
+     */
+    public void setSceneCapabilities(List<SceneCapabilityDef> sceneCapabilities) {
+        this.sceneCapabilities = sceneCapabilities;
     }
     
     public List<CapabilityInfo> getProvidedCapabilities() {
@@ -220,5 +343,124 @@ public class SkillManifest {
         public void setVersionRange(String versionRange) { this.versionRange = versionRange; }
         public boolean isRequired() { return required; }
         public void setRequired(boolean required) { this.required = required; }
+    }
+    
+    /**
+     * 场景能力定义
+     * 用于定义场景能力的配置信息
+     */
+    public static class SceneCapabilityDef {
+        private String capabilityId;
+        private boolean mainFirst;
+        private MainFirstConfig mainFirstConfig;
+        private List<String> capabilities;
+        private List<CollaborativeCapabilityRef> collaborativeCapabilities;
+        
+        public String getCapabilityId() { return capabilityId; }
+        public void setCapabilityId(String capabilityId) { this.capabilityId = capabilityId; }
+        public boolean isMainFirst() { return mainFirst; }
+        public void setMainFirst(boolean mainFirst) { this.mainFirst = mainFirst; }
+        public MainFirstConfig getMainFirstConfig() { return mainFirstConfig; }
+        public void setMainFirstConfig(MainFirstConfig mainFirstConfig) { this.mainFirstConfig = mainFirstConfig; }
+        public List<String> getCapabilities() { return capabilities; }
+        public void setCapabilities(List<String> capabilities) { this.capabilities = capabilities; }
+        public List<CollaborativeCapabilityRef> getCollaborativeCapabilities() { return collaborativeCapabilities; }
+        public void setCollaborativeCapabilities(List<CollaborativeCapabilityRef> collaborativeCapabilities) { 
+            this.collaborativeCapabilities = collaborativeCapabilities; 
+        }
+    }
+    
+    /**
+     * 自驱入口配置
+     */
+    public static class MainFirstConfig {
+        private List<SelfCheck> selfChecks;
+        private List<SelfStart> selfStarts;
+        private SelfDriveConfig selfDrive;
+        private List<CollaborationStart> collaborationStarts;
+        
+        public List<SelfCheck> getSelfChecks() { return selfChecks; }
+        public void setSelfChecks(List<SelfCheck> selfChecks) { this.selfChecks = selfChecks; }
+        public List<SelfStart> getSelfStarts() { return selfStarts; }
+        public void setSelfStarts(List<SelfStart> selfStarts) { this.selfStarts = selfStarts; }
+        public SelfDriveConfig getSelfDrive() { return selfDrive; }
+        public void setSelfDrive(SelfDriveConfig selfDrive) { this.selfDrive = selfDrive; }
+        public List<CollaborationStart> getCollaborationStarts() { return collaborationStarts; }
+        public void setCollaborationStarts(List<CollaborationStart> collaborationStarts) { 
+            this.collaborationStarts = collaborationStarts; 
+        }
+    }
+    
+    /**
+     * 自检配置
+     */
+    public static class SelfCheck {
+        private String checkType;
+        private Map<String, Object> params;
+        
+        public String getCheckType() { return checkType; }
+        public void setCheckType(String checkType) { this.checkType = checkType; }
+        public Map<String, Object> getParams() { return params; }
+        public void setParams(Map<String, Object> params) { this.params = params; }
+    }
+    
+    /**
+     * 自启配置
+     */
+    public static class SelfStart {
+        private String startType;
+        private Map<String, Object> params;
+        
+        public String getStartType() { return startType; }
+        public void setStartType(String startType) { this.startType = startType; }
+        public Map<String, Object> getParams() { return params; }
+        public void setParams(Map<String, Object> params) { this.params = params; }
+    }
+    
+    /**
+     * 自驱配置
+     */
+    public static class SelfDriveConfig {
+        private String driveMode;
+        private long interval;
+        private Map<String, Object> params;
+        
+        public String getDriveMode() { return driveMode; }
+        public void setDriveMode(String driveMode) { this.driveMode = driveMode; }
+        public long getInterval() { return interval; }
+        public void setInterval(long interval) { this.interval = interval; }
+        public Map<String, Object> getParams() { return params; }
+        public void setParams(Map<String, Object> params) { this.params = params; }
+    }
+    
+    /**
+     * 协作启动配置
+     */
+    public static class CollaborationStart {
+        private String collaborativeCapabilityId;
+        private Map<String, Object> initParams;
+        
+        public String getCollaborativeCapabilityId() { return collaborativeCapabilityId; }
+        public void setCollaborativeCapabilityId(String collaborativeCapabilityId) { 
+            this.collaborativeCapabilityId = collaborativeCapabilityId; 
+        }
+        public Map<String, Object> getInitParams() { return initParams; }
+        public void setInitParams(Map<String, Object> initParams) { this.initParams = initParams; }
+    }
+    
+    /**
+     * 协作能力引用
+     */
+    public static class CollaborativeCapabilityRef {
+        private String capabilityId;
+        private String role;
+        private Map<String, Object> config;
+        
+        public String getCapabilityId() { return capabilityId; }
+        public void setCapabilityId(String capabilityId) { this.capabilityId = capabilityId; }
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+        public Map<String, Object> getConfig() { return config; }
+        public void setConfig(Map<String, Object> config) { this.config = config; }
     }
 }

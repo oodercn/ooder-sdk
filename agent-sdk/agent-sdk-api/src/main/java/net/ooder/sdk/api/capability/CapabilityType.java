@@ -8,7 +8,7 @@ package net.ooder.sdk.api.capability;
  * @since 2.3
  */
 public enum CapabilityType {
-    /** 驱动类型 */
+    /** 驱动类型 - 提供驱动源头的特殊能力 */
     DRIVER,
     /** 服务类型 */
     SERVICE,
@@ -26,12 +26,18 @@ public enum CapabilityType {
     MONITORING,
     /** 技能类型 */
     SKILL,
-    /** 场景类型 */
+    /** 场景类型 - 自驱型SuperAgent能力 */
     SCENE,
     /** 场景组类型 */
     SCENE_GROUP,
     /** 能力链类型 */
     CAPABILITY_CHAIN,
+    /** 原子能力 - 单一功能，不可分解 */
+    ATOMIC,
+    /** 组合能力 - 组合多个原子能力 */
+    COMPOSITE,
+    /** 协作能力 - 跨场景协作能力 */
+    COLLABORATIVE,
     /** 自定义类型 */
     CUSTOM
 }
