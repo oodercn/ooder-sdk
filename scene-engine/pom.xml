@@ -19,6 +19,7 @@
 
     <properties>
         <agent-sdk.version>2.3</agent-sdk.version>
+        <gpg.skip>true</gpg.skip>
     </properties>
 
     <dependencies>

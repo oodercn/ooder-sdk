@@ -4,7 +4,7 @@
 
 ### 1.1 设计理念
 
-Ooder Agent SDK 0.7.2 版本采用南北向分层架构设计，将系统划分为三个核心层次：
+Ooder Agent SDK 2.3 版本采用南北向分层架构设计，将系统划分为三个核心层次：
 
 - **核心抽象层（Core Abstraction Layer）**：提供统一的基础接口和数据模型
 - **南向服务层（Southbound Service Layer）**：面向内部网络，提供简单确定性的服务
@@ -856,7 +856,7 @@ ooder.sdk.north.protocol.timeout-default=30000
 
 ## 11. 总结
 
-Ooder Agent SDK 0.7.2 版本通过南北向分层架构，实现了：
+Ooder Agent SDK 2.3 版本通过南北向分层架构，实现了：
 
 1. **清晰的层次分离**：核心抽象、南向服务、北向服务三层清晰
 2. **功能明确划分**：南向简单确定性，北向复杂灵活性
@@ -866,4 +866,4 @@ Ooder Agent SDK 0.7.2 版本通过南北向分层架构，实现了：
 
 ---
 
-**Ooder Agent SDK 0.7.2** - 构建智能、协作、安全的Agent生态系统！
+**Ooder Agent SDK 2.3** - 构建智能、协作、安全的Agent生态系统！

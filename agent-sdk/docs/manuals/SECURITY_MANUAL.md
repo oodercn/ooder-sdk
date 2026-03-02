@@ -4,7 +4,7 @@
 
 ### 1.1 安全目标
 
-Ooder Agent SDK 0.7.2 版本的安全体系旨在实现以下目标：
+Ooder Agent SDK 2.3 版本的安全体系旨在实现以下目标：
 
 | 目标 | 描述 |
 |------|------|
@@ -878,7 +878,7 @@ ooder.sdk.security.audit.log-retention=30
 
 ## 9. 总结
 
-Ooder Agent SDK 0.7.2 版本的安全体系提供了完整的安全保障：
+Ooder Agent SDK 2.3 版本的安全体系提供了完整的安全保障：
 
 1. **分层安全**：南向基础安全，北向高级安全
 2. **域级隔离**：基于域的资源隔离和权限控制
@@ -888,4 +888,4 @@ Ooder Agent SDK 0.7.2 版本的安全体系提供了完整的安全保障：
 
 ---
 
-**Ooder Agent SDK 0.7.2** - 构建智能、协作、安全的Agent生态系统！
+**Ooder Agent SDK 2.3** - 构建智能、协作、安全的Agent生态系统！

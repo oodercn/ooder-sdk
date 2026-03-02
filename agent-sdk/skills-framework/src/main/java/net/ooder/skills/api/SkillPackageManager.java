@@ -18,6 +18,14 @@ public interface SkillPackageManager {
     
     CompletableFuture<InstallResult> install(InstallRequest request);
     
+    /**
+     * 安装 Skill 及其所有依赖（递归安装）
+     * @param skillId Skill 标识
+     * @param mode 安装模式
+     * @return 安装结果，包含成功/失败的依赖列表
+     */
+    CompletableFuture<InstallResultWithDependencies> installWithDependencies(String skillId, InstallRequest.InstallMode mode);
+    
     CompletableFuture<UninstallResult> uninstall(String skillId);
     
     CompletableFuture<UpdateResult> update(String skillId, String version);

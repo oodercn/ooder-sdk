@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>ooder-database</artifactId>
+    <groupId>net.ooder</groupId>
+    <name>ooder-database</name>
+    <description>Ooder database module</description>
+
+    <parent>
+        <groupId>net.ooder</groupId>
+        <artifactId>ooder-common-all</artifactId>
+        <version>2.3</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-common-client</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-annotation</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>4.0.3</version>
+        </dependency>
+    </dependencies>
+</project>

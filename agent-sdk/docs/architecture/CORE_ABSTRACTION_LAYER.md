@@ -4,7 +4,7 @@
 
 ### 1.1 设计目标
 
-核心抽象层是 Ooder Agent SDK 0.7.2 版本的基础架构层，提供统一的基础接口和数据模型，确保南北向服务的一致性和可扩展性。
+核心抽象层是 Ooder Agent SDK 2.3 版本的基础架构层，提供统一的基础接口和数据模型，确保南北向服务的一致性和可扩展性。
 
 ### 1.2 核心原则
 
@@ -1092,4 +1092,4 @@ public class OoderMessageAdapter implements CoreMessage {
 
 ---
 
-**Ooder Agent SDK 0.7.2** - 构建智能、协作、安全的Agent生态系统！
+**Ooder Agent SDK 2.3** - 构建智能、协作、安全的Agent生态系统！

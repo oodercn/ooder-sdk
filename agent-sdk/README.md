@@ -93,6 +93,7 @@ public class AgentApplication {
 - 场景 (Scene) 接口
 - 命令 (Command) 接口
 - 事件 (Event) 接口
+- 连接测试 (ConnectionTestService) 接口（v2.3新增）
 
 ### llm-sdk-api
 
@@ -162,6 +163,9 @@ agent-sdk/
 - 移除 scene-engine 模块 (移至外部工程)
 - 统一版本号为 2.3
 - 清理重复代码
+- **新增连接测试接口** - ConnectionTestService
+  - 支持能力端点连接测试
+  - 支持 HTTP/TCP 端点测试
 
 ### 0.7.3 (历史版本)
 

@@ -1,5 +1,21 @@
 # Agent SDK 2.3 架构设计文档
 
+## 📚 必读文档
+
+> ⚠️ **二次开发必读**: 在集成SDK到Spring Boot项目时，如果遇到组件注入问题，请先阅读以下文档：
+
+| 文档 | 路径 | 说明 |
+|------|------|------|
+| **SDK组件注入二次开发指南** | `../SDK_INJECTION_SECONDARY_DEVELOPMENT_GUIDE.md` | Spring集成问题完整解决方案 |
+| **SDK组件注入单元测试指南** | `../SDK_INJECTION_UNIT_TEST_GUIDE.md` | 单元测试实现与验证指南 |
+
+**常见问题**:
+- `DriverRegistry`无法通过`@Autowired`注入
+- `CapabilityRegistry`无法通过`@Autowired`注入
+- `SceneEngine`依赖项注入失败
+
+---
+
 ## 1. 概述
 
 Agent SDK 2.3 是一个经过重构的轻量级 Agent 开发框架，采用模块化设计，将核心功能与扩展功能分离，实现清晰的依赖关系。

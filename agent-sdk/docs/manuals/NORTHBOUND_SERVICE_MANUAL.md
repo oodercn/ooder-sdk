@@ -2189,4 +2189,4 @@ ooder.sdk.north.protocol.trace-enabled=true
 
 ---
 
-**Ooder Agent SDK 0.7.2** - 构建智能、协作、安全的Agent生态系统！
+**Ooder Agent SDK 2.3** - 构建智能、协作、安全的Agent生态系统！

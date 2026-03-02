@@ -19,23 +19,26 @@ ooder-sdk/
 ├── ooder-api/              # 基础 API 接口
 ├── ooder-util/             # 工具类模块
 ├── ooder-annotation/       # 注解模块 (v2.3)
-├── ooder-common/           # 通用组件模块 (v2.3)
+├── ooder-common/                 # 通用组件模块 (v2.3)
 │   ├── ooder-config/       # 场景配置管理
+│   ├── ooder-database/     # 数据库访问层
 │   ├── ooder-common-client/# 客户端核心组件
 │   ├── ooder-server/       # 服务器核心
 │   ├── ooder-vfs-web/      # VFS Web 服务
 │   ├── ooder-org-web/      # 组织人员服务
 │   └── ooder-msg-web/      # 消息服务
-├── ooder-infra-core/       # 基础设施核心
-├── ooder-infra-driver/     # 基础设施驱动
-├── ooder-codegen/          # 代码生成器
-├── ooder-codegen-cli/      # 代码生成器 CLI
 ├── scene-engine/           # 场景引擎 (v2.3)
 ├── pom.xml                 # 父 POM
-├── README.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-└── LICENSE
+├── README.md                     # 项目说明
+├── ARCHITECTURE_GUIDE.md         # 架构指南
+├── MODULE_DIVISION.md            # 模块分工
+├── DEVELOPMENT_GUIDE.md          # 二次开发手册
+├── NAVIGATION.md                 # 文档导航
+├── SKILLS_COLLABORATION.md       # Skills 协作
+├── RELEASE_NOTES_v2.3.md         # 发布说明
+├── CHANGELOG.md                  # 变更日志
+├── CONTRIBUTING.md               # 贡献指南
+└── LICENSE                       # 许可证
 ```
 
 ## 模块说明
@@ -69,7 +72,8 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，采用分层架构设
 | 子模块 | 说明 | 依赖关系 |
 |--------|------|----------|
 | ooder-config | 场景配置管理 - 提供场景配置、能力配置等 | 独立 |
-| ooder-common-client | 客户端核心组件 - 集群、缓存、VFS、组织、服务器等 | 依赖 ooder-config |
+| ooder-database | 数据库访问层 - 连接池、DAO框架、事务管理 | 依赖 ooder-config |
+| ooder-common-client | 客户端核心组件 - 集群、缓存、VFS、组织、服务器等 | 依赖 ooder-database |
 | ooder-server | 服务器核心 - Session、JDSServer、集群管理 | 依赖 ooder-common-client |
 | ooder-vfs-web | VFS Web 服务 - 虚拟文件系统服务 | 依赖 ooder-common-client, ooder-server |
 | ooder-org-web | 组织人员服务 - 组织架构和人员管理 | 依赖 ooder-common-client, ooder-server |
@@ -99,14 +103,6 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，采用分层架构设
 | 事件 | @APIEvent, @ButtonEvent, @FieldEvent 等 |
 | 数据绑定 | @DBField, @DBTable, @DBPrimaryKey 等 |
 | Agent | @Agent, @AgentCapability, @Skill 等 |
-
-### ooder-infra-core & ooder-infra-driver
-
-基础设施模块，提供底层驱动支持。
-
-### ooder-codegen & ooder-codegen-cli
-
-代码生成器模块，用于生成模板代码。
 
 ## 快速开始
 
@@ -149,6 +145,15 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，采用分层架构设
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>ooder-annotation</artifactId>
+    <version>2.3</version>
+</dependency>
+```
+
+**ooder-database:**
+```xml
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>ooder-database</artifactId>
     <version>2.3</version>
 </dependency>
 ```
@@ -199,11 +204,6 @@ mvn clean install
 │  │ ooder-config    │  │ ooder-common-*  │  │ ooder-server    │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
 │                                                                 │
-│  基础设施层 (ooder-infra-*)                                     │
-│  ┌─────────────────┐  ┌─────────────────┐                      │
-│  │ infra-core      │  │ infra-driver    │                      │
-│  └─────────────────┘  └─────────────────┘                      │
-│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -229,6 +229,17 @@ mvn clean install
 | scene-engine | 2.3 |
 
 详细变更请参阅 [CHANGELOG.md](CHANGELOG.md)
+
+## 文档导航
+
+| 文档 | 说明 | 目标读者 |
+|------|------|----------|
+| [ARCHITECTURE_GUIDE.md](ARCHITECTURE_GUIDE.md) | 架构指南、依赖关系 | 架构师 |
+| [MODULE_DIVISION.md](MODULE_DIVISION.md) | 模块详细分工、接口列表 | 开发者 |
+| [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) | 二次开发手册 | SDK 开发者 |
+| [NAVIGATION.md](NAVIGATION.md) | 完整文档导航 | 所有用户 |
+| [SKILLS_COLLABORATION.md](SKILLS_COLLABORATION.md) | Skills 协作规范 | Skills 开发者 |
+| [RELEASE_NOTES_v2.3.md](RELEASE_NOTES_v2.3.md) | v2.3 发布说明 | 所有用户 |
 
 ## 相关项目
 

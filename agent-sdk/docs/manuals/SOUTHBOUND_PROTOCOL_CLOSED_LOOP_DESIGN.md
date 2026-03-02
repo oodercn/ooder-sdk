@@ -1094,4 +1094,4 @@ public class SouthboundProtocolValidation {
 
 ---
 
-**Ooder Agent SDK 0.7.2** - 南向协议闭环推导设计完成！
+**Ooder Agent SDK 2.3** - 南向协议闭环推导设计完成！

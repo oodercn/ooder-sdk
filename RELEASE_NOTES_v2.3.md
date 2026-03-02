@@ -1,6 +1,6 @@
 # Ooder SDK v2.3 版本发布说明
 
-**发布日期**: 2026-02-24  
+**发布日期**: 2026-02-27  
 **版本号**: 2.3  
 **状态**: 正式发布
 
@@ -8,69 +8,64 @@
 
 ## 一、版本概述
 
-Ooder SDK v2.3 是一个重要的架构升级版本,基于 v0.8.0 升级主计划进行全面重构。本版本主要聚焦于:
+Ooder SDK v2.3 是一个重要的架构升级版本。本版本主要聚焦于:
 
-1. **代码精简**: 删除约70个冗余文件,减少维护成本
-2. **架构统一**: 标准化API接口,提升代码一致性
-3. **能力扩展**: 新增AI能力模块,支持AIGC/MCP/工作流
-4. **版本统一**: 所有模块版本统一为2.3,简化依赖管理
+1. **架构重构**: agent-sdk 拆分为 api/core/skills-framework/llm-sdk 模块
+2. **模块精简**: 移除冗余模块(vfs-skill, org-skill, skills等)
+3. **版本统一**: 所有模块版本统一为2.3,简化依赖管理
+4. **文档完善**: 补充核心接口和类的注释
 
 ---
 
 ## 二、主要变更
 
-### 2.1 删除冗余代码
+### 2.1 模块结构调整
 
-#### scene-engine 模块
-- **删除** `drivers/` 目录(约50个文件)
-  - `drivers/vfs/` - 与 `skill-vfs` 重复
-  - `drivers/org/` - 与 `skill-org` 重复
-  - `drivers/msg/` - 与 `skill-msg` 重复
-  - `drivers/mqtt/` - 与 `skill-mqtt` 重复
+#### 删除的模块
+- `vfs-skill` - 迁移到 ooder-skills 仓库
+- `org-skill` - 迁移到 ooder-skills 仓库
+- `skills` - 功能合并到 agent-sdk
+- `agent-sdk/scene-engine-core` - 功能合并到 scene-engine
+- `ooder-common/ooder-database` - 暂时移除
+- `ooder-common/ooder-index-web` - 暂时移除
+- `ooder-common/ooder-iot-webclient` - 暂时移除
+- `ooder-infra-core` - 移除
+- `ooder-infra-driver` - 移除
+- `ooder-codegen` - 移除
+- `ooder-codegen-cli` - 移除
 
-#### agent-sdk 模块
-- **删除** `net.ooder.sdk.cmd` 包(10个文件)
-- **删除** `net.ooder.sdk.msg` 包(6个文件)
-- **保留** `net.ooder.sdk.api.cmd` 和 `net.ooder.sdk.api.msg` 作为标准API
+#### agent-sdk 新结构
+```
+agent-sdk/
+├── agent-sdk-api/          # API接口层
+├── agent-sdk-core/         # 核心实现层
+├── skills-framework/       # 技能框架
+├── llm-sdk-api/            # LLM轻量级API
+└── llm-sdk/                # LLM完整实现
+```
 
-### 2.2 新增功能模块
-
-#### skill-ai 模块(全新)
-提供统一的AI能力接口:
-
-| 能力 | 说明 |
-|------|------|
-| `aigc.text-generation` | 文本生成 |
-| `aigc.chat` | 对话能力 |
-| `mcp.client-management` | MCP客户端管理 |
-| `mcp.tool-call` | MCP工具调用 |
-| `workflow.execution` | 工作流执行 |
-| `workflow.management` | 工作流管理 |
-
-**核心类**:
-- `AISkill` / `AISkillImpl` - AI能力接口和实现
-- `AIGCResult` / `Message` / `ModelInfo` - AIGC相关模型
-- `MCPConfig` / `MCPResult` / `MCPClientInfo` - MCP相关模型
-- `WorkflowDefinition` / `WorkflowStep` / `WorkflowResult` - 工作流相关模型
-
-### 2.3 版本统一
+### 2.2 版本统一
 
 所有模块版本统一为 **2.3**:
 
 | 模块 | 旧版本 | 新版本 |
 |------|--------|--------|
-| scene-engine-parent | 0.8.0 | 2.3 |
-| scene-engine | 0.8.0 | 2.3 |
-| skill-org | 0.8.0 | 2.3 |
-| skill-vfs | 0.8.0 | 2.3 |
-| skill-msg | 0.8.0 | 2.3 |
-| skill-mqtt | 0.8.0 | 2.3 |
-| skill-agent | 0.8.0 | 2.3 |
-| skill-security | 0.8.0 | 2.3 |
-| skill-business | 0.8.0 | 2.3 |
-| skill-ai | - | 2.3 |
-| agent-sdk | 0.8.0 | 2.3 |
-| llm-sdk | 0.8.0 | 2.3 |
+| agent-sdk-api | 0.7.3 | 2.3 |
+| agent-sdk-core | 0.7.3 | 2.3 |
+| skills-framework | 0.7.3 | 2.3 |
+| llm-sdk-api | 0.7.3 | 2.3 |
+| llm-sdk | 0.7.3 | 2.3 |
+| scene-engine | 0.7.3 | 2.3 |
+| ooder-annotation | 2.2 | 2.3 |
+| ooder-common | 2.1 | 2.3 |
+
+### 2.3 注释补充
+
+为核心接口和类补充了 JavaDoc 注释:
+- `Capability` / `CapabilityStatus` / `CapabilityType`
+- `SceneManager` / `SceneDefinition` / `SceneGroupManager`
+- `AgentType` / `MemberRole` / `SceneType`
+- `SkillService` / `SessionInfo`
 
 ---
 
@@ -78,52 +73,30 @@ Ooder SDK v2.3 是一个重要的架构升级版本,基于 v0.8.0 升级主计�
 
 ### 3.1 向后兼容
 
-- **API兼容**: 通过桥接层保持与旧版本API兼容
-- **数据兼容**: 数据模型保持不变,自动迁移
-- **配置兼容**: 提供配置迁移工具
+- **API兼容**: 核心API保持不变
+- **依赖变更**: 需要更新Maven依赖坐标
 
 ### 3.2 迁移指南
 
-#### 使用旧包的应用
-```java
-// 变更前
-import net.ooder.sdk.cmd.CmdClientConfig;
+#### 更新Maven依赖
 
-// 变更后
-import net.ooder.sdk.api.cmd.CmdClientConfig;
+**变更前**:
+```xml
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>vfs-skill</artifactId>
+    <version>2.2</version>
+</dependency>
 ```
 
-#### 使用drivers的应用
-```java
-// 变更前
-import net.ooder.scene.drivers.vfs.VfsSkill;
-
-// 变更后
-import net.ooder.scene.skills.vfs.VfsSkill;
-```
-
-#### 使用AI能力(新增)
-```java
-// 通过skill-ai使用AIGC能力
-AISkill aiSkill = new AISkillImpl();
-aiSkill.setLlmProvider(llmProvider);
-
-// 文本生成
-AIGCResult result = aiSkill.generateText("gpt-4", "Hello", params).join();
-
-// MCP工具调用
-MCPConfig config = new MCPConfig();
-config.setClientId("my-client");
-config.setTransportType(MCPConfig.TransportType.SSE);
-aiSkill.registerMCPClient("my-client", config);
-MCPResult result = aiSkill.callMCPTool("my-client", "search", params).join();
-
-// 工作流执行
-WorkflowDefinition workflow = new WorkflowDefinition();
-workflow.setWorkflowId("my-workflow");
-// ... 配置步骤
-aiSkill.registerWorkflow(workflow);
-WorkflowResult result = aiSkill.executeWorkflow("my-workflow", params).join();
+**变更后**:
+```xml
+<!-- 移除 vfs-skill 依赖，使用 scene-engine 提供的 VFS 能力 -->
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>scene-engine</artifactId>
+    <version>2.3</version>
+</dependency>
 ```
 
 ---
@@ -148,27 +121,66 @@ WorkflowResult result = aiSkill.executeWorkflow("my-workflow", params).join();
     <version>2.3</version>
 </dependency>
 
-<!-- agent-sdk -->
+<!-- agent-sdk-core (完整SDK) -->
 <dependency>
     <groupId>net.ooder</groupId>
-    <artifactId>agent-sdk</artifactId>
+    <artifactId>agent-sdk-core</artifactId>
     <version>2.3</version>
 </dependency>
 
-<!-- llm-sdk -->
+<!-- agent-sdk-api (仅API接口) -->
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>agent-sdk-api</artifactId>
+    <version>2.3</version>
+</dependency>
+
+<!-- llm-sdk (LLM完整实现) -->
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>llm-sdk</artifactId>
     <version>2.3</version>
 </dependency>
 
-<!-- skill-ai -->
+<!-- skills-framework (技能框架) -->
 <dependency>
     <groupId>net.ooder</groupId>
-    <artifactId>skill-ai</artifactId>
+    <artifactId>skills-framework</artifactId>
+    <version>2.3</version>
+</dependency>
+
+<!-- ooder-annotation (注解定义) -->
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>ooder-annotation</artifactId>
+    <version>2.3</version>
+</dependency>
+
+<!-- ooder-common子模块 -->
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>ooder-config</artifactId>
     <version>2.3</version>
 </dependency>
 ```
+
+### 依赖关系说明
+
+```
+上层应用
+    ↓ 依赖
+scene-engine
+    ↓ 依赖
+agent-sdk-core
+    ↓ 依赖
+agent-sdk-api + skills-framework + llm-sdk-api + llm-sdk
+    ↓ 依赖
+ooder-common-* (ooder-config, ooder-common-client, ooder-server等)
+    ↓ 依赖
+ooder-api + ooder-util + ooder-annotation
+```
+
+**注意**: `agent-sdk` 是父工程(pom类型),不能直接作为依赖使用。请依赖具体的子模块如 `agent-sdk-core`。
 
 ---
 
@@ -178,21 +190,7 @@ WorkflowResult result = aiSkill.executeWorkflow("my-workflow", params).join();
 
 ---
 
-## 七、后续计划
-
-### v2.4 计划(1个月内)
-- [ ] 完善skill-ai的MCP协议实现
-- [ ] 增强工作流引擎
-- [ ] 优化性能
-
-### v2.5 计划(3个月内)
-- [ ] 完成CAP注册表实现
-- [ ] SceneAgent完整实现
-- [ ] CommandPacket LLM扩展
-
----
-
-## 八、问题反馈
+## 七、问题反馈
 
 如有问题,请联系:
 - **GitHub Issues**: https://github.com/oodercn/ooder-sdk/issues
@@ -200,11 +198,11 @@ WorkflowResult result = aiSkill.executeWorkflow("my-workflow", params).join();
 
 ---
 
-## 九、致谢
+## 八、致谢
 
 感谢所有贡献者和用户的支持!
 
 ---
 
-**发布日期**: 2026-02-24  
+**发布日期**: 2026-02-27  
 **文档版本**: 1.0

@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>ooder-sdk-parent</artifactId>
-    <version>1.0.0</version>
+    <version>2.3</version>
     <packaging>pom</packaging>
 
     <name>Ooder SDK Parent</name>
@@ -166,11 +166,14 @@
                         </executions>
                     </plugin>
                     
-                    <!-- GPG Plugin -->
+                    <!-- GPG Plugin - 仅在发布时启用 -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.6</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -190,14 +193,6 @@
         <!-- 基础层 -->
         <module>ooder-api</module>
         <module>ooder-util</module>
-        
-        <!-- 基础设施层 -->
-        <module>ooder-infra-core</module>
-        <module>ooder-infra-driver</module>
-        
-        <!-- 代码生成器 -->
-        <module>ooder-codegen</module>
-        <module>ooder-codegen-cli</module>
         
         <!-- 核心模块 -->
         <module>agent-sdk</module>
@@ -220,52 +215,16 @@
             <dependency>
                 <groupId>net.ooder</groupId>
                 <artifactId>ooder-api</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>${ooder.version}</version>
             </dependency>
             
             <dependency>
                 <groupId>net.ooder</groupId>
                 <artifactId>ooder-util</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>${ooder.version}</version>
             </dependency>
             
-            <!-- 基础设施层 -->
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>ooder-infra-core</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>ooder-infra-driver</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-            
-            <!-- 代码生成器 -->
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>ooder-codegen</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>ooder-codegen-cli</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>agent-sdk</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>net.ooder</groupId>
-                <artifactId>agent-sdk-api</artifactId>
-                <version>${agent-sdk.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>net.ooder</groupId>
@@ -300,6 +259,12 @@
             <dependency>
                 <groupId>net.ooder</groupId>
                 <artifactId>ooder-config</artifactId>
+                <version>${ooder.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.ooder</groupId>
+                <artifactId>ooder-database</artifactId>
                 <version>${ooder.version}</version>
             </dependency>
             

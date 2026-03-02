@@ -1,5 +1,13 @@
 # Nexus 初始化引导流程设计
 
+## 📚 必读文档
+
+> ⚠️ **Nexus Enterprise项目必读**: 在集成SDK时遇到Spring注入问题，请参考：
+> - [SDK组件注入二次开发指南](../SDK_INJECTION_SECONDARY_DEVELOPMENT_GUIDE.md)
+> - [SDK组件注入单元测试指南](../SDK_INJECTION_UNIT_TEST_GUIDE.md)
+
+---
+
 ## 一、P2P模式初始化
 
 ### 1.1 架构设计

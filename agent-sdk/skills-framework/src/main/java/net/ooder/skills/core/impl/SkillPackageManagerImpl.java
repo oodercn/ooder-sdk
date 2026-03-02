@@ -19,6 +19,7 @@ import net.ooder.skills.api.DependencyResult;
 import net.ooder.skills.api.InstallProgress;
 import net.ooder.skills.api.InstallRequest;
 import net.ooder.skills.api.InstallResult;
+import net.ooder.skills.api.InstallResultWithDependencies;
 import net.ooder.skills.api.InstalledSkill;
 import net.ooder.skills.api.InterfaceDefinition;
 import net.ooder.skills.api.InterfaceDependency;
@@ -186,6 +187,112 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
             pkg.setSource(url);
             log.info("Downloaded skill from URL: {}", url);
             return pkg;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<InstallResultWithDependencies> installWithDependencies(String skillId, InstallRequest.InstallMode mode) {
+        return CompletableFuture.supplyAsync(() -> {
+            long startTime = System.currentTimeMillis();
+            InstallResultWithDependencies result = new InstallResultWithDependencies();
+            result.setSkillId(skillId);
+            
+            log.info("[installWithDependencies] Installing skill: {}", skillId);
+            
+            try {
+                // 1. 获取 Skill 元数据
+                SkillManifest manifest = getManifest(skillId).join();
+                if (manifest == null) {
+                    result.setSuccess(false);
+                    result.setStatus("failed");
+                    result.setError("Skill manifest not found: " + skillId);
+                    result.setDuration(System.currentTimeMillis() - startTime);
+                    return result;
+                }
+                
+                // 2. 解析依赖
+                List<SkillManifest.Dependency> dependencies = manifest.getDependencies();
+                log.info("[installWithDependencies] Found {} dependencies for {}", 
+                    dependencies != null ? dependencies.size() : 0, skillId);
+                
+                // 3. 递归安装依赖
+                if (dependencies != null) {
+                    for (SkillManifest.Dependency dep : dependencies) {
+                        String depSkillId = dep.getSkillId();
+                        if (!isInstalled(depSkillId).join()) {
+                            try {
+                                log.info("[installWithDependencies] Installing dependency: {}", depSkillId);
+                                InstallResultWithDependencies depResult = installWithDependencies(depSkillId, mode).join();
+                                
+                                if (depResult.isSuccess()) {
+                                    result.addInstalledDependency(depSkillId);
+                                    log.info("[installWithDependencies] Dependency installed: {}", depSkillId);
+                                } else {
+                                    result.addFailedDependency(depSkillId);
+                                    log.error("[installWithDependencies] Failed to install dependency: {} - {}", 
+                                        depSkillId, depResult.getError());
+                                }
+                            } catch (Exception e) {
+                                log.error("[installWithDependencies] Exception installing dependency: {}", depSkillId, e);
+                                result.addFailedDependency(depSkillId);
+                            }
+                        } else {
+                            result.addExistingDependency(depSkillId);
+                            log.info("[installWithDependencies] Dependency already installed: {}", depSkillId);
+                        }
+                    }
+                }
+                
+                // 4. 如果有依赖安装失败，返回错误
+                if (!result.getFailedDependencies().isEmpty()) {
+                    result.setSuccess(false);
+                    result.setStatus("failed");
+                    result.setError("Failed to install dependencies: " + result.getFailedDependencies());
+                    result.setDuration(System.currentTimeMillis() - startTime);
+                    return result;
+                }
+                
+                // 5. 检查主 Skill 是否已安装
+                if (isInstalled(skillId).join()) {
+                    result.setSuccess(true);
+                    result.setStatus("existing");
+                    result.addExistingDependency(skillId);
+                    result.setDuration(System.currentTimeMillis() - startTime);
+                    log.info("[installWithDependencies] Skill already installed: {}", skillId);
+                    return result;
+                }
+                
+                // 6. 安装主 Skill
+                InstallRequest request = new InstallRequest();
+                request.setSkillId(skillId);
+                request.setMode(mode);
+                request.setInstallDependencies(false);  // 已经手动安装了依赖
+                
+                InstallResult mainResult = install(request).join();
+                
+                if (mainResult.isSuccess()) {
+                    result.setSuccess(true);
+                    result.setStatus("installed");
+                    log.info("[installWithDependencies] Skill installed: {}", skillId);
+                } else {
+                    result.setSuccess(false);
+                    result.setStatus("failed");
+                    result.setError(mainResult.getError());
+                    log.error("[installWithDependencies] Failed to install skill: {} - {}", 
+                        skillId, mainResult.getError());
+                }
+                
+                result.setDuration(System.currentTimeMillis() - startTime);
+                return result;
+                
+            } catch (Exception e) {
+                log.error("[installWithDependencies] Exception installing skill: {}", skillId, e);
+                result.setSuccess(false);
+                result.setStatus("failed");
+                result.setError(e.getMessage());
+                result.setDuration(System.currentTimeMillis() - startTime);
+                return result;
+            }
         });
     }
     
@@ -398,12 +505,106 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
     @Override
     public CompletableFuture<DependencyResult> installDependencies(String skillId) {
         return CompletableFuture.supplyAsync(() -> {
+            long startTime = System.currentTimeMillis();
             DependencyResult result = new DependencyResult(skillId);
-            result.setSuccess(true);
-            result.setTotalCount(0);
-            result.setInstalledCount(0);
-            result.setProcessingTime(0);
-            log.info("Dependencies installed for skill: {}", skillId);
+
+            try {
+                SkillPackage pkg = registry.get(skillId);
+                if (pkg == null) {
+                    result.setSuccess(false);
+                    result.setErrorMessage("Skill not found: " + skillId);
+                    return result;
+                }
+
+                SkillManifest manifest = pkg.getManifest();
+                if (manifest == null || manifest.getDependencies() == null || manifest.getDependencies().isEmpty()) {
+                    result.setSuccess(true);
+                    result.setTotalCount(0);
+                    result.setProcessingTime(System.currentTimeMillis() - startTime);
+                    log.info("No dependencies to install for skill: {}", skillId);
+                    return result;
+                }
+
+                List<SkillManifest.Dependency> dependencies = manifest.getDependencies();
+                result.setTotalCount(dependencies.size());
+
+                for (SkillManifest.Dependency dep : dependencies) {
+                    String depSkillId = dep.getSkillId();
+                    DependencyResult.DependencyItemResult itemResult = new DependencyResult.DependencyItemResult();
+                    itemResult.setDependencyId(depSkillId);
+                    itemResult.setName(depSkillId);
+                    itemResult.setVersion(dep.getVersionRange());
+
+                    try {
+                        boolean isInstalled = isInstalled(depSkillId).join();
+
+                        if (isInstalled) {
+                            itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.SKIPPED);
+                            itemResult.setSuccess(true);
+                            itemResult.setMessage("Already installed");
+                            result.incrementSkipped();
+                            log.info("Dependency already installed: {}", depSkillId);
+                        } else {
+                            log.info("Installing dependency: {} (required: {})", depSkillId, dep.isRequired());
+
+                            InstallRequest installRequest = new InstallRequest();
+                            installRequest.setSkillId(depSkillId);
+
+                            InstallResult installResult = install(installRequest).join();
+
+                            if (installResult != null && installResult.isSuccess()) {
+                                itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.INSTALLED);
+                                itemResult.setSuccess(true);
+                                itemResult.setMessage("Installed successfully");
+                                result.incrementInstalled();
+                                log.info("Dependency installed: {}", depSkillId);
+
+                                // 递归安装子依赖
+                                DependencyResult subResult = installDependencies(depSkillId).join();
+                                if (subResult != null && subResult.hasFailures()) {
+                                    log.warn("Some sub-dependencies failed for: {}", depSkillId);
+                                }
+                            } else {
+                                itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.FAILED);
+                                itemResult.setSuccess(false);
+                                itemResult.setMessage(installResult != null ? installResult.getError() : "Unknown error");
+                                result.incrementFailed();
+
+                                if (dep.isRequired()) {
+                                    result.setSuccess(false);
+                                    result.setErrorMessage("Required dependency failed: " + depSkillId);
+                                }
+                                log.error("Failed to install dependency: {} - {}", depSkillId, itemResult.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.FAILED);
+                        itemResult.setSuccess(false);
+                        itemResult.setMessage(e.getMessage());
+                        itemResult.setError(e);
+                        result.incrementFailed();
+
+                        if (dep.isRequired()) {
+                            result.setSuccess(false);
+                            result.setErrorMessage("Required dependency failed: " + depSkillId);
+                        }
+                        log.error("Error installing dependency: {}", depSkillId, e);
+                    }
+
+                    result.addItem(itemResult);
+                }
+
+                result.setProcessingTime(System.currentTimeMillis() - startTime);
+                log.info("Dependencies processed for skill: {} - installed: {}, skipped: {}, failed: {}",
+                    skillId, result.getInstalledCount(), result.getSkippedCount(), result.getFailedCount());
+
+            } catch (Exception e) {
+                result.setSuccess(false);
+                result.setErrorMessage("Error processing dependencies: " + e.getMessage());
+                result.setProcessingTime(System.currentTimeMillis() - startTime);
+                log.error("Error installing dependencies for skill: {}", skillId, e);
+            }
+
             return result;
         });
     }

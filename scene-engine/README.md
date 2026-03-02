@@ -41,7 +41,12 @@ scene-engine/
 │   │   └── impl/                # 协议适配器
 │   ├── event/                   # 事件系统
 │   ├── session/                 # 会话管理
-│   └── workflow/                # 工作流
+│   ├── workflow/                # 工作流
+│   └── skill/                   # 技能接口（v2.3新增）
+│       ├── llm/                 # LLM Provider 接口
+│       ├── vector/              # 向量存储接口
+│       ├── security/            # 安全访问接口
+│       └── audit/               # 审计日志接口
 ├── northbound-core/             # 北向协议核心
 ├── config/                      # 配置文件
 └── docs/                        # 文档
@@ -128,6 +133,32 @@ mvn clean package -DskipTests
 | [协议主文档](docs/protocol/v2.3/protocol-main.md) | v2.3 协议体系架构 |
 | [技能发现协议](docs/protocol/v2.3/skill-discovery-protocol.md) | v2.3 发现协议规范 |
 | [发现实现指南](docs/protocol/v0.8.0/discovery-implementation-guide.md) | v0.8.0 实现指南 |
+
+## 新增接口（v2.3）
+
+### 技能接口
+
+| 接口 | 包路径 | 说明 |
+|------|--------|------|
+| `LlmProvider` | `net.ooder.scene.skill.llm` | LLM Provider 标准接口 |
+| `StreamHandler` | `net.ooder.scene.skill.llm` | 流式处理回调接口 |
+| `VectorStore` | `net.ooder.scene.skill.vector` | 向量存储接口 |
+| `EmbeddingService` | `net.ooder.scene.skill.vector` | 嵌入服务接口 |
+| `SecureResourceAccessor` | `net.ooder.scene.skill.security` | 安全资源访问器 |
+| `AuditLogger` | `net.ooder.scene.skill.audit` | 审计日志接口 |
+
+### 使用示例
+
+```java
+// 使用 LlmProvider
+LlmProvider provider = ...;
+provider.chat("gpt-4", messages, options);
+
+// 使用 VectorStore
+VectorStore store = ...;
+store.insert("id", vector, metadata);
+List<SearchResult> results = store.search(queryVector, 10, filters);
+```
 
 ## 许可证
 

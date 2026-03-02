@@ -160,6 +160,7 @@
 
     <modules>
         <module>ooder-config</module>
+        <module>ooder-database</module>
         <module>ooder-common-client</module>
         <module>ooder-vfs-web</module>
         <module>ooder-server</module>

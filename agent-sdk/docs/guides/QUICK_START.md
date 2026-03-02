@@ -2,8 +2,24 @@
 
 ## 版本信息
 
-- SDK版本: 0.7.2+
+- SDK版本: 2.3
 - Java版本: 1.8+
+
+---
+
+## 📚 必读文档
+
+> ⚠️ **重要提示**: 在进行二次开发前，请务必阅读以下文档：
+
+| 文档 | 说明 | 必读原因 |
+|------|------|----------|
+| **[SDK组件注入二次开发指南](../SDK_INJECTION_SECONDARY_DEVELOPMENT_GUIDE.md)** | Spring集成问题解决方案 | 解决`@Autowired`注入失败问题 |
+| **[SDK组件注入单元测试指南](../SDK_INJECTION_UNIT_TEST_GUIDE.md)** | 单元测试实现指南 | 验证组件注入和功能可用性 |
+
+**适用场景**:
+- Nexus Enterprise项目集成
+- Spring Boot环境使用SDK
+- 遇到`DriverRegistry`、`CapabilityRegistry`、`SceneEngine`注入失败
 
 ---
 

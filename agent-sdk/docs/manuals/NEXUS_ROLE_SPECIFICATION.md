@@ -665,4 +665,4 @@ Nexus（个人）角色功能需求规格定义了个人用户Agent的核心能�
 
 ---
 
-**Ooder Agent SDK 0.7.2** - 构建智能、协作、安全的Agent生态系统！
+**Ooder Agent SDK 2.3** - 构建智能、协作、安全的Agent生态系统！
