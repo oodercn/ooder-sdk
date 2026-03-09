@@ -1,8 +1,10 @@
-# Ooder Agent SDK 2.3
+# Ooder Agent SDK 2.3.1
 
-[![Maven Central](https://img.shields.io/badge/Maven%20Central-v2.3-blue)](https://central.sonatype.com/artifact/net.ooder/agent-sdk)
+[![Maven Central](https://img.shields.io/badge/Maven%20Central-v2.3.1-blue)](https://central.sonatype.com/artifact/net.ooder/agent-sdk)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-8%2B-orange)](https://www.java.com/)
+
+> **注意**: 2.3.1 版本进行了架构重构，删除了 `llm-sdk-api` 和 `agent-sdk-api` 模块，统一合并到实现模块中。
 
 ## 简介
 
@@ -13,12 +15,13 @@ Ooder Agent SDK 是一个面向南向协议实现的轻量级 Agent SDK，提供
 ### 1. 模块化设计
 
 ```
-agent-sdk (父工程)
-├── agent-sdk-api          # API 接口和模型定义
-├── llm-sdk-api           # LLM 轻量级 API
+agent-sdk (父工程) 2.3.1
+├── llm-sdk               # LLM SDK（已合并 llm-sdk-api）
 ├── skills-framework      # 技能框架
-└── agent-sdk-core        # 核心实现
-    └── 依赖外部 llm-sdk (完整实现)
+└── agent-sdk-core        # 核心实现（已合并 agent-sdk-api）
+```
+
+> **2.3.1 变更**: `llm-sdk-api` 已合并到 `llm-sdk`，`agent-sdk-api` 已合并到 `agent-sdk-core` └── 依赖外部 llm-sdk (完整实现)
 ```
 
 ### 2. 依赖关系

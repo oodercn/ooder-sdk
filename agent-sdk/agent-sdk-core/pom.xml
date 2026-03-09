@@ -7,7 +7,7 @@
     <parent>
         <groupId>net.ooder</groupId>
         <artifactId>agent-sdk</artifactId>
-        <version>2.3</version>
+        <version>2.3.1</version>
     </parent>
 
     <artifactId>agent-sdk-core</artifactId>
@@ -17,12 +17,7 @@
     <description>Core Agent SDK implementation</description>
 
     <dependencies>
-        <!-- API层 -->
-        <dependency>
-            <groupId>net.ooder</groupId>
-            <artifactId>agent-sdk-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        <!-- agent-sdk-api 已合并到本模块 -->
 
         <!-- Skills框架 -->
         <dependency>
@@ -31,14 +26,7 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- LLM SDK API (轻量级API) -->
-        <dependency>
-            <groupId>net.ooder</groupId>
-            <artifactId>llm-sdk-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- LLM SDK (完整实现) -->
+        <!-- LLM SDK (已合并 llm-sdk-api) -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>llm-sdk</artifactId>

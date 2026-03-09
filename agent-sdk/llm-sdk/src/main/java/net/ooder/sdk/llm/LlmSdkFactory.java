@@ -3,28 +3,38 @@ package net.ooder.sdk.llm;
 import net.ooder.sdk.llm.adapter.MultiLlmAdapterApi;
 import net.ooder.sdk.llm.capability.CapabilityRequestApi;
 import net.ooder.sdk.llm.config.LlmSdkConfig;
+import net.ooder.sdk.llm.context.ContextTemplateApi;
+import net.ooder.sdk.llm.context.impl.ContextTemplateApiImpl;
+import net.ooder.sdk.llm.degradation.DegradationApi;
+import net.ooder.sdk.llm.degradation.impl.DegradationApiImpl;
+import net.ooder.sdk.llm.installation.InstallationContextManager;
+import net.ooder.sdk.llm.installation.impl.InstallationContextManagerImpl;
 import net.ooder.sdk.llm.memory.MemoryBridgeApi;
 import net.ooder.sdk.llm.monitoring.MonitoringApi;
 import net.ooder.sdk.llm.nlp.NlpInteractionApi;
+import net.ooder.sdk.llm.output.StructuredOutputApi;
+import net.ooder.sdk.llm.output.impl.StructuredOutputApiImpl;
 import net.ooder.sdk.llm.scheduling.SchedulingApi;
 import net.ooder.sdk.llm.security.SecurityApi;
+import net.ooder.sdk.llm.tool.ToolCallingApi;
+import net.ooder.sdk.llm.tool.impl.ToolCallingApiImpl;
 
 public class LlmSdkFactory {
-    
+
     private static final String VERSION = "0.8.0";
-    
+
     public static LlmSdk create(LlmSdkConfig config) {
         return new LlmSdkImpl(config);
     }
-    
+
     public static LlmSdk createDefault() {
         return new LlmSdkImpl(new LlmSdkConfig());
     }
-    
+
     public static String getVersion() {
         return VERSION;
     }
-    
+
     private static class LlmSdkImpl implements LlmSdk {
         private final LlmSdkConfig config;
         private final CapabilityRequestApi capabilityRequestApi;
@@ -34,7 +44,14 @@ public class LlmSdkFactory {
         private final MultiLlmAdapterApi multiLlmAdapterApi;
         private final SecurityApi securityApi;
         private final MonitoringApi monitoringApi;
-        
+
+        // Scene-Engine 协作文档新增 API
+        private final ToolCallingApi toolCallingApi;
+        private final StructuredOutputApi structuredOutputApi;
+        private final ContextTemplateApi contextTemplateApi;
+        private final DegradationApi degradationApi;
+        private final InstallationContextManager installationContextManager;
+
         LlmSdkImpl(LlmSdkConfig config) {
             this.config = config;
             this.capabilityRequestApi = new CapabilityRequestApiImpl();
@@ -44,50 +61,88 @@ public class LlmSdkFactory {
             this.multiLlmAdapterApi = new MultiLlmAdapterApiImpl();
             this.securityApi = new SecurityApiImpl();
             this.monitoringApi = new MonitoringApiImpl();
+
+            // 初始化新增 API
+            this.toolCallingApi = new ToolCallingApiImpl();
+            this.structuredOutputApi = new StructuredOutputApiImpl();
+            this.contextTemplateApi = new ContextTemplateApiImpl();
+            this.degradationApi = new DegradationApiImpl();
+            this.installationContextManager = new InstallationContextManagerImpl();
         }
-        
+
         @Override
         public CapabilityRequestApi getCapabilityRequestApi() {
             return capabilityRequestApi;
         }
-        
+
         @Override
         public NlpInteractionApi getNlpInteractionApi() {
             return nlpInteractionApi;
         }
-        
+
         @Override
         public SchedulingApi getSchedulingApi() {
             return schedulingApi;
         }
-        
+
         @Override
         public MemoryBridgeApi getMemoryBridgeApi() {
             return memoryBridgeApi;
         }
-        
+
         @Override
         public MultiLlmAdapterApi getMultiLlmAdapterApi() {
             return multiLlmAdapterApi;
         }
-        
+
         @Override
         public SecurityApi getSecurityApi() {
             return securityApi;
         }
-        
+
         @Override
         public MonitoringApi getMonitoringApi() {
             return monitoringApi;
         }
-        
+
+        // === Scene-Engine 协作文档新增 API ===
+
+        @Override
+        public ToolCallingApi getToolCallingApi() {
+            return toolCallingApi;
+        }
+
+        @Override
+        public StructuredOutputApi getStructuredOutputApi() {
+            return structuredOutputApi;
+        }
+
+        @Override
+        public ContextTemplateApi getContextTemplateApi() {
+            return contextTemplateApi;
+        }
+
+        @Override
+        public DegradationApi getDegradationApi() {
+            return degradationApi;
+        }
+
+        @Override
+        public InstallationContextManager getInstallationContextManager() {
+            return installationContextManager;
+        }
+
         @Override
         public String getVersion() {
             return VERSION;
         }
-        
+
         @Override
         public void shutdown() {
+            // 关闭新增 API 的资源
+            if (toolCallingApi instanceof ToolCallingApiImpl) {
+                ((ToolCallingApiImpl) toolCallingApi).shutdown();
+            }
         }
     }
     

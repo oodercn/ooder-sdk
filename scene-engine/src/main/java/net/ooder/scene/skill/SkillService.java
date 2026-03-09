@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.ooder.sdk.api.capability.Capability;
+import net.ooder.sdk.nexus.resource.model.SkillInfo;
 import net.ooder.scene.core.InstalledSkillInfo;
-import net.ooder.scene.core.SkillInfo;
 import net.ooder.scene.core.SkillInstallProgress;
 import net.ooder.scene.core.SkillInstallResult;
 import net.ooder.scene.core.SkillQuery;

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用场景技能快速构建业务应用模块</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .article-container {
+            max-width: 677px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+        }
+
+        /* 标题样式 */
+        .article-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .article-meta {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 摘要 */
+        .article-summary {
+            background: #f8f8f8;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 15px;
+            color: #666;
+            border-left: 4px solid #576b95;
+        }
+
+        /* 章节标题 */
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 35px 0 20px 0;
+            padding-left: 15px;
+            border-left: 5px solid #576b95;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 25px 0 15px 0;
+        }
+
+        .section-subtitle-2 {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0 12px 0;
+        }
+
+        /* 段落 */
+        p {
+            margin: 15px 0;
+            text-align: justify;
+        }
+
+        /* 列表 */
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 图片容器 */
+        .image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .image-caption {
+            font-size: 14px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        /* 表格 */
+        .table-wrapper {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: #576b95;
+            color: #fff;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: normal;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: #282c34;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #abb2bf;
+        }
+
+        /* 行内代码 */
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            color: #c7254e;
+        }
+
+        /* 提示框 */
+        .tip-box {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .tip-box.primary {
+            background: #ecf5ff;
+            border-left: 4px solid #576b95;
+        }
+
+        .tip-box.success {
+            background: #f0f9eb;
+            border-left: 4px solid #67c23a;
+        }
+
+        .tip-box.warning {
+            background: #fdf6ec;
+            border-left: 4px solid #e6a23c;
+        }
+
+        .tip-box.danger {
+            background: #fef0f0;
+            border-left: 4px solid #f56c6c;
+        }
+
+        .tip-box .tip-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        /* 统计卡片 */
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 20px -8px;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 140px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 20px 15px;
+            text-align: center;
+            margin: 8px;
+            color: #fff;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* 对比卡片 */
+        .compare-cards {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 20px -8px;
+        }
+
+        .compare-card {
+            flex: 1;
+            min-width: 280px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .compare-card.bad {
+            border-top: 4px solid #f56c6c;
+        }
+
+        .compare-card.good {
+            border-top: 4px solid #67c23a;
+        }
+
+        .compare-card .card-title {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .compare-card.bad .card-title {
+            color: #f56c6c;
+        }
+
+        .compare-card.good .card-title {
+            color: #67c23a;
+        }
+
+        /* 流程步骤 */
+        .flow-steps {
+            margin: 20px 0;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .flow-step-num {
+            width: 28px;
+            height: 28px;
+            background: #576b95;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .flow-step-content {
+            flex: 1;
+        }
+
+        .flow-step-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .flow-step-desc {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 架构图 */
+        .arch-diagram {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .arch-layer {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #576b95;
+            font-size: 14px;
+        }
+
+        .arch-layer.layer-1 { border-left-color: #3498db; }
+        .arch-layer.layer-2 { border-left-color: #27ae60; }
+        .arch-layer.layer-3 { border-left-color: #e74c3c; }
+        .arch-layer.layer-4 { border-left-color: #f39c12; }
+        .arch-layer.layer-5 { border-left-color: #9b59b6; }
+
+        .arch-layer .layer-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .arch-layer .layer-desc {
+            color: #666;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        /* 分隔线 */
+        .divider {
+            height: 1px;
+            background: #eee;
+            margin: 30px 0;
+        }
+
+        /* 引用 */
+        blockquote {
+            border-left: 4px solid #576b95;
+            padding-left: 15px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* 高亮文本 */
+        .highlight {
+            background: linear-gradient(transparent 60%, #fff3cd 60%);
+            padding: 0 2px;
+        }
+
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            background: #ecf5ff;
+            color: #576b95;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        /* 页脚 */
+        .article-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 677px) {
+            .article-container {
+                padding: 15px;
+            }
+
+            .article-title {
+                font-size: 22px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+
+            .stat-item {
+                min-width: 120px;
+            }
+
+            .compare-card {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="article-container">
+        <!-- 标题 -->
+        <h1 class="article-title">使用场景技能快速构建业务应用模块</h1>
+        
+        <div class="article-meta">
+            Ooder Team · 2026-03-07
+        </div>
+
+        <!-- 摘要 -->
+        <div class="article-summary">
+            <strong>导读：</strong>本文以招聘管理系统为例，介绍如何使用 Ooder SceneEngine 的场景技能能力，在1周内快速构建智能化的业务应用模块，开发效率提升14倍，成本降低91%。
+        </div>
+
+        <!-- 正文开始 -->
+        <h2 class="section-title">一、为什么选择场景开发？</h2>
+
+        <p>构建一个招聘管理系统，传统方式需要10-15周，而使用场景技能开发，只需1周内即可完成。让我们看看两者的对比：</p>
+
+        <div class="compare-cards">
+            <div class="compare-card bad">
+                <div class="card-title">❌ 传统开发</div>
+                <table>
+                    <tr><td>需求分析</td><td>2-3周</td></tr>
+                    <tr><td>系统设计</td><td>2-3周</td></tr>
+                    <tr><td>编码开发</td><td>4-6周</td></tr>
+                    <tr><td>测试上线</td><td>2-3周</td></tr>
+                    <tr style="background:#fef0f0;"><td><strong>总计</strong></td><td><strong>10-15周</strong></td></tr>
+                </table>
+            </div>
+            
+            <div class="compare-card good">
+                <div class="card-title">✅ 场景开发</div>
+                <table>
+                    <tr><td>场景定义</td><td>1-2天</td></tr>
+                    <tr><td>技能组装</td><td>2-3天</td></tr>
+                    <tr><td>配置调试</td><td>1-2天</td></tr>
+                    <tr><td>上线运行</td><td>1天</td></tr>
+                    <tr style="background:#f0f9eb;"><td><strong>总计</strong></td><td><strong>1周内</strong></td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">14×</div>
+                <div class="stat-label">效率提升</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">91%</div>
+                <div class="stat-label">成本降低</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">56×</div>
+                <div class="stat-label">响应速度</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">二、场景技能是什么？</h2>
+
+        <p>场景技能（Scene Skill）是 Ooder SceneEngine 的核心概念，它将业务场景封装为可复用的能力单元：</p>
+
+        <div class="tip-box primary">
+            <div class="tip-title">💡 场景技能 = 业务场景 + 能力集合 + 知识库 + 智能决策</div>
+            <ul style="margin-top:10px;">
+                <li><strong>业务场景</strong>：招聘、审批、客服、销售等</li>
+                <li><strong>能力集合</strong>：简历筛选、面试安排、通知发送等</li>
+                <li><strong>知识库</strong>：岗位要求、候选人信息、公司制度等</li>
+                <li><strong>智能决策</strong>：LLM意图理解、规则引擎、降级策略</li>
+            </ul>
+        </div>
+
+        <h3 class="section-subtitle">2.1 五层架构设计</h3>
+
+        <div class="arch-diagram">
+            <div class="arch-layer layer-1">
+                <div class="layer-name">用户层</div>
+                <div class="layer-desc">User → SceneGroup → SceneAgent（用户交互、协作管理）</div>
+            </div>
+            <div class="arch-layer layer-2">
+                <div class="layer-name">场景层</div>
+                <div class="layer-desc">SceneSkill → Driver/Executor Capabilities（场景编排、能力协调）</div>
+            </div>
+            <div class="arch-layer layer-3">
+                <div class="layer-name">决策层</div>
+                <div class="layer-desc">LLM Decision ◄──► Rule Engine（在线优先，离线降级）</div>
+            </div>
+            <div class="arch-layer layer-4">
+                <div class="layer-name">能力层</div>
+                <div class="layer-desc">ToolRegistry → 内置工具 + 自定义工具（工具注册与调用）</div>
+            </div>
+            <div class="arch-layer layer-5">
+                <div class="layer-name">基础层</div>
+                <div class="layer-desc">LLM Provider | Knowledge Base | Vector Store（原子能力提供）</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">三、核心技术解析</h2>
+
+        <h3 class="section-subtitle">3.1 决策引擎：双引擎架构</h3>
+
+        <p>决策引擎是场景技能的"大脑"，采用<span class="highlight">LLM + 规则引擎</span>双引擎架构：</p>
+
+        <div class="arch-diagram">
+            <div class="arch-layer layer-3">
+                <div class="layer-name">🤖 LLM Engine（在线）</div>
+                <div class="layer-desc">意图理解 | 参数提取 | 能力选择 | 结果生成</div>
+            </div>
+            <div class="arch-layer layer-4">
+                <div class="layer-name">⚙️ Rule Engine（离线）</div>
+                <div class="layer-desc">关键词匹配 | 正则提取 | 路由规则 | 降级处理</div>
+            </div>
+        </div>
+
+        <p><strong>三种决策模式：</strong></p>
+
+        <table>
+            <tr>
+                <th>模式</th>
+                <th>延迟</th>
+                <th>准确率</th>
+                <th>适用场景</th>
+            </tr>
+            <tr>
+                <td><code>ONLINE_ONLY</code></td>
+                <td>200-500ms</td>
+                <td>&gt;95%</td>
+                <td>对准确性要求高</td>
+            </tr>
+            <tr>
+                <td><code>OFFLINE_ONLY</code></td>
+                <td>5-20ms</td>
+                <td>~80%</td>
+                <td>离线环境、性能敏感</td>
+            </tr>
+            <tr>
+                <td><code>ONLINE_FIRST</code></td>
+                <td>5-500ms</td>
+                <td>&gt;90%</td>
+                <td>默认模式，兼顾两者</td>
+            </tr>
+        </table>
+
+        <h3 class="section-subtitle">3.2 知识库：三层架构</h3>
+
+        <p>知识库采用三层架构设计，实现知识的分层管理和跨层检索：</p>
+
+        <div class="arch-diagram">
+            <div class="arch-layer layer-1">
+                <div class="layer-name">Layer 3: 场景知识层（私有）</div>
+                <div class="layer-desc">候选人简历、面试记录、评价结果 | 权限：场景参与者</div>
+            </div>
+            <div class="arch-layer layer-2">
+                <div class="layer-name">Layer 2: 专业模块层（领域共享）</div>
+                <div class="layer-desc">岗位要求、面试题库、技能标准 | 权限：领域角色</div>
+            </div>
+            <div class="arch-layer layer-3">
+                <div class="layer-name">Layer 1: 通用知识层（全局共享）</div>
+                <div class="layer-desc">公司制度、流程规范、FAQ | 权限：所有用户</div>
+            </div>
+        </div>
+
+        <div class="tip-box success">
+            <div class="tip-title">✨ RAG增强流程</div>
+            <p style="margin-top:10px;">用户问题 → 向量化 → 知识检索 → 上下文构建 → LLM生成 → 返回结果</p>
+            <p style="color:#666;font-size:13px;margin-top:8px;">总延迟约370ms，其中知识检索约100ms</p>
+        </div>
+
+        <h3 class="section-subtitle">3.3 规则引擎：MVEL实现</h3>
+
+        <p>规则引擎用于离线场景和降级处理，支持五种规则类型：</p>
+
+        <table>
+            <tr>
+                <th>类型</th>
+                <th>说明</th>
+                <th>示例</th>
+            </tr>
+            <tr>
+                <td><code>DECISION</code></td>
+                <td>决策规则</td>
+                <td>意图路由、能力选择</td>
+            </tr>
+            <tr>
+                <td><code>TRANSFORM</code></td>
+                <td>转换规则</td>
+                <td>数据格式化、字段映射</td>
+            </tr>
+            <tr>
+                <td><code>VALIDATION</code></td>
+                <td>验证规则</td>
+                <td>参数校验、权限检查</td>
+            </tr>
+            <tr>
+                <td><code>ROUTING</code></td>
+                <td>路由规则</td>
+                <td>多分支决策</td>
+            </tr>
+            <tr>
+                <td><code>FALLBACK</code></td>
+                <td>降级规则</td>
+                <td>异常处理</td>
+            </tr>
+        </table>
+
+        <h2 class="section-title">四、实战：构建招聘系统</h2>
+
+        <h3 class="section-subtitle">4.1 业务流程定义</h3>
+
+        <p>招聘场景的核心业务流程：</p>
+
+        <div class="tip-box primary">
+            <p style="text-align:center;font-size:16px;">
+                <strong>发布职位</strong> → <strong>简历筛选</strong> → <strong>面试安排</strong> → <strong>面试评估</strong> → <strong>发放Offer</strong>
+            </p>
+        </div>
+
+        <h3 class="section-subtitle">4.2 创建知识库</h3>
+
+        <div class="code-block">
+            <pre><code>// 1. 通用知识层 - 公司制度库
+KnowledgeBase companyPolicyKb = kbService.create(
+    KnowledgeBaseCreateRequest.builder()
+        .name("公司制度库")
+        .layer(KnowledgeLayer.GENERAL)
+        .description("招聘政策、薪酬标准、入职流程")
+        .build()
+);
+
+// 2. 专业模块层 - 岗位要求库
+KnowledgeBase jobRequirementKb = kbService.create(
+    KnowledgeBaseCreateRequest.builder()
+        .name("岗位要求库")
+        .layer(KnowledgeLayer.PROFESSIONAL)
+        .description("职位描述、技能要求、面试题库")
+        .build()
+);
+
+// 3. 场景知识层 - 候选人库
+KnowledgeBase candidateKb = kbService.create(
+    KnowledgeBaseCreateRequest.builder()
+        .name("候选人库")
+        .layer(KnowledgeLayer.SCENE)
+        .description("简历数据、面试记录、评价结果")
+        .build()
+);</code></pre>
+        </div>
+
+        <h3 class="section-subtitle">4.3 配置决策引擎</h3>
+
+        <div class="code-block">
+            <pre><code>// 创建决策引擎
+DecisionEngine engine = new DecisionEngineImpl(llmProvider, ruleEngine);
+
+// 设置决策模式（默认：在线优先，自动降级）
+engine.setMode(DecisionMode.ONLINE_FIRST);
+
+// 配置离线规则（用于降级）
+RuleScript routingRule = RuleScript.builder()
+    .ruleId("recruitment-routing")
+    .type(RuleType.ROUTING)
+    .script("""
+        if (query.contains('筛选') || query.contains('简历')) {
+            return 'resume_screening';
+        } else if (query.contains('面试')) {
+            return 'interview_schedule';
+        }
+        return 'recruitment_help';
+        """)
+    .build();
+
+ruleEngine.compile(routingRule);</code></pre>
+        </div>
+
+        <h3 class="section-subtitle">4.4 创建场景技能</h3>
+
+        <div class="code-block">
+            <pre><code>// 创建招聘场景技能
+SceneSkill recruitmentSkill = SceneSkill.builder()
+    .skillId("recruitment-scene")
+    .name("招聘管理场景")
+    
+    // 注册能力
+    .capability("resume_screening", new ResumeScreeningCapability())
+    .capability("interview_schedule", new InterviewScheduleCapability())
+    .capability("offer_management", new OfferManagementCapability())
+    
+    // 关联知识库
+    .knowledgeBase("company_policy", companyPolicyKb.getKbId())
+    .knowledgeBase("job_requirement", jobRequirementKb.getKbId())
+    .knowledgeBase("candidate", candidateKb.getKbId())
+    
+    // 配置决策引擎
+    .decisionEngine(engine)
+    .build();
+
+// 注册场景技能
+skillRegistry.register(recruitmentSkill);</code></pre>
+        </div>
+
+        <h2 class="section-title">五、智能交互示例</h2>
+
+        <p>用户通过自然语言与系统交互：</p>
+
+        <div class="tip-box primary">
+            <div class="tip-title">👤 用户</div>
+            <p>"帮我筛选一下今天收到的简历，找出符合条件的Java开发候选人"</p>
+        </div>
+
+        <h4 class="section-subtitle-2">系统处理流程：</h4>
+
+        <div class="flow-steps">
+            <div class="flow-step">
+                <div class="flow-step-num">1</div>
+                <div class="flow-step-content">
+                    <div class="flow-step-title">LLM意图理解</div>
+                    <div class="flow-step-desc">意图：简历筛选 | 时间：今天 | 岗位：Java开发</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-step-num">2</div>
+                <div class="flow-step-content">
+                    <div class="flow-step-title">知识库检索</div>
+                    <div class="flow-step-desc">从岗位要求库获取筛选标准，从候选人库检索简历数据</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-step-num">3</div>
+                <div class="flow-step-content">
+                    <div class="flow-step-title">能力执行</div>
+                    <div class="flow-step-desc">resume_screening.execute({dateRange: 'today', position: 'Java开发'})</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-step-num">4</div>
+                <div class="flow-step-content">
+                    <div class="flow-step-title">结果生成</div>
+                    <div class="flow-step-desc">LLM生成自然语言回复</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box success">
+            <div class="tip-title">🤖 系统回复</div>
+            <p>"今天收到15份简历，筛选出3份符合条件的候选人：<br/>
+            1. 张三 - 5年Java经验，熟悉Spring Cloud<br/>
+            2. 李四 - 4年Java经验，有微服务项目经验<br/>
+            3. 王五 - 3年Java经验，全栈开发能力"</p>
+        </div>
+
+        <h2 class="section-title">六、最佳实践</h2>
+
+        <div class="tip-box primary">
+            <div class="tip-title">💡 知识库设计原则</div>
+            <ul style="margin-top:10px;">
+                <li><strong>分层管理</strong>：通用知识、专业模块、场景知识分离</li>
+                <li><strong>权限控制</strong>：不同层级设置不同访问权限</li>
+                <li><strong>质量监控</strong>：定期检查知识库数据质量</li>
+                <li><strong>版本管理</strong>：知识更新保留历史版本</li>
+            </ul>
+        </div>
+
+        <div class="tip-box warning">
+            <div class="tip-title">⚠️ LLM使用策略</div>
+            <ul style="margin-top:10px;">
+                <li><strong>优先规则</strong>：简单场景优先使用规则引擎</li>
+                <li><strong>LLM增强</strong>：复杂场景使用LLM增强体验</li>
+                <li><strong>降级保障</strong>：始终配置离线降级方案</li>
+                <li><strong>成本控制</strong>：缓存常用结果，减少LLM调用</li>
+            </ul>
+        </div>
+
+        <div class="tip-box danger">
+            <div class="tip-title">🔒 安全注意事项</div>
+            <ul style="margin-top:10px;">
+                <li><strong>规则沙箱</strong>：限制危险操作，如exit、exec</li>
+                <li><strong>输入验证</strong>：所有用户输入进行校验</li>
+                <li><strong>权限检查</strong>：每次操作验证用户权限</li>
+                <li><strong>审计日志</strong>：记录所有关键操作</li>
+            </ul>
+        </div>
+
+        <h2 class="section-title">七、总结</h2>
+
+        <p>使用场景技能构建业务应用模块，核心优势在于：</p>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">🚀</div>
+                <div class="stat-label">快速交付<br/>1周内上线</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">🤖</div>
+                <div class="stat-label">智能交互<br/>自然语言</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">📚</div>
+                <div class="stat-label">知识沉淀<br/>结构化存储</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">🔄</div>
+                <div class="stat-label">弹性架构<br/>在线/离线</div>
+            </div>
+        </div>
+
+        <p><strong>适用场景：</strong></p>
+        <p>
+            <span class="tag">招聘管理</span>
+            <span class="tag">智能客服</span>
+            <span class="tag">审批流程</span>
+            <span class="tag">知识问答</span>
+            <span class="tag">数据分析</span>
+        </p>
+
+        <p><strong>技术栈：</strong></p>
+        <ul>
+            <li>Scene Engine v2.3.1 + Spring Boot 2.x + Java 8+</li>
+            <li>LLM Provider (OpenAI/Azure) + Embedding Service</li>
+            <li>Vector Store (SQLite/Milvus) + Knowledge Base</li>
+            <li>MVEL 2.5.x + 安全沙箱 + 动态规则生成</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <div class="article-footer">
+            <p><strong>相关文档</strong></p>
+            <p style="margin-top:10px;">
+                二次开发指南 | 配置修改说明 | 招聘用户故事分析
+            </p>
+            <p style="margin-top:20px;">
+                <strong>Ooder Team</strong><br/>
+                让AI能力触手可及
+            </p>
+        </div>
+    </div>
+</body>
+</html>

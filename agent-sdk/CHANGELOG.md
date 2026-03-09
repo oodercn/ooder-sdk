@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-03-08
+
+### Changed
+
+- **架构重构** - 简化模块结构
+  - 删除 `llm-sdk-api` 模块（已合并到 `llm-sdk`）
+  - 删除 `agent-sdk-api` 模块（已合并到 `agent-sdk-core`）
+  - 模块数量从 5 个减少到 3 个
+
+### Removed
+
+- `llm-sdk-api` 模块
+- `agent-sdk-api` 模块
+- `LlmServiceImpl` 类（依赖已删除的 llm-sdk-api）
+
+---
+
 ## [2.3.0] - 2026-02-27
 
 ### Added

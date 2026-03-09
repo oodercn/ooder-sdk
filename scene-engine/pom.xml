@@ -30,13 +30,19 @@
         
         <dependency>
             <groupId>net.ooder</groupId>
-            <artifactId>agent-sdk-api</artifactId>
+            <artifactId>agent-sdk-core</artifactId>
             <version>${agent-sdk.version}</version>
         </dependency>
 
         <dependency>
             <groupId>net.ooder</groupId>
-            <artifactId>agent-sdk-core</artifactId>
+            <artifactId>llm-sdk</artifactId>
+            <version>${agent-sdk.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>skills-framework</artifactId>
             <version>${agent-sdk.version}</version>
         </dependency>
 

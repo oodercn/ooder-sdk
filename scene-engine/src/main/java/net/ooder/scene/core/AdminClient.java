@@ -5,6 +5,7 @@ import net.ooder.scene.provider.SecurityStatus;
 import net.ooder.scene.provider.SecurityPolicy;
 import net.ooder.scene.provider.model.user.UserInfo;
 import net.ooder.scene.provider.model.config.SystemConfig;
+import net.ooder.sdk.nexus.resource.model.SkillInfo;
 
 /**
  * AdminClient 管理客户端接口

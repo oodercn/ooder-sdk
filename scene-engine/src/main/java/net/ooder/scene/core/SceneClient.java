@@ -1,6 +1,7 @@
 package net.ooder.scene.core;
 
 import net.ooder.sdk.api.capability.Capability;
+import net.ooder.sdk.nexus.resource.model.SkillInfo;
 
 import java.util.List;
 import java.util.Map;

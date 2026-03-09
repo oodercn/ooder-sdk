@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OoderAgent SceneEngine 2.3 核心特性架构</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+        
+        .content {
+            padding: 50px 40px;
+        }
+        
+        .section {
+            margin-bottom: 60px;
+        }
+        
+        .section-title {
+            font-size: 2em;
+            color: #1e3c72;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin-right: 15px;
+            border-radius: 4px;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border-left: 5px solid #667eea;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e0e6ed;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+        
+        .feature-card h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .feature-card li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .feature-card li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .svg-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+        
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e6ed;
+        }
+        
+        tr:hover {
+            background: #f5f7fa;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 3px;
+        }
+        
+        .tag-primary { background: #667eea; color: #fff; }
+        .tag-success { background: #27ae60; color: #fff; }
+        .tag-warning { background: #f39c12; color: #fff; }
+        .tag-info { background: #3498db; color: #fff; }
+        
+        .evolution-path {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .evolution-step {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            border-radius: 15px;
+            position: relative;
+        }
+        
+        .evolution-step::after {
+            content: '→';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .evolution-step:last-child::after {
+            content: '';
+        }
+        
+        .evolution-step h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .evolution-step p {
+            color: #5a6c7d;
+            font-size: 0.95em;
+        }
+        
+        .code-block {
+            background: #2d3436;
+            color: #dfe6e9;
+            padding: 25px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .code-block .keyword { color: #e74c3c; }
+        .code-block .string { color: #27ae60; }
+        .code-block .comment { color: #95a5a6; }
+        .code-block .function { color: #3498db; }
+        
+        .footer {
+            background: #2d3436;
+            color: #dfe6e9;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .section-title { font-size: 1.5em; }
+            .content { padding: 30px 20px; }
+            .evolution-step::after { content: '↓'; right: auto; top: auto; bottom: -30px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 OoderAgent SceneEngine 2.3</h1>
+            <p class="subtitle">从框架到平台 · 全特性企业级支持</p>
+            <div class="version-badge">Version 2.3 | 2026-02-23</div>
+        </div>
+        
+        <div class="content">
+            <section class="section">
+                <h2 class="section-title">核心架构概览</h2>
+                <div class="highlight-box">
+                    <p><strong>SceneEngine 2.3</strong> 是 Ooder Agent 平台的场景引擎服务，实现了从<strong>框架</strong>到<strong>平台</strong>的完整演进，提供专业技能服务和场景驱动的能力编排。基于 Skills 架构，支持组织管理、文件存储、消息通信等核心场景，具备<strong>管理分发到执行管控</strong>的全特性企业级支持。</p>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1200 750" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#1e3c72"/>
+                                <stop offset="100%" style="stop-color:#2a5298"/>
+                            </linearGradient>
+                            <linearGradient id="appGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#11998e"/>
+                                <stop offset="100%" style="stop-color:#38ef7d"/>
+                            </linearGradient>
+                            <linearGradient id="infraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fc4a1a"/>
+                                <stop offset="100%" style="stop-color:#f7b733"/>
+                            </linearGradient>
+                            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+                            </filter>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1200" height="750" fill="#f8f9fa"/>
+                        
+                        <rect x="50" y="30" width="1100" height="100" rx="10" fill="url(#headerGrad)" filter="url(#shadow)"/>
+                        <text x="600" y="60" text-anchor="middle" fill="white" font-size="24" font-weight="bold">表示层 (Presentation Layer)</text>
+                        
+                        <g transform="translate(100, 80)">
+                            <rect x="0" y="0" width="150" height="35" rx="8" fill="rgba(255,255,255,0.25)"/>
+                            <text x="75" y="23" text-anchor="middle" fill="white" font-size="13">Web UI</text>
+                        </g>
+                        <g transform="translate(300, 80)">
+                            <rect x="0" y="0" width="150" height="35" rx="8" fill="rgba(255,255,255,0.25)"/>
+                            <text x="75" y="23" text-anchor="middle" fill="white" font-size="13">REST API</text>
+                        </g>
+                        <g transform="translate(500, 80)">
+                            <rect x="0" y="0" width="150" height="35" rx="8" fill="rgba(255,255,255,0.25)"/>
+                            <text x="75" y="23" text-anchor="middle" fill="white" font-size="13">CLI Tool</text>
+                        </g>
+                        <g transform="translate(700, 80)">
+                            <rect x="0" y="0" width="150" height="35" rx="8" fill="rgba(255,255,255,0.25)"/>
+                            <text x="75" y="23" text-anchor="middle" fill="white" font-size="13">Skill App</text>
+                        </g>
+                        <g transform="translate(900, 80)">
+                            <rect x="0" y="0" width="150" height="35" rx="8" fill="rgba(255,255,255,0.25)"/>
+                            <text x="75" y="23" text-anchor="middle" fill="white" font-size="13">Chat Bot</text>
+                        </g>
+                        
+                        <line x1="600" y1="130" x2="600" y2="170" stroke="#667eea" stroke-width="3" marker-end="url(#arrowhead)"/>
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#667eea"/>
+                            </marker>
+                        </defs>
+                        
+                        <rect x="50" y="170" width="1100" height="200" rx="10" fill="url(#appGrad)" filter="url(#shadow)"/>
+                        <text x="600" y="200" text-anchor="middle" fill="white" font-size="24" font-weight="bold">应用层 (Application Layer)</text>
+                        
+                        <g transform="translate(80, 220)">
+                            <rect x="0" y="0" width="160" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="80" y="25" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">Conversation</text>
+                            <text x="80" y="45" text-anchor="middle" fill="#5a6c7d" font-size="11">多轮对话服务</text>
+                        </g>
+                        <g transform="translate(260, 220)">
+                            <rect x="0" y="0" width="160" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="80" y="25" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">ToolOrchestrator</text>
+                            <text x="80" y="45" text-anchor="middle" fill="#5a6c7d" font-size="11">工具编排服务</text>
+                        </g>
+                        <g transform="translate(440, 220)">
+                            <rect x="0" y="0" width="160" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="80" y="25" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">KnowledgeBase</text>
+                            <text x="80" y="45" text-anchor="middle" fill="#5a6c7d" font-size="11">知识库管理</text>
+                        </g>
+                        <g transform="translate(620, 220)">
+                            <rect x="0" y="0" width="160" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="80" y="25" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">Permission</text>
+                            <text x="80" y="45" text-anchor="middle" fill="#5a6c7d" font-size="11">权限管理服务</text>
+                        </g>
+                        <g transform="translate(800, 220)">
+                            <rect x="0" y="0" width="160" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="80" y="25" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">RAG Pipeline</text>
+                            <text x="80" y="45" text-anchor="middle" fill="#5a6c7d" font-size="11">检索增强生成</text>
+                        </g>
+                        <g transform="translate(980, 220)">
+                            <rect x="0" y="0" width="140" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="70" y="25" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">Discovery</text>
+                            <text x="70" y="45" text-anchor="middle" fill="#5a6c7d" font-size="11">能力发现服务</text>
+                        </g>
+                        
+                        <g transform="translate(170, 300)">
+                            <rect x="0" y="0" width="140" height="50" rx="8" fill="rgba(255,255,255,0.7)"/>
+                            <text x="70" y="20" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Contribution</text>
+                            <text x="70" y="38" text-anchor="middle" fill="#5a6c7d" font-size="10">知识贡献</text>
+                        </g>
+                        <g transform="translate(330, 300)">
+                            <rect x="0" y="0" width="140" height="50" rx="8" fill="rgba(255,255,255,0.7)"/>
+                            <text x="70" y="20" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Share</text>
+                            <text x="70" y="38" text-anchor="middle" fill="#5a6c7d" font-size="10">知识分享</text>
+                        </g>
+                        <g transform="translate(490, 300)">
+                            <rect x="0" y="0" width="140" height="50" rx="8" fill="rgba(255,255,255,0.7)"/>
+                            <text x="70" y="20" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Import</text>
+                            <text x="70" y="38" text-anchor="middle" fill="#5a6c7d" font-size="10">批量导入</text>
+                        </g>
+                        <g transform="translate(650, 300)">
+                            <rect x="0" y="0" width="140" height="50" rx="8" fill="rgba(255,255,255,0.7)"/>
+                            <text x="70" y="20" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Audit</text>
+                            <text x="70" y="38" text-anchor="middle" fill="#5a6c7d" font-size="10">审计服务</text>
+                        </g>
+                        <g transform="translate(810, 300)">
+                            <rect x="0" y="0" width="140" height="50" rx="8" fill="rgba(255,255,255,0.7)"/>
+                            <text x="70" y="20" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Monitor</text>
+                            <text x="70" y="38" text-anchor="middle" fill="#5a6c7d" font-size="10">监控服务</text>
+                        </g>
+                        
+                        <line x1="600" y1="370" x2="600" y2="410" stroke="#11998e" stroke-width="3" marker-end="url(#arrowhead2)"/>
+                        <defs>
+                            <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#11998e"/>
+                            </marker>
+                        </defs>
+                        
+                        <rect x="50" y="410" width="1100" height="150" rx="10" fill="url(#coreGrad)" filter="url(#shadow)"/>
+                        <text x="600" y="440" text-anchor="middle" fill="white" font-size="24" font-weight="bold">核心能力层 (Core Capabilities)</text>
+                        
+                        <g transform="translate(80, 460)">
+                            <rect x="0" y="0" width="130" height="80" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Tool Registry</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="10">工具注册表</text>
+                            <text x="65" y="65" text-anchor="middle" fill="#5a6c7d" font-size="10">CAP Router</text>
+                        </g>
+                        <g transform="translate(230, 460)">
+                            <rect x="0" y="0" width="130" height="80" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Vector Store</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="10">向量存储</text>
+                            <text x="65" y="65" text-anchor="middle" fill="#5a6c7d" font-size="10">Milvus/SQLite</text>
+                        </g>
+                        <g transform="translate(380, 460)">
+                            <rect x="0" y="0" width="130" height="80" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Embedding</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="10">嵌入服务</text>
+                            <text x="65" y="65" text-anchor="middle" fill="#5a6c7d" font-size="10">向量化</text>
+                        </g>
+                        <g transform="translate(530, 460)">
+                            <rect x="0" y="0" width="130" height="80" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Skill Package</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="10">技能包管理</text>
+                            <text x="65" y="65" text-anchor="middle" fill="#5a6c7d" font-size="10">生命周期</text>
+                        </g>
+                        <g transform="translate(680, 460)">
+                            <rect x="0" y="0" width="130" height="80" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Document</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="10">文档分块</text>
+                            <text x="65" y="65" text-anchor="middle" fill="#5a6c7d" font-size="10">Chunker</text>
+                        </g>
+                        <g transform="translate(830, 460)">
+                            <rect x="0" y="0" width="130" height="80" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Scene Classifier</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="10">场景分类器</text>
+                            <text x="65" y="65" text-anchor="middle" fill="#5a6c7d" font-size="10">ABS/ASS/TBS</text>
+                        </g>
+                        <g transform="translate(980, 460)">
+                            <rect x="0" y="0" width="140" height="80" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="70" y="25" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Install Coord</text>
+                            <text x="70" y="45" text-anchor="middle" fill="#5a6c7d" font-size="10">安装协调器</text>
+                            <text x="70" y="65" text-anchor="middle" fill="#5a6c7d" font-size="10">依赖管理</text>
+                        </g>
+                        
+                        <line x1="600" y1="560" x2="600" y2="600" stroke="#fc4a1a" stroke-width="3" marker-end="url(#arrowhead3)"/>
+                        <defs>
+                            <marker id="arrowhead3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#fc4a1a"/>
+                            </marker>
+                        </defs>
+                        
+                        <rect x="50" y="600" width="1100" height="120" rx="10" fill="url(#infraGrad)" filter="url(#shadow)"/>
+                        <text x="600" y="635" text-anchor="middle" fill="white" font-size="24" font-weight="bold">基础设施层 (Infrastructure Layer)</text>
+                        
+                        <g transform="translate(100, 660)">
+                            <rect x="0" y="0" width="120" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="60" y="26" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">LLM Service</text>
+                        </g>
+                        <g transform="translate(240, 660)">
+                            <rect x="0" y="0" width="120" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="60" y="26" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Milvus</text>
+                        </g>
+                        <g transform="translate(380, 660)">
+                            <rect x="0" y="0" width="120" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="60" y="26" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">SQLite</text>
+                        </g>
+                        <g transform="translate(520, 660)">
+                            <rect x="0" y="0" width="120" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="60" y="26" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Memory</text>
+                        </g>
+                        <g transform="translate(660, 660)">
+                            <rect x="0" y="0" width="120" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="60" y="26" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">External APIs</text>
+                        </g>
+                        <g transform="translate(800, 660)">
+                            <rect x="0" y="0" width="120" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="60" y="26" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">File System</text>
+                        </g>
+                        <g transform="translate(940, 660)">
+                            <rect x="0" y="0" width="120" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="60" y="26" text-anchor="middle" fill="#1e3c72" font-size="12" font-weight="bold">Cache/Redis</text>
+                        </g>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">框架到平台的演进路径</h2>
+                <div class="evolution-path">
+                    <div class="evolution-step">
+                        <h4>📦 框架阶段</h4>
+                        <p>基础能力封装<br>SDK 工具集</p>
+                    </div>
+                    <div class="evolution-step">
+                        <h4>🔧 引擎阶段</h4>
+                        <p>场景驱动编排<br>CAP 能力路由</p>
+                    </div>
+                    <div class="evolution-step">
+                        <h4>🌐 平台阶段</h4>
+                        <p>多协议发现<br>分布式部署</p>
+                    </div>
+                    <div class="evolution-step">
+                        <h4>🏢 企业级</h4>
+                        <p>安全审计监控<br>全特性支持</p>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <h3 style="margin-bottom: 15px;">核心演进成果</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h3>架构简化</h3>
+                            <ul>
+                                <li>移除冗余模块</li>
+                                <li>统一版本号 2.3</li>
+                                <li>简化依赖关系</li>
+                                <li>全面 JavaDoc 注释</li>
+                            </ul>
+                        </div>
+                        <div class="feature-card">
+                            <h3>能力发现抽象</h3>
+                            <ul>
+                                <li>UDP 广播发现</li>
+                                <li>mDNS 服务发现</li>
+                                <li>SkillCenter 发现</li>
+                                <li>本地文件系统发现</li>
+                            </ul>
+                        </div>
+                        <div class="feature-card">
+                            <h3>协议体系</h3>
+                            <ul>
+                                <li>Agent Protocol 2.3</li>
+                                <li>Discovery Protocol</li>
+                                <li>Session Protocol</li>
+                                <li>Skill Protocol</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">管理分发到执行管控全特性</h2>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="manageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="distributeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb"/>
+                                <stop offset="100%" style="stop-color:#f5576c"/>
+                            </linearGradient>
+                            <linearGradient id="executeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4facfe"/>
+                                <stop offset="100%" style="stop-color:#00f2fe"/>
+                            </linearGradient>
+                            <linearGradient id="controlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#43e97b"/>
+                                <stop offset="100%" style="stop-color:#38f9d7"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1200" height="500" fill="#f8f9fa"/>
+                        
+                        <rect x="50" y="50" width="250" height="400" rx="15" fill="url(#manageGrad)" filter="url(#shadow)"/>
+                        <text x="175" y="90" text-anchor="middle" fill="white" font-size="22" font-weight="bold">管理</text>
+                        <text x="175" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">Management</text>
+                        
+                        <g transform="translate(70, 140)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">SessionManager</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">会话管理</text>
+                        </g>
+                        <g transform="translate(70, 200)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">PermissionService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">权限管理</text>
+                        </g>
+                        <g transform="translate(70, 260)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">KnowledgeBaseService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">知识库管理</text>
+                        </g>
+                        <g transform="translate(70, 320)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">SkillService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">技能管理</text>
+                        </g>
+                        <g transform="translate(70, 380)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">DataAssetManager</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">资产管理</text>
+                        </g>
+                        
+                        <line x1="300" y1="250" x2="350" y2="250" stroke="#667eea" stroke-width="4" marker-end="url(#arrowManage)"/>
+                        <defs>
+                            <marker id="arrowManage" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+                                <polygon points="0 0, 12 4, 0 8" fill="#667eea"/>
+                            </marker>
+                        </defs>
+                        
+                        <rect x="350" y="50" width="250" height="400" rx="15" fill="url(#distributeGrad)" filter="url(#shadow)"/>
+                        <text x="475" y="90" text-anchor="middle" fill="white" font-size="22" font-weight="bold">分发</text>
+                        <text x="475" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">Distribution</text>
+                        
+                        <g transform="translate(370, 140)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">DiscoveryService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">能力发现服务</text>
+                        </g>
+                        <g transform="translate(370, 200)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">SkillShareProvider</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">技能分享</text>
+                        </g>
+                        <g transform="translate(370, 260)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">InstallCoordinator</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">安装协调</text>
+                        </g>
+                        <g transform="translate(370, 320)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">BatchImportService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">批量导入</text>
+                        </g>
+                        <g transform="translate(370, 380)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">ContributionService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">知识贡献</text>
+                        </g>
+                        
+                        <line x1="600" y1="250" x2="650" y2="250" stroke="#f5576c" stroke-width="4" marker-end="url(#arrowDistribute)"/>
+                        <defs>
+                            <marker id="arrowDistribute" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+                                <polygon points="0 0, 12 4, 0 8" fill="#f5576c"/>
+                            </marker>
+                        </defs>
+                        
+                        <rect x="650" y="50" width="250" height="400" rx="15" fill="url(#executeGrad)" filter="url(#shadow)"/>
+                        <text x="775" y="90" text-anchor="middle" fill="white" font-size="22" font-weight="bold">执行</text>
+                        <text x="775" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">Execution</text>
+                        
+                        <g transform="translate(670, 140)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">ToolOrchestrator</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">工具编排执行</text>
+                        </g>
+                        <g transform="translate(670, 200)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">RagPipeline</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">RAG 流程执行</text>
+                        </g>
+                        <g transform="translate(670, 260)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">ConversationService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">对话服务</text>
+                        </g>
+                        <g transform="translate(670, 320)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">CapRouter</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">能力路由执行</text>
+                        </g>
+                        <g transform="translate(670, 380)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">LlmProxy</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">LLM 代理执行</text>
+                        </g>
+                        
+                        <line x1="900" y1="250" x2="950" y2="250" stroke="#00f2fe" stroke-width="4" marker-end="url(#arrowExecute)"/>
+                        <defs>
+                            <marker id="arrowExecute" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+                                <polygon points="0 0, 12 4, 0 8" fill="#00f2fe"/>
+                            </marker>
+                        </defs>
+                        
+                        <rect x="950" y="50" width="250" height="400" rx="15" fill="url(#controlGrad)" filter="url(#shadow)"/>
+                        <text x="1075" y="90" text-anchor="middle" fill="white" font-size="22" font-weight="bold">管控</text>
+                        <text x="1075" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">Control</text>
+                        
+                        <g transform="translate(970, 140)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">SecurityInterceptor</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">安全拦截</text>
+                        </g>
+                        <g transform="translate(970, 200)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">AuditService</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">审计服务</text>
+                        </g>
+                        <g transform="translate(970, 260)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">SceneMonitor</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">场景监控</text>
+                        </g>
+                        <g transform="translate(970, 320)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">EventPublisher</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">事件发布</text>
+                        </g>
+                        <g transform="translate(970, 380)">
+                            <rect x="0" y="0" width="210" height="50" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="105" y="20" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">HealthProvider</text>
+                            <text x="105" y="38" text-anchor="middle" fill="#5a6c7d" font-size="11">健康检查</text>
+                        </g>
+                    </svg>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🔐 安全机制</h3>
+                        <ul>
+                            <li>JWT Token 认证</li>
+                            <li>本地缓存认证</li>
+                            <li>证书认证</li>
+                            <li>TLS 1.3 加密</li>
+                            <li>安全拦截器</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📋 审计服务</h3>
+                        <ul>
+                            <li>操作日志记录</li>
+                            <li>审计查询</li>
+                            <li>日志导出</li>
+                            <li>统计分析</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📊 监控系统</h3>
+                        <ul>
+                            <li>性能监控</li>
+                            <li>服务健康检查</li>
+                            <li>能力状态监控</li>
+                            <li>连接测试服务</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">CAP 能力路由体系</h2>
+                <div class="highlight-box">
+                    <p><strong>CAP (Capability Address Protocol)</strong> 是 SceneEngine 的核心能力寻址方案，提供统一的能力地址空间管理。</p>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="systemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#e74c3c"/>
+                                <stop offset="100%" style="stop-color:#c0392b"/>
+                            </linearGradient>
+                            <linearGradient id="commonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3498db"/>
+                                <stop offset="100%" style="stop-color:#2980b9"/>
+                            </linearGradient>
+                            <linearGradient id="extGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#9b59b6"/>
+                                <stop offset="100%" style="stop-color:#8e44ad"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1000" height="300" fill="#f8f9fa"/>
+                        
+                        <rect x="50" y="50" width="280" height="200" rx="15" fill="url(#systemGrad)" filter="url(#shadow)"/>
+                        <text x="190" y="90" text-anchor="middle" fill="white" font-size="20" font-weight="bold">系统能力</text>
+                        <text x="190" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">System (00-3F)</text>
+                        <text x="190" y="150" text-anchor="middle" fill="white" font-size="13">• 会话管理</text>
+                        <text x="190" y="175" text-anchor="middle" fill="white" font-size="13">• 认证授权</text>
+                        <text x="190" y="200" text-anchor="middle" fill="white" font-size="13">• 系统配置</text>
+                        <text x="190" y="225" text-anchor="middle" fill="white" font-size="13">• 健康检查</text>
+                        
+                        <rect x="360" y="50" width="280" height="200" rx="15" fill="url(#commonGrad)" filter="url(#shadow)"/>
+                        <text x="500" y="90" text-anchor="middle" fill="white" font-size="20" font-weight="bold">通用能力</text>
+                        <text x="500" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">Common (40-9F)</text>
+                        <text x="500" y="150" text-anchor="middle" fill="white" font-size="13">• 知识库管理</text>
+                        <text x="500" y="175" text-anchor="middle" fill="white" font-size="13">• 向量存储</text>
+                        <text x="500" y="200" text-anchor="middle" fill="white" font-size="13">• RAG Pipeline</text>
+                        <text x="500" y="225" text-anchor="middle" fill="white" font-size="13">• 工具编排</text>
+                        
+                        <rect x="670" y="50" width="280" height="200" rx="15" fill="url(#extGrad)" filter="url(#shadow)"/>
+                        <text x="810" y="90" text-anchor="middle" fill="white" font-size="20" font-weight="bold">扩展能力</text>
+                        <text x="810" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">Extension (A0-FF)</text>
+                        <text x="810" y="150" text-anchor="middle" fill="white" font-size="13">• 自定义技能</text>
+                        <text x="810" y="175" text-anchor="middle" fill="white" font-size="13">• 业务插件</text>
+                        <text x="810" y="200" text-anchor="middle" fill="white" font-size="13">• 第三方集成</text>
+                        <text x="810" y="225" text-anchor="middle" fill="white" font-size="13">• 行业扩展</text>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">微/小/大三层架构</h2>
+                <div class="highlight-box">
+                    <p>SceneEngine 2.3 采用<strong>微/小/大</strong>三层架构，支持从开发测试到企业级生产的平滑演进，实现<strong>降级兼容</strong>和<strong>弹性部署</strong>。</p>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1100 400" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="microGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ffeaa7"/>
+                                <stop offset="100%" style="stop-color:#fdcb6e"/>
+                            </linearGradient>
+                            <linearGradient id="smallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#81ecec"/>
+                                <stop offset="100%" style="stop-color:#00cec9"/>
+                            </linearGradient>
+                            <linearGradient id="largeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#a29bfe"/>
+                                <stop offset="100%" style="stop-color:#6c5ce7"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1100" height="400" fill="#f8f9fa"/>
+                        
+                        <rect x="50" y="50" width="300" height="300" rx="15" fill="url(#microGrad)" filter="url(#shadow)"/>
+                        <text x="200" y="90" text-anchor="middle" fill="#2d3436" font-size="24" font-weight="bold">微层</text>
+                        <text x="200" y="115" text-anchor="middle" fill="#636e72" font-size="14">Micro Layer</text>
+                        <text x="200" y="145" text-anchor="middle" fill="#2d3436" font-size="13">开发测试环境</text>
+                        
+                        <g transform="translate(70, 170)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">InMemoryVectorStore</text>
+                        </g>
+                        <g transform="translate(70, 220)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">MockEmbeddingService</text>
+                        </g>
+                        <g transform="translate(70, 270)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">零配置 · 快速启动 · 重启丢失</text>
+                        </g>
+                        
+                        <rect x="400" y="50" width="300" height="300" rx="15" fill="url(#smallGrad)" filter="url(#shadow)"/>
+                        <text x="550" y="90" text-anchor="middle" fill="#2d3436" font-size="24" font-weight="bold">小层</text>
+                        <text x="550" y="115" text-anchor="middle" fill="#636e72" font-size="14">Small Layer</text>
+                        <text x="550" y="145" text-anchor="middle" fill="#2d3436" font-size="13">小团队/边缘部署</text>
+                        
+                        <g transform="translate(420, 170)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">SqliteVectorStore</text>
+                        </g>
+                        <g transform="translate(420, 220)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">LocalEmbeddingService</text>
+                        </g>
+                        <g transform="translate(420, 270)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">轻量级 · 本地持久化 · 边缘设备</text>
+                        </g>
+                        
+                        <rect x="750" y="50" width="300" height="300" rx="15" fill="url(#largeGrad)" filter="url(#shadow)"/>
+                        <text x="900" y="90" text-anchor="middle" fill="white" font-size="24" font-weight="bold">大层</text>
+                        <text x="900" y="115" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">Large Layer</text>
+                        <text x="900" y="145" text-anchor="middle" fill="white" font-size="13">企业级生产环境</text>
+                        
+                        <g transform="translate(770, 170)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">MilvusVectorStore</text>
+                        </g>
+                        <g transform="translate(770, 220)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">OpenAIEmbeddingService</text>
+                        </g>
+                        <g transform="translate(770, 270)">
+                            <rect x="0" y="0" width="260" height="40" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="130" y="27" text-anchor="middle" fill="#2d3436" font-size="12">高可用 · 分布式 · 水平扩展</text>
+                        </g>
+                        
+                        <path d="M 350 200 L 400 200" stroke="#2d3436" stroke-width="3" fill="none" marker-end="url(#arrowMicro)"/>
+                        <defs>
+                            <marker id="arrowMicro" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#2d3436"/>
+                            </marker>
+                        </defs>
+                        
+                        <path d="M 700 200 L 750 200" stroke="#2d3436" stroke-width="3" fill="none" marker-end="url(#arrowSmall)"/>
+                        <defs>
+                            <marker id="arrowSmall" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#2d3436"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">数据流架构</h2>
+                <div class="highlight-box">
+                    <p>用户请求从<strong>对话服务</strong>进入，通过<strong>RAG Pipeline</strong>进行知识检索增强，同时通过<strong>Tool Registry</strong>进行工具匹配和调用，最终由<strong>LLM Service</strong>生成响应。</p>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 900 650" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="userGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="convGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#11998e"/>
+                                <stop offset="100%" style="stop-color:#38ef7d"/>
+                            </linearGradient>
+                            <linearGradient id="ragGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4facfe"/>
+                                <stop offset="100%" style="stop-color:#00f2fe"/>
+                            </linearGradient>
+                            <linearGradient id="toolGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb"/>
+                                <stop offset="100%" style="stop-color:#f5576c"/>
+                            </linearGradient>
+                            <linearGradient id="llmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fa709a"/>
+                                <stop offset="100%" style="stop-color:#fee140"/>
+                            </linearGradient>
+                            <linearGradient id="respGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#43e97b"/>
+                                <stop offset="100%" style="stop-color:#38f9d7"/>
+                            </linearGradient>
+                            <filter id="flowShadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+                            </filter>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="900" height="650" fill="#f8f9fa"/>
+                        
+                        <g transform="translate(350, 30)">
+                            <circle cx="100" cy="40" r="35" fill="url(#userGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="45" text-anchor="middle" fill="white" font-size="14" font-weight="bold">用户</text>
+                        </g>
+                        
+                        <line x1="450" y1="105" x2="450" y2="140" stroke="#667eea" stroke-width="3" marker-end="url(#flowArrow1)"/>
+                        <defs>
+                            <marker id="flowArrow1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#667eea"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(300, 140)">
+                            <rect x="0" y="0" width="300" height="70" rx="12" fill="url(#convGrad)" filter="url(#flowShadow)"/>
+                            <text x="150" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Conversation Service</text>
+                            <text x="150" y="52" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="12">对话服务 · 意图识别 · 路由分发</text>
+                        </g>
+                        
+                        <line x1="350" y1="210" x2="200" y2="260" stroke="#11998e" stroke-width="3" marker-end="url(#flowArrow2)"/>
+                        <line x1="550" y1="210" x2="700" y2="260" stroke="#11998e" stroke-width="3" marker-end="url(#flowArrow2)"/>
+                        <defs>
+                            <marker id="flowArrow2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#11998e"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(50, 260)">
+                            <rect x="0" y="0" width="280" height="70" rx="12" fill="url(#ragGrad)" filter="url(#flowShadow)"/>
+                            <text x="140" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">RAG Pipeline</text>
+                            <text x="140" y="52" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="12">检索增强 · 向量化 · 知识检索</text>
+                        </g>
+                        
+                        <g transform="translate(570, 260)">
+                            <rect x="0" y="0" width="280" height="70" rx="12" fill="url(#toolGrad)" filter="url(#flowShadow)"/>
+                            <text x="140" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Tool Registry</text>
+                            <text x="140" y="52" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="12">工具注册 · 能力匹配 · 工具调用</text>
+                        </g>
+                        
+                        <text x="190" y="355" text-anchor="middle" fill="#4facfe" font-size="11" font-weight="bold">1. 向量化查询</text>
+                        <text x="710" y="355" text-anchor="middle" fill="#f5576c" font-size="11" font-weight="bold">2. 工具匹配</text>
+                        
+                        <line x1="190" y1="370" x2="190" y2="400" stroke="#4facfe" stroke-width="3" marker-end="url(#flowArrow3)"/>
+                        <line x1="710" y1="370" x2="710" y2="400" stroke="#f5576c" stroke-width="3" marker-end="url(#flowArrow3)"/>
+                        <defs>
+                            <marker id="flowArrow3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#4facfe"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(50, 410)">
+                            <rect x="0" y="0" width="280" height="70" rx="12" fill="url(#ragGrad)" filter="url(#flowShadow)" opacity="0.85"/>
+                            <text x="140" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Vector Store</text>
+                            <text x="140" y="52" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="12">向量检索 · 相似度计算</text>
+                        </g>
+                        
+                        <g transform="translate(570, 410)">
+                            <rect x="0" y="0" width="280" height="70" rx="12" fill="url(#toolGrad)" filter="url(#flowShadow)" opacity="0.85"/>
+                            <text x="140" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Tool Call</text>
+                            <text x="140" y="52" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="12">工具执行 · 结果返回</text>
+                        </g>
+                        
+                        <text x="190" y="505" text-anchor="middle" fill="#4facfe" font-size="11" font-weight="bold">3. 检索结果</text>
+                        <text x="710" y="505" text-anchor="middle" fill="#f5576c" font-size="11" font-weight="bold">4. 执行工具</text>
+                        
+                        <line x1="190" y1="520" x2="350" y2="540" stroke="#4facfe" stroke-width="3" marker-end="url(#flowArrow4)"/>
+                        <line x1="710" y1="520" x2="550" y2="540" stroke="#f5576c" stroke-width="3" marker-end="url(#flowArrow4)"/>
+                        <defs>
+                            <marker id="flowArrow4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#fa709a"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(300, 540)">
+                            <rect x="0" y="0" width="300" height="60" rx="12" fill="url(#llmGrad)" filter="url(#flowShadow)"/>
+                            <text x="150" y="25" text-anchor="middle" fill="white" font-size="16" font-weight="bold">LLM Service</text>
+                            <text x="150" y="45" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="12">大模型生成 · 响应合成</text>
+                        </g>
+                        
+                        <line x1="450" y1="600" x2="450" y2="620" stroke="#43e97b" stroke-width="3" marker-end="url(#flowArrow5)"/>
+                        <defs>
+                            <marker id="flowArrow5" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#43e97b"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(350, 620)">
+                            <rect x="0" y="0" width="200" height="45" rx="10" fill="url(#respGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="28" text-anchor="middle" fill="white" font-size="14" font-weight="bold">最终响应</text>
+                        </g>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">RAG 检索增强生成流程</h2>
+                <div class="highlight-box">
+                    <p><strong>RAG (Retrieval-Augmented Generation)</strong> 是检索增强生成的核心技术，通过将用户查询向量化，从知识库中检索相关片段，增强提示后由大模型生成精准回答。</p>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1100 350" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="queryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="embedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#11998e"/>
+                                <stop offset="100%" style="stop-color:#38ef7d"/>
+                            </linearGradient>
+                            <linearGradient id="searchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4facfe"/>
+                                <stop offset="100%" style="stop-color:#00f2fe"/>
+                            </linearGradient>
+                            <linearGradient id="chunkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fa709a"/>
+                                <stop offset="100%" style="stop-color:#fee140"/>
+                            </linearGradient>
+                            <linearGradient id="augmentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb"/>
+                                <stop offset="100%" style="stop-color:#f5576c"/>
+                            </linearGradient>
+                            <linearGradient id="genGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#43e97b"/>
+                                <stop offset="100%" style="stop-color:#38f9d7"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1100" height="350" fill="#f8f9fa"/>
+                        
+                        <g transform="translate(50, 50)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#queryGrad)" filter="url(#flowShadow)"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Query</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">用户查询</text>
+                        </g>
+                        
+                        <line x1="190" y1="90" x2="230" y2="90" stroke="#667eea" stroke-width="3" marker-end="url(#ragArrow1)"/>
+                        <defs>
+                            <marker id="ragArrow1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#667eea"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(240, 50)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#embedGrad)" filter="url(#flowShadow)"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Embed</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">向量化</text>
+                        </g>
+                        
+                        <line x1="380" y1="90" x2="420" y2="90" stroke="#11998e" stroke-width="3" marker-end="url(#ragArrow2)"/>
+                        <defs>
+                            <marker id="ragArrow2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#11998e"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(430, 50)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#searchGrad)" filter="url(#flowShadow)"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Vector Search</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">向量检索</text>
+                        </g>
+                        
+                        <line x1="570" y1="90" x2="610" y2="90" stroke="#4facfe" stroke-width="3" marker-end="url(#ragArrow3)"/>
+                        <defs>
+                            <marker id="ragArrow3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#4facfe"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(620, 50)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#chunkGrad)" filter="url(#flowShadow)"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Retrieved Chunks</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">检索片段</text>
+                        </g>
+                        
+                        <line x1="690" y1="130" x2="690" y2="170" stroke="#fa709a" stroke-width="3" marker-end="url(#ragArrow4)"/>
+                        <defs>
+                            <marker id="ragArrow4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#fa709a"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(430, 180)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#augmentGrad)" filter="url(#flowShadow)"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Augment Prompt</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">增强提示</text>
+                        </g>
+                        
+                        <g transform="translate(240, 180)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#genGrad)" filter="url(#flowShadow)"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">LLM Generate</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">大模型生成</text>
+                        </g>
+                        
+                        <g transform="translate(50, 180)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#queryGrad)" filter="url(#flowShadow)"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Response</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">生成响应</text>
+                        </g>
+                        
+                        <line x1="430" y1="220" x2="390" y2="220" stroke="#f5576c" stroke-width="3" marker-end="url(#ragArrow5)"/>
+                        <defs>
+                            <marker id="ragArrow5" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f5576c"/>
+                            </marker>
+                        </defs>
+                        
+                        <line x1="240" y1="220" x2="200" y2="220" stroke="#43e97b" stroke-width="3" marker-end="url(#ragArrow6)"/>
+                        <defs>
+                            <marker id="ragArrow6" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#43e97b"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(620, 180)">
+                            <rect x="0" y="0" width="140" height="80" rx="10" fill="url(#searchGrad)" filter="url(#flowShadow)" opacity="0.8"/>
+                            <text x="70" y="35" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Context</text>
+                            <text x="70" y="55" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">系统提示</text>
+                        </g>
+                        
+                        <line x1="620" y1="220" x2="580" y2="220" stroke="#4facfe" stroke-width="3" marker-end="url(#ragArrow7)"/>
+                        <defs>
+                            <marker id="ragArrow7" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#4facfe"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(800, 50)">
+                            <rect x="0" y="0" width="250" height="250" rx="15" fill="rgba(102,126,234,0.1)" stroke="#667eea" stroke-width="2"/>
+                            <text x="125" y="30" text-anchor="middle" fill="#1e3c72" font-size="14" font-weight="bold">RAG 核心步骤</text>
+                            <text x="20" y="60" fill="#2d3436" font-size="12">1. Query - 用户查询文本</text>
+                            <text x="20" y="85" fill="#2d3436" font-size="12">2. Embed - 查询向量化</text>
+                            <text x="20" y="110" fill="#2d3436" font-size="12">3. Search - 向量相似度检索</text>
+                            <text x="20" y="135" fill="#2d3436" font-size="12">4. Retrieve - 获取相关片段</text>
+                            <text x="20" y="160" fill="#2d3436" font-size="12">5. Augment - 增强提示构建</text>
+                            <text x="20" y="185" fill="#2d3436" font-size="12">6. Generate - LLM生成回答</text>
+                            <text x="20" y="220" fill="#667eea" font-size="11" font-weight="bold">优势: 减少幻觉、知识可更新</text>
+                        </g>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">Function Calling 工具调用流程</h2>
+                <div class="highlight-box">
+                    <p><strong>Function Calling</strong> 允许 LLM 识别需要调用的外部工具，生成结构化的工具调用请求，执行后返回结果，实现 Agent 与外部系统的交互。</p>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1100 520" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="llmGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="toolCallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb"/>
+                                <stop offset="100%" style="stop-color:#f5576c"/>
+                            </linearGradient>
+                            <linearGradient id="registryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4facfe"/>
+                                <stop offset="100%" style="stop-color:#00f2fe"/>
+                            </linearGradient>
+                            <linearGradient id="execGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#11998e"/>
+                                <stop offset="100%" style="stop-color:#38ef7d"/>
+                            </linearGradient>
+                            <linearGradient id="resultGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fa709a"/>
+                                <stop offset="100%" style="stop-color:#fee140"/>
+                            </linearGradient>
+                            <linearGradient id="finalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#43e97b"/>
+                                <stop offset="100%" style="stop-color:#38f9d7"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1100" height="520" fill="#f8f9fa"/>
+                        
+                        <g transform="translate(50, 50)">
+                            <circle cx="50" cy="35" r="30" fill="url(#llmGrad2)" filter="url(#flowShadow)"/>
+                            <text x="50" y="40" text-anchor="middle" fill="white" font-size="12" font-weight="bold">用户</text>
+                        </g>
+                        
+                        <line x1="100" y1="85" x2="100" y2="115" stroke="#667eea" stroke-width="3" marker-end="url(#funcArrow1)"/>
+                        <defs>
+                            <marker id="funcArrow1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#667eea"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(50, 125)">
+                            <rect x="0" y="0" width="200" height="90" rx="12" fill="url(#llmGrad2)" filter="url(#flowShadow)"/>
+                            <text x="100" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">LLM 大模型</text>
+                            <text x="100" y="50" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">识别需要调用工具</text>
+                            <text x="100" y="70" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">生成 Tool Call JSON</text>
+                        </g>
+                        
+                        <line x1="250" y1="170" x2="300" y2="170" stroke="#f5576c" stroke-width="3" marker-end="url(#funcArrow2)"/>
+                        <text x="275" y="160" text-anchor="middle" fill="#f5576c" font-size="10" font-weight="bold">1. 生成</text>
+                        <defs>
+                            <marker id="funcArrow2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#f5576c"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(310, 125)">
+                            <rect x="0" y="0" width="200" height="90" rx="12" fill="url(#toolCallGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="28" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Tool Call</text>
+                            <text x="100" y="50" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">{ "name": "search",</text>
+                            <text x="100" y="68" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">  "args": {...} }</text>
+                        </g>
+                        
+                        <line x1="510" y1="170" x2="560" y2="170" stroke="#4facfe" stroke-width="3" marker-end="url(#funcArrow3)"/>
+                        <text x="535" y="160" text-anchor="middle" fill="#4facfe" font-size="10" font-weight="bold">2. 查找</text>
+                        <defs>
+                            <marker id="funcArrow3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#4facfe"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(570, 125)">
+                            <rect x="0" y="0" width="200" height="90" rx="12" fill="url(#registryGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Tool Registry</text>
+                            <text x="100" y="50" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">工具注册表</text>
+                            <text x="100" y="70" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">查找匹配工具</text>
+                        </g>
+                        
+                        <line x1="670" y1="215" x2="670" y2="255" stroke="#11998e" stroke-width="3" marker-end="url(#funcArrow4)"/>
+                        <text x="695" y="240" fill="#11998e" font-size="10" font-weight="bold">3. 执行</text>
+                        <defs>
+                            <marker id="funcArrow4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#11998e"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(570, 265)">
+                            <rect x="0" y="0" width="200" height="90" rx="12" fill="url(#execGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Execute</text>
+                            <text x="100" y="50" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">工具执行</text>
+                            <text x="100" y="70" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">参数验证 · 调用</text>
+                        </g>
+                        
+                        <line x1="570" y1="310" x2="520" y2="310" stroke="#fa709a" stroke-width="3" marker-end="url(#funcArrow5)"/>
+                        <text x="545" y="300" text-anchor="middle" fill="#fa709a" font-size="10" font-weight="bold">4. 结果</text>
+                        <defs>
+                            <marker id="funcArrow5" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#fa709a"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(310, 265)">
+                            <rect x="0" y="0" width="200" height="90" rx="12" fill="url(#resultGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Format Result</text>
+                            <text x="100" y="50" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">格式化结果</text>
+                            <text x="100" y="70" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">返回给 LLM</text>
+                        </g>
+                        
+                        <line x1="310" y1="310" x2="260" y2="310" stroke="#667eea" stroke-width="3" marker-end="url(#funcArrow6)"/>
+                        <defs>
+                            <marker id="funcArrow6" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#667eea"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(50, 265)">
+                            <rect x="0" y="0" width="200" height="90" rx="12" fill="url(#llmGrad2)" filter="url(#flowShadow)"/>
+                            <text x="100" y="30" text-anchor="middle" fill="white" font-size="16" font-weight="bold">LLM 大模型</text>
+                            <text x="100" y="50" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">结合工具结果</text>
+                            <text x="100" y="70" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">生成最终回复</text>
+                        </g>
+                        
+                        <line x1="150" y1="355" x2="150" y2="390" stroke="#43e97b" stroke-width="3" marker-end="url(#funcArrow7)"/>
+                        <defs>
+                            <marker id="funcArrow7" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#43e97b"/>
+                            </marker>
+                        </defs>
+                        
+                        <g transform="translate(50, 400)">
+                            <rect x="0" y="0" width="200" height="55" rx="10" fill="url(#finalGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="33" text-anchor="middle" fill="white" font-size="14" font-weight="bold">最终响应</text>
+                        </g>
+                        
+                        <g transform="translate(800, 125)">
+                            <rect x="0" y="0" width="250" height="230" rx="15" fill="rgba(102,126,234,0.1)" stroke="#667eea" stroke-width="2"/>
+                            <text x="125" y="28" text-anchor="middle" fill="#1e3c72" font-size="14" font-weight="bold">内置工具示例</text>
+                            <text x="20" y="55" fill="#2d3436" font-size="12">• search_knowledge</text>
+                            <text x="20" y="78" fill="#2d3436" font-size="12">• list_documents</text>
+                            <text x="20" y="101" fill="#2d3436" font-size="12">• get_weather</text>
+                            <text x="20" y="124" fill="#2d3436" font-size="12">• query_database</text>
+                            <text x="20" y="147" fill="#2d3436" font-size="12">• execute_code</text>
+                            <text x="20" y="175" fill="#667eea" font-size="11" font-weight="bold">编排策略:</text>
+                            <text x="20" y="195" fill="#2d3436" font-size="11">SEQUENTIAL / PARALLEL</text>
+                            <text x="20" y="215" fill="#2d3436" font-size="11">CONDITIONAL / PIPELINE</text>
+                        </g>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">模块依赖关系</h2>
+                <div class="highlight-box">
+                    <p>SceneEngine 采用分层依赖设计，上层模块依赖下层模块，确保架构清晰、解耦合理。</p>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="convModGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="toolModGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb"/>
+                                <stop offset="100%" style="stop-color:#f5576c"/>
+                            </linearGradient>
+                            <linearGradient id="knowModGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4facfe"/>
+                                <stop offset="100%" style="stop-color:#00f2fe"/>
+                            </linearGradient>
+                            <linearGradient id="vectorModGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#11998e"/>
+                                <stop offset="100%" style="stop-color:#38ef7d"/>
+                            </linearGradient>
+                            <linearGradient id="embedModGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#fa709a"/>
+                                <stop offset="100%" style="stop-color:#fee140"/>
+                            </linearGradient>
+                            <linearGradient id="llmModGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#43e97b"/>
+                                <stop offset="100%" style="stop-color:#38f9d7"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1000" height="600" fill="#f8f9fa"/>
+                        
+                        <g transform="translate(400, 30)">
+                            <rect x="0" y="0" width="200" height="60" rx="10" fill="url(#convModGrad)" filter="url(#flowShadow)"/>
+                            <text x="100" y="25" text-anchor="middle" fill="white" font-size="14" font-weight="bold">conversation</text>
+                            <text x="100" y="45" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="11">多轮对话</text>
+                        </g>
+                        
+                        <line x1="450" y1="90" x2="300" y2="130" stroke="#667eea" stroke-width="2" stroke-dasharray="5,3"/>
+                        <line x1="500" y1="90" x2="500" y2="130" stroke="#667eea" stroke-width="2" stroke-dasharray="5,3"/>
+                        <line x1="550" y1="90" x2="700" y2="130" stroke="#667eea" stroke-width="2" stroke-dasharray="5,3"/>
+                        <text x="350" y="115" fill="#667eea" font-size="10">depends on</text>
+                        
+                        <g transform="translate(200, 140)">
+                            <rect x="0" y="0" width="180" height="50" rx="8" fill="url(#toolModGrad)" filter="url(#flowShadow)"/>
+                            <text x="90" y="20" text-anchor="middle" fill="white" font-size="13" font-weight="bold">tool</text>
+                            <text x="90" y="38" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">工具系统</text>
+                        </g>
+                        
+                        <g transform="translate(410, 140)">
+                            <rect x="0" y="0" width="180" height="50" rx="8" fill="url(#knowModGrad)" filter="url(#flowShadow)"/>
+                            <text x="90" y="20" text-anchor="middle" fill="white" font-size="13" font-weight="bold">knowledge</text>
+                            <text x="90" y="38" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">知识库</text>
+                        </g>
+                        
+                        <g transform="translate(620, 140)">
+                            <rect x="0" y="0" width="180" height="50" rx="8" fill="url(#toolModGrad)" filter="url(#flowShadow)" opacity="0.8"/>
+                            <text x="90" y="20" text-anchor="middle" fill="white" font-size="13" font-weight="bold">rag</text>
+                            <text x="90" y="38" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">RAG</text>
+                        </g>
+                        
+                        <line x1="290" y1="190" x2="290" y2="230" stroke="#f5576c" stroke-width="2" stroke-dasharray="5,3"/>
+                        <line x1="500" y1="190" x2="500" y2="230" stroke="#4facfe" stroke-width="2" stroke-dasharray="5,3"/>
+                        <line x1="710" y1="190" x2="710" y2="230" stroke="#f5576c" stroke-width="2" stroke-dasharray="5,3"/>
+                        
+                        <g transform="translate(200, 240)">
+                            <rect x="0" y="0" width="180" height="50" rx="8" fill="url(#knowModGrad)" filter="url(#flowShadow)" opacity="0.85"/>
+                            <text x="90" y="20" text-anchor="middle" fill="white" font-size="13" font-weight="bold">knowledge</text>
+                            <text x="90" y="38" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">知识库</text>
+                        </g>
+                        
+                        <g transform="translate(410, 240)">
+                            <rect x="0" y="0" width="180" height="50" rx="8" fill="url(#vectorModGrad)" filter="url(#flowShadow)"/>
+                            <text x="90" y="20" text-anchor="middle" fill="white" font-size="13" font-weight="bold">vector</text>
+                            <text x="90" y="38" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">向量存储</text>
+                        </g>
+                        
+                        <g transform="translate(620, 240)">
+                            <rect x="0" y="0" width="180" height="50" rx="8" fill="url(#vectorModGrad)" filter="url(#flowShadow)" opacity="0.85"/>
+                            <text x="90" y="20" text-anchor="middle" fill="white" font-size="13" font-weight="bold">vector</text>
+                            <text x="90" y="38" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">向量存储</text>
+                        </g>
+                        
+                        <line x1="500" y1="290" x2="350" y2="330" stroke="#11998e" stroke-width="2" stroke-dasharray="5,3"/>
+                        <line x1="500" y1="290" x2="500" y2="330" stroke="#11998e" stroke-width="2" stroke-dasharray="5,3"/>
+                        <line x1="500" y1="290" x2="650" y2="330" stroke="#11998e" stroke-width="2" stroke-dasharray="5,3"/>
+                        
+                        <g transform="translate(260, 340)">
+                            <rect x="0" y="0" width="160" height="45" rx="8" fill="url(#embedModGrad)" filter="url(#flowShadow)"/>
+                            <text x="80" y="18" text-anchor="middle" fill="white" font-size="12" font-weight="bold">embedding</text>
+                            <text x="80" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">嵌入服务</text>
+                        </g>
+                        
+                        <g transform="translate(420, 340)">
+                            <rect x="0" y="0" width="160" height="45" rx="8" fill="url(#knowModGrad)" filter="url(#flowShadow)" opacity="0.8"/>
+                            <text x="80" y="18" text-anchor="middle" fill="white" font-size="12" font-weight="bold">document</text>
+                            <text x="80" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">文档处理</text>
+                        </g>
+                        
+                        <g transform="translate(580, 340)">
+                            <rect x="0" y="0" width="160" height="45" rx="8" fill="url(#llmModGrad)" filter="url(#flowShadow)"/>
+                            <text x="80" y="18" text-anchor="middle" fill="white" font-size="12" font-weight="bold">llm</text>
+                            <text x="80" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">大模型</text>
+                        </g>
+                        
+                        <line x1="500" y1="385" x2="500" y2="420" stroke="#fa709a" stroke-width="2" stroke-dasharray="5,3"/>
+                        
+                        <g transform="translate(420, 430)">
+                            <rect x="0" y="0" width="160" height="45" rx="8" fill="url(#embedModGrad)" filter="url(#flowShadow)" opacity="0.8"/>
+                            <text x="80" y="18" text-anchor="middle" fill="white" font-size="12" font-weight="bold">chunker</text>
+                            <text x="80" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="10">文档分块</text>
+                        </g>
+                        
+                        <g transform="translate(50, 140)">
+                            <rect x="0" y="0" width="130" height="45" rx="8" fill="url(#convModGrad)" filter="url(#flowShadow)" opacity="0.7"/>
+                            <text x="65" y="18" text-anchor="middle" fill="white" font-size="11" font-weight="bold">contribution</text>
+                            <text x="65" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="9">知识贡献</text>
+                        </g>
+                        
+                        <line x1="115" y1="185" x2="200" y2="240" stroke="#667eea" stroke-width="2" stroke-dasharray="5,3"/>
+                        
+                        <g transform="translate(50, 240)">
+                            <rect x="0" y="0" width="130" height="45" rx="8" fill="url(#toolModGrad)" filter="url(#flowShadow)" opacity="0.7"/>
+                            <text x="65" y="18" text-anchor="middle" fill="white" font-size="11" font-weight="bold">share</text>
+                            <text x="65" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="9">知识分享</text>
+                        </g>
+                        
+                        <line x1="115" y1="285" x2="200" y2="340" stroke="#f5576c" stroke-width="2" stroke-dasharray="5,3"/>
+                        
+                        <g transform="translate(50, 340)">
+                            <rect x="0" y="0" width="130" height="45" rx="8" fill="url(#knowModGrad)" filter="url(#flowShadow)" opacity="0.7"/>
+                            <text x="65" y="18" text-anchor="middle" fill="white" font-size="11" font-weight="bold">importer</text>
+                            <text x="65" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="9">批量导入</text>
+                        </g>
+                        
+                        <g transform="translate(800, 140)">
+                            <rect x="0" y="0" width="150" height="45" rx="8" fill="url(#llmModGrad)" filter="url(#flowShadow)" opacity="0.7"/>
+                            <text x="75" y="18" text-anchor="middle" fill="white" font-size="11" font-weight="bold">classification</text>
+                            <text x="75" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="9">场景分类</text>
+                        </g>
+                        
+                        <g transform="translate(800, 240)">
+                            <rect x="0" y="0" width="150" height="45" rx="8" fill="url(#convModGrad)" filter="url(#flowShadow)" opacity="0.7"/>
+                            <text x="75" y="18" text-anchor="middle" fill="white" font-size="11" font-weight="bold">coordinator</text>
+                            <text x="75" y="35" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="9">安装协调</text>
+                        </g>
+                        
+                        <line x1="875" y1="185" x2="875" y2="240" stroke="#43e97b" stroke-width="2" stroke-dasharray="5,3"/>
+                        
+                        <g transform="translate(700, 430)">
+                            <rect x="0" y="0" width="280" height="130" rx="12" fill="rgba(102,126,234,0.1)" stroke="#667eea" stroke-width="2"/>
+                            <text x="140" y="25" text-anchor="middle" fill="#1e3c72" font-size="13" font-weight="bold">依赖层级说明</text>
+                            <text x="20" y="50" fill="#2d3436" font-size="11">Level 1: conversation, share, importer</text>
+                            <text x="20" y="70" fill="#2d3436" font-size="11">Level 2: tool, rag, classification</text>
+                            <text x="20" y="90" fill="#2d3436" font-size="11">Level 3: knowledge, vector</text>
+                            <text x="20" y="110" fill="#2d3436" font-size="11">Level 4: embedding, llm, chunker</text>
+                        </g>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">部署架构</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🖥️ 单机部署</h3>
+                        <p style="margin-bottom: 15px; color: #5a6c7d;">适用于开发测试、小团队场景</p>
+                        <ul>
+                            <li>App + scene-engine SDK</li>
+                            <li>SQLite 本地向量存储</li>
+                            <li>可选本地 LLM</li>
+                            <li>零外部依赖</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🌐 分布式部署</h3>
+                        <p style="margin-bottom: 15px; color: #5a6c7d;">适用于企业级生产环境</p>
+                        <ul>
+                            <li>多 App Server 集群</li>
+                            <li>Milvus 分布式向量库</li>
+                            <li>Redis 缓存集群</li>
+                            <li>OpenAI/Claude LLM</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 1100 400" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="singleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="distGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#11998e"/>
+                                <stop offset="100%" style="stop-color:#38ef7d"/>
+                            </linearGradient>
+                            <linearGradient id="infraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4facfe"/>
+                                <stop offset="100%" style="stop-color:#00f2fe"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect x="0" y="0" width="1100" height="400" fill="#f8f9fa"/>
+                        
+                        <rect x="50" y="30" width="450" height="180" rx="15" fill="url(#singleGrad)" filter="url(#flowShadow)"/>
+                        <text x="275" y="60" text-anchor="middle" fill="white" font-size="18" font-weight="bold">单机部署 (Standalone)</text>
+                        
+                        <g transform="translate(70, 80)">
+                            <rect x="0" y="0" width="90" height="60" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="45" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">App</text>
+                            <text x="45" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">应用服务</text>
+                        </g>
+                        <g transform="translate(170, 80)">
+                            <rect x="0" y="0" width="90" height="60" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="45" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">scene-engine</text>
+                            <text x="45" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">SDK</text>
+                        </g>
+                        <g transform="translate(270, 80)">
+                            <rect x="0" y="0" width="90" height="60" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="45" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">SQLite</text>
+                            <text x="45" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">向量存储</text>
+                        </g>
+                        <g transform="translate(370, 80)">
+                            <rect x="0" y="0" width="90" height="60" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="45" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">Local LLM</text>
+                            <text x="45" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">可选</text>
+                        </g>
+                        
+                        <text x="275" y="170" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="12">特点: 零配置 · 快速启动 · 适合开发测试</text>
+                        
+                        <rect x="550" y="30" width="500" height="340" rx="15" fill="url(#distGrad)" filter="url(#flowShadow)"/>
+                        <text x="800" y="60" text-anchor="middle" fill="white" font-size="18" font-weight="bold">分布式部署 (Distributed)</text>
+                        
+                        <g transform="translate(570, 80)">
+                            <rect x="0" y="0" width="130" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">App Server 1</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="9">App + scene-engine</text>
+                        </g>
+                        <g transform="translate(720, 80)">
+                            <rect x="0" y="0" width="130" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">App Server 2</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="9">App + scene-engine</text>
+                        </g>
+                        <g transform="translate(870, 80)">
+                            <rect x="0" y="0" width="130" height="70" rx="8" fill="rgba(255,255,255,0.9)"/>
+                            <text x="65" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">App Server N</text>
+                            <text x="65" y="45" text-anchor="middle" fill="#5a6c7d" font-size="9">App + scene-engine</text>
+                        </g>
+                        
+                        <line x1="635" y1="150" x2="635" y2="190" stroke="white" stroke-width="2"/>
+                        <line x1="785" y1="150" x2="785" y2="190" stroke="white" stroke-width="2"/>
+                        <line x1="935" y1="150" x2="935" y2="190" stroke="white" stroke-width="2"/>
+                        <line x1="635" y1="190" x2="935" y2="190" stroke="white" stroke-width="2"/>
+                        <line x1="785" y1="190" x2="785" y2="210" stroke="white" stroke-width="2" marker-end="url(#deployArrow)"/>
+                        <defs>
+                            <marker id="deployArrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="white"/>
+                            </marker>
+                        </defs>
+                        
+                        <rect x="570" y="220" width="460" height="130" rx="12" fill="url(#infraGrad)" filter="url(#flowShadow)"/>
+                        <text x="800" y="250" text-anchor="middle" fill="white" font-size="14" font-weight="bold">共享基础设施 (Shared Infrastructure)</text>
+                        
+                        <g transform="translate(590, 270)">
+                            <rect x="0" y="0" width="100" height="60" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="50" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">Milvus</text>
+                            <text x="50" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">向量数据库</text>
+                        </g>
+                        <g transform="translate(700, 270)">
+                            <rect x="0" y="0" width="100" height="60" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="50" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">Redis</text>
+                            <text x="50" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">缓存</text>
+                        </g>
+                        <g transform="translate(810, 270)">
+                            <rect x="0" y="0" width="100" height="60" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="50" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">MongoDB</text>
+                            <text x="50" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">元数据</text>
+                        </g>
+                        <g transform="translate(920, 270)">
+                            <rect x="0" y="0" width="100" height="60" rx="6" fill="rgba(255,255,255,0.9)"/>
+                            <text x="50" y="25" text-anchor="middle" fill="#1e3c72" font-size="11" font-weight="bold">OpenAI</text>
+                            <text x="50" y="42" text-anchor="middle" fill="#5a6c7d" font-size="9">LLM API</text>
+                        </g>
+                        
+                        <rect x="50" y="230" width="450" height="140" rx="12" fill="rgba(102,126,234,0.1)" stroke="#667eea" stroke-width="2"/>
+                        <text x="275" y="260" text-anchor="middle" fill="#1e3c72" font-size="14" font-weight="bold">部署选择建议</text>
+                        <text x="70" y="290" fill="#2d3436" font-size="11">• 开发测试: 单机部署 + InMemoryVectorStore</text>
+                        <text x="70" y="310" fill="#2d3436" font-size="11">• 小团队: 单机部署 + SQLite + 本地LLM</text>
+                        <text x="70" y="330" fill="#2d3436" font-size="11">• 企业生产: 分布式部署 + Milvus + 云端LLM</text>
+                        <text x="70" y="350" fill="#2d3436" font-size="11">• 边缘设备: 单机部署 + SQLite (离线场景)</text>
+                    </svg>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">核心接口一览</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>接口名称</th>
+                                <th>包路径</th>
+                                <th>核心功能</th>
+                                <th>标签</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>SceneEngine</strong></td>
+                                <td>net.ooder.scene.core</td>
+                                <td>引擎入口、用户认证、会话管理、生命周期控制</td>
+                                <td><span class="tag tag-primary">核心</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>CapabilityDiscoveryService</strong></td>
+                                <td>net.ooder.scene.discovery</td>
+                                <td>能力发现、场景搜索、索引同步</td>
+                                <td><span class="tag tag-success">发现</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SkillService</strong></td>
+                                <td>net.ooder.scene.skill</td>
+                                <td>技能发现、安装卸载、生命周期、能力调用</td>
+                                <td><span class="tag tag-info">技能</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>KnowledgeBaseService</strong></td>
+                                <td>net.ooder.scene.skill.knowledge</td>
+                                <td>知识库CRUD、文档管理、索引管理</td>
+                                <td><span class="tag tag-warning">知识</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>VectorStore</strong></td>
+                                <td>net.ooder.scene.skill.vector</td>
+                                <td>向量插入、相似度搜索、向量删除</td>
+                                <td><span class="tag tag-primary">向量</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>RagPipeline</strong></td>
+                                <td>net.ooder.scene.skill.rag</td>
+                                <td>检索增强、提示增强、智能问答</td>
+                                <td><span class="tag tag-success">RAG</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ToolOrchestrator</strong></td>
+                                <td>net.ooder.scene.skill.tool</td>
+                                <td>工具编排、多工具执行、计划编排</td>
+                                <td><span class="tag tag-info">工具</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ConversationService</strong></td>
+                                <td>net.ooder.scene.skill.conversation</td>
+                                <td>多轮对话、消息处理、历史管理</td>
+                                <td><span class="tag tag-warning">对话</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>AuditService</strong></td>
+                                <td>net.ooder.scene.audit</td>
+                                <td>审计日志、查询导出、统计分析</td>
+                                <td><span class="tag tag-primary">审计</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SecurityInterceptor</strong></td>
+                                <td>net.ooder.scene.core.security</td>
+                                <td>安全拦截、权限检查、操作审计</td>
+                                <td><span class="tag tag-success">安全</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">技术栈与依赖</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>运行环境</h3>
+                        <ul>
+                            <li>Java 8+</li>
+                            <li>Maven 3.6+</li>
+                            <li>Spring Boot</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>核心依赖</h3>
+                        <ul>
+                            <li>agent-sdk 2.3</li>
+                            <li>ooder-common 2.3</li>
+                            <li>skills-framework 2.3</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>数据存储</h3>
+                        <ul>
+                            <li>MySQL 8.0</li>
+                            <li>SQLite 3.4</li>
+                            <li>Milvus (向量)</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>工具库</h3>
+                        <ul>
+                            <li>Jackson 2.13</li>
+                            <li>Hutool 5.8</li>
+                            <li>HikariCP 3.4</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">快速开始</h2>
+                <div class="code-block">
+<span class="comment"># 克隆项目</span>
+git clone https://gitee.com/ooderCN/ooder-sdk.git
+
+<span class="comment"># 编译项目</span>
+cd ooder-sdk/scene-engine
+mvn clean compile
+
+<span class="comment"># 打包</span>
+mvn clean package -DskipTests
+                </div>
+                
+                <div class="code-block" style="margin-top: 20px;">
+<span class="comment">&lt;!-- Maven 依赖 --&gt;</span>
+&lt;<span class="keyword">dependency</span>&gt;
+    &lt;<span class="keyword">groupId</span>&gt;net.ooder&lt;/<span class="keyword">groupId</span>&gt;
+    &lt;<span class="keyword">artifactId</span>&gt;scene-engine&lt;/<span class="keyword">artifactId</span>&gt;
+    &lt;<span class="keyword">version</span>&gt;2.3&lt;/<span class="keyword">version</span>&gt;
+&lt;/<span class="keyword">dependency</span>&gt;
+                </div>
+            </section>
+        </div>
+        
+        <div class="footer">
+            <p><strong>OoderAgent SceneEngine 2.3</strong></p>
+            <p style="margin-top: 10px;">
+                <a href="https://gitee.com/ooderCN" target="_blank">官方地址: https://gitee.com/ooderCN</a>
+            </p>
+            <p style="margin-top: 15px; opacity: 0.8;">
+                Version 2.3 | 发布日期: 2026-02-23 | Java 8+ | Apache License 2.0
+            </p>
+            <p style="margin-top: 10px; opacity: 0.6;">
+                Made with ❤️ by Ooder Team
+            </p>
+        </div>
+    </div>
+</body>
+</html>

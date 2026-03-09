@@ -2,6 +2,7 @@ package net.ooder.scene.core.impl;
 
 import net.ooder.scene.core.*;
 import net.ooder.sdk.api.capability.Capability;
+import net.ooder.sdk.nexus.resource.model.SkillInfo;
 import net.ooder.scene.provider.HeartbeatProvider;
 import net.ooder.scene.provider.SceneProvider;
 import net.ooder.scene.provider.UserSettingsProvider;

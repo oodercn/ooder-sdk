@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大龙虾与小龙虾的安全之舞：ooderAgent南向协议如何守护企业LLM与个人LLM的可信交互</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .meta {
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section h2 {
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            position: relative;
+        }
+
+        .section h2::before {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: #764ba2;
+        }
+
+        .section h3 {
+            font-size: 1.5em;
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+        }
+
+        .section p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #333;
+            margin: 15px 0;
+        }
+
+        .svg-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin: 20px 0;
+            overflow-x: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Code';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.8em;
+            color: #718096;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 1em;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+        }
+
+        tr:hover td {
+            background: #f7fafc;
+        }
+
+        .flow-container {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .card h4 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 1em;
+            margin: 0;
+            color: #4a5568;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        ul li {
+            padding: 12px 0 12px 35px;
+            position: relative;
+            color: #4a5568;
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+
+        ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .toc {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .toc h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            padding: 10px 0 10px 25px;
+            position: relative;
+        }
+
+        .toc li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .toc a {
+            color: #4a5568;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc a:hover {
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .section h2 {
+                font-size: 1.5em;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .nav-controls {
+                display: none;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>大龙虾与小龙虾的安全之舞</h1>
+            <div class="subtitle">ooderAgent南向协议如何守护企业LLM与个人LLM的可信交互</div>
+            <div class="meta">
+                <p>作者: Ooder Team | 日期: 2026-03-07</p>
+                <p>关键词: A2A协议、南向协议、agent-SDK、企业LLM、个人LLM、安全交互</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="toc">
+                <h3>📖 目录</h3>
+                <ul>
+                    <li><a href="#section1">引言：AI时代的"大龙虾"与"小龙虾"</a></li>
+                    <li><a href="#section2">一、技术架构全景：从A2A协议到南向协议</a></li>
+                    <li><a href="#section3">二、KEY体系：身份认证与信任建立</a></li>
+                    <li><a href="#section4">三、COMMAND体系：可控的交互指令</a></li>
+                    <li><a href="#section5">四、Capability系统：南向协议的能力抽象</a></li>
+                    <li><a href="#section6">五、Provider系统：南向协议的能力提供机制</a></li>
+                    <li><a href="#section7">六、Discovery系统：南向协议的发现机制</a></li>
+                    <li><a href="#section8">七、Session系统：南向协议的会话管理</a></li>
+                    <li><a href="#section9">八、Security系统：南向协议的安全保障</a></li>
+                    <li><a href="#section10">九、Event系统：南向协议的事件驱动</a></li>
+                    <li><a href="#section11">十、多协议安全交互实现</a></li>
+                    <li><a href="#section12">十一、企业LLM与个人LLM交互实战</a></li>
+                    <li><a href="#section13">十二、南向协议的安全保障机制</a></li>
+                    <li><a href="#section14">十三、最佳实践与建议</a></li>
+                    <li><a href="#section15">十四、总结与展望</a></li>
+                </ul>
+            </div>
+
+            <!-- 引言 -->
+            <div class="section" id="section1">
+                <h2>引言：AI时代的"大龙虾"与"小龙虾"</h2>
+                <p>在企业数字化转型的浪潮中，我们看到了一个有趣的现象：</p>
+                <ul>
+                    <li><strong>大龙虾</strong>（企业LLM）：拥有强大的计算能力、丰富的企业知识库、严格的合规要求，但受限于企业内网，难以触达个人用户的灵活需求</li>
+                    <li><strong>小龙虾</strong>（个人LLM）：灵活敏捷、贴近用户、个性化强，但缺乏企业级的知识深度和计算资源</li>
+                </ul>
+                <p>如何让"大龙虾"与"小龙虾"安全、可信、可控地交互？这正是ooder A2A（Agent-to-Agent）协议和南向协议要解决的核心问题。</p>
+            </div>
+
+            <!-- 一、技术架构全景 -->
+            <div class="section" id="section2">
+                <h2>一、技术架构全景：从A2A协议到南向协议</h2>
+                
+                <h3>1.1 A2A协议分层架构</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="350" viewBox="0 0 1200 350" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="appGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.3" />
+                            </linearGradient>
+                            <linearGradient id="secGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.2" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.2" />
+                            </linearGradient>
+                            <linearGradient id="protoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.1" />
+                            </linearGradient>
+                            <linearGradient id="transGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.05" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.05" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 应用层 -->
+                        <rect x="50" y="20" width="1100" height="70" rx="10" fill="url(#appGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="55" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">应用层 (Application)</text>
+                        <text x="600" y="75" text-anchor="middle" font-size="13" fill="#4a5568">LLM对话 | 知识检索 | 技能调用 | 数据同步</text>
+                        
+                        <!-- 安全层 -->
+                        <rect x="50" y="100" width="1100" height="70" rx="10" fill="url(#secGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="135" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">安全层 (Security)</text>
+                        <text x="600" y="155" text-anchor="middle" font-size="13" fill="#4a5568">KEY管理 | COMMAND验证 | 权限控制 | 审计日志</text>
+                        
+                        <!-- 协议层 -->
+                        <rect x="50" y="180" width="1100" height="70" rx="10" fill="url(#protoGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="215" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">协议层 (Protocol)</text>
+                        <text x="600" y="235" text-anchor="middle" font-size="13" fill="#4a5568">P2P/HTTP | UDP广播 | mDNS | WebSocket | gRPC</text>
+                        
+                        <!-- 传输层 -->
+                        <rect x="50" y="260" width="1100" height="70" rx="10" fill="url(#transGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="295" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">传输层 (Transport)</text>
+                        <text x="600" y="315" text-anchor="middle" font-size="13" fill="#4a5568">TLS 1.3 | AES-256 | ECDH密钥交换</text>
+                    </svg>
+                </div>
+                
+                <h3>1.2 南向协议核心价值</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="500" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="northGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.2" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.2" />
+                            </linearGradient>
+                            <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.4" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.4" />
+                            </linearGradient>
+                            <linearGradient id="southGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 北向协议 -->
+                        <rect x="50" y="20" width="1100" height="60" rx="10" fill="url(#northGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="55" text-anchor="middle" font-size="16" font-weight="bold" fill="#667eea">北向协议 (Northbound) - 应用层接口、用户交互、业务编排</text>
+                        
+                        <!-- Agent Core -->
+                        <rect x="50" y="100" width="1100" height="60" rx="10" fill="url(#coreGrad)" stroke="#667eea" stroke-width="3"/>
+                        <text x="600" y="135" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">Agent Core (agent-SDK核心)</text>
+                        
+                        <!-- 南向协议 -->
+                        <rect x="50" y="180" width="1100" height="220" rx="10" fill="url(#southGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="210" text-anchor="middle" font-size="16" font-weight="bold" fill="#667eea">南向协议 (Southbound)</text>
+                        
+                        <!-- 六大系统 -->
+                        <rect x="80" y="230" width="160" height="70" rx="8" fill="#667eea"/>
+                        <text x="160" y="260" text-anchor="middle" font-size="13" fill="white" font-weight="bold">Capability</text>
+                        <text x="160" y="280" text-anchor="middle" font-size="11" fill="white">能力系统</text>
+                        
+                        <rect x="260" y="230" width="160" height="70" rx="8" fill="#764ba2"/>
+                        <text x="340" y="260" text-anchor="middle" font-size="13" fill="white" font-weight="bold">Provider</text>
+                        <text x="340" y="280" text-anchor="middle" font-size="11" fill="white">提供者系统</text>
+                        
+                        <rect x="440" y="230" width="160" height="70" rx="8" fill="#667eea"/>
+                        <text x="520" y="260" text-anchor="middle" font-size="13" fill="white" font-weight="bold">Discovery</text>
+                        <text x="520" y="280" text-anchor="middle" font-size="11" fill="white">发现系统</text>
+                        
+                        <rect x="620" y="230" width="160" height="70" rx="8" fill="#764ba2"/>
+                        <text x="700" y="260" text-anchor="middle" font-size="13" fill="white" font-weight="bold">Session</text>
+                        <text x="700" y="280" text-anchor="middle" font-size="11" fill="white">会话管理</text>
+                        
+                        <rect x="800" y="230" width="160" height="70" rx="8" fill="#667eea"/>
+                        <text x="880" y="260" text-anchor="middle" font-size="13" fill="white" font-weight="bold">Security</text>
+                        <text x="880" y="280" text-anchor="middle" font-size="11" fill="white">安全机制</text>
+                        
+                        <rect x="980" y="230" width="160" height="70" rx="8" fill="#764ba2"/>
+                        <text x="1060" y="260" text-anchor="middle" font-size="13" fill="white" font-weight="bold">Event</text>
+                        <text x="1060" y="280" text-anchor="middle" font-size="11" fill="white">事件系统</text>
+                        
+                        <!-- 底层资源 -->
+                        <rect x="50" y="420" width="1100" height="60" rx="10" fill="#f7fafc" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="455" text-anchor="middle" font-size="14" fill="#4a5568">底层资源与服务 (LLM、向量库、存储、网络、第三方API...)</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="600" y1="80" x2="600" y2="100" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="600" y1="160" x2="600" y2="180" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="600" y1="400" x2="600" y2="420" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <defs>
+                            <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <path d="M0,0 L0,6 L9,3 z" fill="#667eea"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>1.3 agent-SDK三层架构</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="400" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- 应用层 -->
+                        <rect x="50" y="30" width="1100" height="100" rx="10" fill="url(#appGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="60" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">应用层 (Application)</text>
+                        
+                        <rect x="100" y="80" width="180" height="40" rx="8" fill="#667eea"/>
+                        <text x="190" y="105" text-anchor="middle" font-size="12" fill="white">Scene API</text>
+                        
+                        <rect x="300" y="80" width="180" height="40" rx="8" fill="#764ba2"/>
+                        <text x="390" y="105" text-anchor="middle" font-size="12" fill="white">Skill API</text>
+                        
+                        <rect x="500" y="80" width="180" height="40" rx="8" fill="#667eea"/>
+                        <text x="590" y="105" text-anchor="middle" font-size="12" fill="white">Cap API</text>
+                        
+                        <rect x="700" y="80" width="180" height="40" rx="8" fill="#764ba2"/>
+                        <text x="790" y="105" text-anchor="middle" font-size="12" fill="white">Discovery API</text>
+                        
+                        <text x="600" y="140" text-anchor="middle" font-size="12" fill="#4a5568">职责：业务编排、场景管理、技能调用</text>
+                        
+                        <!-- 服务层 -->
+                        <rect x="50" y="150" width="1100" height="100" rx="10" fill="url(#secGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="180" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">服务层 (Service)</text>
+                        
+                        <rect x="100" y="200" width="200" height="40" rx="8" fill="#667eea"/>
+                        <text x="200" y="225" text-anchor="middle" font-size="12" fill="white">SessionManager</text>
+                        
+                        <rect x="320" y="200" width="200" height="40" rx="8" fill="#764ba2"/>
+                        <text x="420" y="225" text-anchor="middle" font-size="12" fill="white">SkillService</text>
+                        
+                        <rect x="540" y="200" width="200" height="40" rx="8" fill="#667eea"/>
+                        <text x="640" y="225" text-anchor="middle" font-size="12" fill="white">DiscoveryService</text>
+                        
+                        <rect x="760" y="200" width="200" height="40" rx="8" fill="#764ba2"/>
+                        <text x="860" y="225" text-anchor="middle" font-size="12" fill="white">ProviderRegistry</text>
+                        
+                        <text x="600" y="260" text-anchor="middle" font-size="12" fill="#4a5568">职责：核心业务逻辑、状态管理、安全控制</text>
+                        
+                        <!-- 协议层 -->
+                        <rect x="50" y="270" width="1100" height="100" rx="10" fill="url(#protoGrad)" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="300" text-anchor="middle" font-size="18" font-weight="bold" fill="#667eea">协议层 (Protocol)</text>
+                        
+                        <rect x="100" y="320" width="150" height="40" rx="8" fill="#667eea"/>
+                        <text x="175" y="345" text-anchor="middle" font-size="11" fill="white">UDP Broadcast</text>
+                        
+                        <rect x="270" y="320" width="150" height="40" rx="8" fill="#764ba2"/>
+                        <text x="345" y="345" text-anchor="middle" font-size="11" fill="white">mDNS</text>
+                        
+                        <rect x="440" y="320" width="150" height="40" rx="8" fill="#667eea"/>
+                        <text x="515" y="345" text-anchor="middle" font-size="11" fill="white">HTTP/HTTPS</text>
+                        
+                        <rect x="610" y="320" width="150" height="40" rx="8" fill="#764ba2"/>
+                        <text x="685" y="345" text-anchor="middle" font-size="11" fill="white">WebSocket</text>
+                        
+                        <rect x="780" y="320" width="150" height="40" rx="8" fill="#667eea"/>
+                        <text x="855" y="345" text-anchor="middle" font-size="11" fill="white">P2P</text>
+                        
+                        <text x="600" y="380" text-anchor="middle" font-size="12" fill="#4a5568">职责：网络通信、协议适配、数据传输</text>
+                    </svg>
+                </div>
+                
+                <h3>1.4 多协议支持</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>协议类型</th>
+                            <th>适用场景</th>
+                            <th>安全机制</th>
+                            <th>性能特点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>P2P</strong></td>
+                            <td>点对点直连，企业内网穿透</td>
+                            <td>ECDH密钥交换 + 端到端加密</td>
+                            <td>低延迟，高吞吐</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HTTP/HTTPS</strong></td>
+                            <td>公网通信，API调用</td>
+                            <td>TLS 1.3 + Token认证</td>
+                            <td>兼容性好，易部署</td>
+                        </tr>
+                        <tr>
+                            <td><strong>UDP广播</strong></td>
+                            <td>局域网发现，快速定位</td>
+                            <td>消息签名验证</td>
+                            <td>低开销，快速发现</td>
+                        </tr>
+                        <tr>
+                            <td><strong>mDNS</strong></td>
+                            <td>本地网络发现</td>
+                            <td>证书验证</td>
+                            <td>零配置，自动发现</td>
+                        </tr>
+                        <tr>
+                            <td><strong>WebSocket</strong></td>
+                            <td>实时双向通信</td>
+                            <td>Token + 签名</td>
+                            <td>低延迟，实时性强</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 二、KEY体系 -->
+            <div class="section" id="section3">
+                <h2>二、KEY体系：身份认证与信任建立</h2>
+                
+                <h3>2.1 三层KEY架构</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="600" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="key1Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#c0392b;stop-opacity:0.3" />
+                            </linearGradient>
+                            <linearGradient id="key2Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3498db;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#2980b9;stop-opacity:0.3" />
+                            </linearGradient>
+                            <linearGradient id="key3Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#27ae60;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#229954;stop-opacity:0.3" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 第一层：身份密钥 -->
+                        <rect x="50" y="30" width="1100" height="160" rx="10" fill="url(#key1Grad)" stroke="#e74c3c" stroke-width="2"/>
+                        <text x="600" y="60" text-anchor="middle" font-size="18" font-weight="bold" fill="#e74c3c">第一层：身份密钥 (Identity Key)</text>
+                        
+                        <text x="150" y="100" font-size="14" fill="#333">• ECC密钥对生成 (P-256曲线)</text>
+                        <text x="150" y="125" font-size="14" fill="#333">• Agent身份证书签发</text>
+                        <text x="150" y="150" font-size="14" fill="#333">• 长期有效，用于身份证明</text>
+                        
+                        <rect x="700" y="80" width="400" height="100" rx="8" fill="white" stroke="#e74c3c" stroke-width="1"/>
+                        <text x="720" y="105" font-size="12" fill="#666">示例：</text>
+                        <text x="720" y="125" font-size="11" fill="#333" font-family="monospace">Enterprise_Agent_001:</text>
+                        <text x="720" y="145" font-size="11" fill="#333" font-family="monospace">  Public Key: 04a1b2c3d4e5f6...</text>
+                        <text x="720" y="165" font-size="11" fill="#333" font-family="monospace">  Certificate: CN=enterprise-agent-001</text>
+                        
+                        <!-- 第二层：会话密钥 -->
+                        <rect x="50" y="220" width="1100" height="160" rx="10" fill="url(#key2Grad)" stroke="#3498db" stroke-width="2"/>
+                        <text x="600" y="250" text-anchor="middle" font-size="18" font-weight="bold" fill="#3498db">第二层：会话密钥 (Session Key)</text>
+                        
+                        <text x="150" y="290" font-size="14" fill="#333">• ECDH密钥交换生成</text>
+                        <text x="150" y="315" font-size="14" fill="#333">• 每次会话动态生成</text>
+                        <text x="150" y="340" font-size="14" fill="#333">• 用于加密通信数据</text>
+                        
+                        <rect x="700" y="270" width="400" height="100" rx="8" fill="white" stroke="#3498db" stroke-width="1"/>
+                        <text x="720" y="295" font-size="12" fill="#666">生成流程：</text>
+                        <text x="720" y="315" font-size="11" fill="#333" font-family="monospace">Enterprise_Agent (私钥A)</text>
+                        <text x="720" y="335" font-size="11" fill="#333" font-family="monospace">+ Personal_Agent (公钥B)</text>
+                        <text x="720" y="355" font-size="11" fill="#333" font-family="monospace">→ Shared Secret → Session Key</text>
+                        
+                        <!-- 第三层：命令密钥 -->
+                        <rect x="50" y="410" width="1100" height="160" rx="10" fill="url(#key3Grad)" stroke="#27ae60" stroke-width="2"/>
+                        <text x="600" y="440" text-anchor="middle" font-size="18" font-weight="bold" fill="#27ae60">第三层：命令密钥 (Command Key)</text>
+                        
+                        <text x="150" y="480" font-size="14" fill="#333">• 基于会话密钥派生</text>
+                        <text x="150" y="505" font-size="14" fill="#333">• 每个COMMAND独立密钥</text>
+                        <text x="150" y="530" font-size="14" fill="#333">• 防止重放攻击</text>
+                        
+                        <rect x="700" y="460" width="400" height="100" rx="8" fill="white" stroke="#27ae60" stroke-width="1"/>
+                        <text x="720" y="485" font-size="12" fill="#666">派生算法：</text>
+                        <text x="720" y="510" font-size="11" fill="#333" font-family="monospace">Command_Key = HMAC(</text>
+                        <text x="720" y="530" font-size="11" fill="#333" font-family="monospace">  Session_Key,</text>
+                        <text x="720" y="550" font-size="11" fill="#333" font-family="monospace">  Command_ID + Timestamp)</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="600" y1="190" x2="600" y2="220" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="600" y1="380" x2="600" y2="410" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                    </svg>
+                </div>
+                
+                <h3>2.2 KEY安全特性</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>特性</th>
+                            <th>实现方式</th>
+                            <th>安全价值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>前向保密</strong></td>
+                            <td>每次会话生成新密钥</td>
+                            <td>即使长期密钥泄露，历史通信仍安全</td>
+                        </tr>
+                        <tr>
+                            <td><strong>后向保密</strong></td>
+                            <td>定期轮换密钥</td>
+                            <td>泄露的密钥无法解密未来通信</td>
+                        </tr>
+                        <tr>
+                            <td><strong>密钥隔离</strong></td>
+                            <td>不同用途使用不同密钥</td>
+                            <td>降低单点泄露风险</td>
+                        </tr>
+                        <tr>
+                            <td><strong>密钥撤销</strong></td>
+                            <td>支持实时撤销</td>
+                            <td>快速响应安全事件</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 三、COMMAND体系 -->
+            <div class="section" id="section4">
+                <h2>三、COMMAND体系：可控的交互指令</h2>
+                
+                <h3>3.1 COMMAND消息格式</h3>
+                <div class="code-block">
+{
+  "protocol_version": "2.3",
+  "command_id": "cmd-uuid-12345",
+  "timestamp": "2026-03-07T10:30:00Z",
+  "source": {
+    "agent_id": "enterprise-agent-001",
+    "agent_type": "enterprise_llm",
+    "organization": "CompanyA"
+  },
+  "destination": {
+    "agent_id": "personal-agent-abc",
+    "agent_type": "personal_llm",
+    "user_id": "user-xyz"
+  },
+  "command": {
+    "type": "KNOWLEDGE_QUERY",
+    "action": "retrieve",
+    "params": {
+      "query": "产品A的技术规格",
+      "kb_id": "kb-product-a",
+      "top_k": 5
+    },
+    "constraints": {
+      "data_classification": "internal",
+      "retention_period": "7d",
+      "audit_level": "high"
+    }
+  },
+  "security": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "signature": "a1b2c3d4e5f6...",
+    "encryption": "AES-256-GCM",
+    "key_id": "key-session-789"
+  }
+}
+                </div>
+                
+                <h3>3.2 COMMAND类型体系</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>COMMAND</th>
+                            <th>说明</th>
+                            <th>权限要求</th>
+                            <th>审计级别</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>KNOWLEDGE_QUERY</strong></td>
+                            <td>知识检索查询</td>
+                            <td>knowledge:read</td>
+                            <td>HIGH</td>
+                        </tr>
+                        <tr>
+                            <td><strong>KNOWLEDGE_UPLOAD</strong></td>
+                            <td>上传知识文档</td>
+                            <td>knowledge:write</td>
+                            <td>HIGH</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SKILL_INVOKE</strong></td>
+                            <td>调用技能</td>
+                            <td>skill:execute</td>
+                            <td>MEDIUM</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DATA_REQUEST</strong></td>
+                            <td>请求数据</td>
+                            <td>data:read</td>
+                            <td>MEDIUM</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DATA_PUSH</strong></td>
+                            <td>推送数据</td>
+                            <td>data:write</td>
+                            <td>HIGH</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>3.3 COMMAND执行流程</h3>
+                <div class="flow-container">
+                    <svg width="100%" height="500" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid meet">
+                        <!-- 步骤1 -->
+                        <rect x="50" y="30" width="250" height="60" rx="10" fill="#667eea"/>
+                        <text x="175" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">1. COMMAND生成</text>
+                        
+                        <!-- 步骤2 -->
+                        <rect x="350" y="30" width="250" height="60" rx="10" fill="#764ba2"/>
+                        <text x="475" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">2. 安全拦截器链</text>
+                        
+                        <!-- 步骤3 -->
+                        <rect x="650" y="30" width="250" height="60" rx="10" fill="#667eea"/>
+                        <text x="775" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">3. COMMAND路由</text>
+                        
+                        <!-- 步骤4 -->
+                        <rect x="950" y="30" width="200" height="60" rx="10" fill="#764ba2"/>
+                        <text x="1050" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">4. 执行业务逻辑</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="300" y1="60" x2="350" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="600" y1="60" x2="650" y2="60" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="900" y1="60" x2="950" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 详细说明 -->
+                        <rect x="50" y="120" width="1100" height="350" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        
+                        <text x="175" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">构建COMMAND消息体</text>
+                        <text x="175" y="175" text-anchor="middle" font-size="11" fill="#4a5568">添加安全约束条件</text>
+                        <text x="175" y="200" text-anchor="middle" font-size="11" fill="#4a5568">生成数字签名</text>
+                        <text x="175" y="225" text-anchor="middle" font-size="11" fill="#4a5568">加密敏感数据</text>
+                        
+                        <text x="475" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">InputValidation (Order: 50)</text>
+                        <text x="475" y="175" text-anchor="middle" font-size="11" fill="#4a5568">RateLimit (Order: 25)</text>
+                        <text x="475" y="200" text-anchor="middle" font-size="11" fill="#4a5568">PermissionCheck (Order: 100)</text>
+                        <text x="475" y="225" text-anchor="middle" font-size="11" fill="#4a5568">AuditLog (Order: 200)</text>
+                        
+                        <text x="775" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">解析目标Agent地址</text>
+                        <text x="775" y="175" text-anchor="middle" font-size="11" fill="#4a5568">选择通信协议</text>
+                        <text x="775" y="200" text-anchor="middle" font-size="11" fill="#4a5568">建立安全通道</text>
+                        <text x="775" y="225" text-anchor="middle" font-size="11" fill="#4a5568">路由到处理器</text>
+                        
+                        <text x="1050" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">执行业务逻辑</text>
+                        <text x="1050" y="175" text-anchor="middle" font-size="11" fill="#4a5568">应用数据脱敏规则</text>
+                        <text x="1050" y="200" text-anchor="middle" font-size="11" fill="#4a5568">生成执行结果</text>
+                        <text x="1050" y="225" text-anchor="middle" font-size="11" fill="#4a5568">发布事件</text>
+                        
+                        <text x="600" y="300" text-anchor="middle" font-size="14" font-weight="bold" fill="#667eea">5. 结果返回</text>
+                        <text x="600" y="340" text-anchor="middle" font-size="12" fill="#4a5568">加密返回数据</text>
+                        <text x="600" y="370" text-anchor="middle" font-size="12" fill="#4a5568">生成响应签名</text>
+                        <text x="600" y="400" text-anchor="middle" font-size="12" fill="#4a5568">记录执行日志</text>
+                        
+                        <text x="600" y="450" text-anchor="middle" font-size="12" fill="#667eea">完整的COMMAND执行流程，确保安全可控的交互</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 四、Capability系统 -->
+            <div class="section" id="section5">
+                <h2>四、Capability系统：南向协议的能力抽象</h2>
+                
+                <h3>4.1 CAP能力地址空间</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="300" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="sysGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#c0392b;stop-opacity:0.8" />
+                            </linearGradient>
+                            <linearGradient id="comGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3498db;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#2980b9;stop-opacity:0.8" />
+                            </linearGradient>
+                            <linearGradient id="extGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#27ae60;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#229954;stop-opacity:0.8" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- System -->
+                        <rect x="50" y="50" width="350" height="200" rx="10" fill="url(#sysGrad)"/>
+                        <text x="225" y="100" text-anchor="middle" font-size="20" fill="white" font-weight="bold">System</text>
+                        <text x="225" y="130" text-anchor="middle" font-size="16" fill="white">系统能力</text>
+                        <text x="225" y="170" text-anchor="middle" font-size="24" fill="white" font-weight="bold">00-3F</text>
+                        <text x="225" y="200" text-anchor="middle" font-size="14" fill="white">(0-63)</text>
+                        <text x="225" y="230" text-anchor="middle" font-size="12" fill="white" opacity="0.9">核心系统能力</text>
+                        
+                        <!-- Common -->
+                        <rect x="425" y="50" width="350" height="200" rx="10" fill="url(#comGrad)"/>
+                        <text x="600" y="100" text-anchor="middle" font-size="20" fill="white" font-weight="bold">Common</text>
+                        <text x="600" y="130" text-anchor="middle" font-size="16" fill="white">通用能力</text>
+                        <text x="600" y="170" text-anchor="middle" font-size="24" fill="white" font-weight="bold">40-9F</text>
+                        <text x="600" y="200" text-anchor="middle" font-size="14" fill="white">(64-159)</text>
+                        <text x="600" y="230" text-anchor="middle" font-size="12" fill="white" opacity="0.9">常用通用能力</text>
+                        
+                        <!-- Extension -->
+                        <rect x="800" y="50" width="350" height="200" rx="10" fill="url(#extGrad)"/>
+                        <text x="975" y="100" text-anchor="middle" font-size="20" fill="white" font-weight="bold">Extension</text>
+                        <text x="975" y="130" text-anchor="middle" font-size="16" fill="white">扩展能力</text>
+                        <text x="975" y="170" text-anchor="middle" font-size="24" fill="white" font-weight="bold">A0-FF</text>
+                        <text x="975" y="200" text-anchor="middle" font-size="14" fill="white">(160-255)</text>
+                        <text x="975" y="230" text-anchor="middle" font-size="12" fill="white" opacity="0.9">自定义扩展能力</text>
+                    </svg>
+                </div>
+                
+                <h3>4.2 能力调用流程</h3>
+                <div class="flow-container">
+                    <svg width="100%" height="350" viewBox="0 0 1200 350" preserveAspectRatio="xMidYMid meet">
+                        <!-- 步骤 -->
+                        <rect x="50" y="30" width="200" height="60" rx="10" fill="#667eea"/>
+                        <text x="150" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">1. 客户端发起请求</text>
+                        
+                        <rect x="280" y="30" width="200" height="60" rx="10" fill="#764ba2"/>
+                        <text x="380" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">2. CapRouter路由</text>
+                        
+                        <rect x="510" y="30" width="200" height="60" rx="10" fill="#667eea"/>
+                        <text x="610" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">3. CapHandler执行</text>
+                        
+                        <rect x="740" y="30" width="200" height="60" rx="10" fill="#764ba2"/>
+                        <text x="840" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">4. 事件发布</text>
+                        
+                        <rect x="970" y="30" width="180" height="60" rx="10" fill="#667eea"/>
+                        <text x="1060" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">5. 返回响应</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="250" y1="60" x2="280" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="480" y1="60" x2="510" y2="60" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="710" y1="60" x2="740" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="940" y1="60" x2="970" y2="60" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 详细说明 -->
+                        <rect x="50" y="120" width="1100" height="200" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        
+                        <text x="150" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">构建CapRequest</text>
+                        <text x="150" y="175" text-anchor="middle" font-size="11" fill="#4a5568">requestId: UUID</text>
+                        <text x="150" y="200" text-anchor="middle" font-size="11" fill="#4a5568">capId: "40"</text>
+                        <text x="150" y="225" text-anchor="middle" font-size="11" fill="#4a5568">parameters: Map</text>
+                        
+                        <text x="380" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">检查能力存在</text>
+                        <text x="380" y="175" text-anchor="middle" font-size="11" fill="#4a5568">查找处理器</text>
+                        <text x="380" y="200" text-anchor="middle" font-size="11" fill="#4a5568">handlers.get()</text>
+                        
+                        <text x="610" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">参数验证</text>
+                        <text x="610" y="175" text-anchor="middle" font-size="11" fill="#4a5568">业务逻辑执行</text>
+                        <text x="610" y="200" text-anchor="middle" font-size="11" fill="#4a5568">构建响应</text>
+                        
+                        <text x="840" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">成功事件</text>
+                        <text x="840" y="175" text-anchor="middle" font-size="11" fill="#4a5568">CapabilityEvent.invoked()</text>
+                        <text x="840" y="200" text-anchor="middle" font-size="11" fill="#4a5568">失败事件</text>
+                        
+                        <text x="1060" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">CapResponse</text>
+                        <text x="1060" y="175" text-anchor="middle" font-size="11" fill="#4a5568">包含执行结果</text>
+                        <text x="1060" y="200" text-anchor="middle" font-size="11" fill="#4a5568">状态码、错误信息</text>
+                        
+                        <text x="600" y="280" text-anchor="middle" font-size="12" fill="#667eea">统一的能力调用流程，支持同步/异步调用模式</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 五、Provider系统 -->
+            <div class="section" id="section6">
+                <h2>五、Provider系统：南向协议的能力提供机制</h2>
+                
+                <h3>5.1 Provider生命周期管理</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="400" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- 创建阶段 -->
+                        <rect x="50" y="30" width="200" height="80" rx="10" fill="#667eea"/>
+                        <text x="150" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">1. 创建阶段</text>
+                        <text x="150" y="90" text-anchor="middle" font-size="11" fill="white">实例化Provider</text>
+                        
+                        <!-- 注册阶段 -->
+                        <rect x="280" y="30" width="200" height="80" rx="10" fill="#764ba2"/>
+                        <text x="380" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">2. 注册阶段</text>
+                        <text x="380" y="90" text-anchor="middle" font-size="11" fill="white">注册到Registry</text>
+                        
+                        <!-- 初始化阶段 -->
+                        <rect x="510" y="30" width="200" height="80" rx="10" fill="#667eea"/>
+                        <text x="610" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">3. 初始化阶段</text>
+                        <text x="610" y="90" text-anchor="middle" font-size="11" fill="white">调用initialize()</text>
+                        
+                        <!-- 运行阶段 -->
+                        <rect x="740" y="30" width="200" height="80" rx="10" fill="#764ba2"/>
+                        <text x="840" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">4. 运行阶段</text>
+                        <text x="840" y="90" text-anchor="middle" font-size="11" fill="white">调用start()</text>
+                        
+                        <!-- 停止阶段 -->
+                        <rect x="970" y="30" width="180" height="80" rx="10" fill="#667eea"/>
+                        <text x="1060" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">5. 停止阶段</text>
+                        <text x="1060" y="90" text-anchor="middle" font-size="11" fill="white">调用stop()</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="250" y1="70" x2="280" y2="70" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="480" y1="70" x2="510" y2="70" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="710" y1="70" x2="740" y2="70" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="940" y1="70" x2="970" y2="70" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 详细说明 -->
+                        <rect x="50" y="140" width="1100" height="220" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        
+                        <text x="150" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">new ProviderImpl()</text>
+                        <text x="150" y="195" text-anchor="middle" font-size="11" fill="#4a5568">创建Provider实例</text>
+                        
+                        <text x="380" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">register()</text>
+                        <text x="380" y="195" text-anchor="middle" font-size="11" fill="#4a5568">注册到ProviderRegistry</text>
+                        
+                        <text x="610" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">initialize()</text>
+                        <text x="610" y="195" text-anchor="middle" font-size="11" fill="#4a5568">加载配置、建立连接</text>
+                        
+                        <text x="840" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">start()</text>
+                        <text x="840" y="195" text-anchor="middle" font-size="11" fill="#4a5568">启动服务、监听端口</text>
+                        
+                        <text x="1060" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">stop()</text>
+                        <text x="1060" y="195" text-anchor="middle" font-size="11" fill="#4a5568">关闭连接、释放资源</text>
+                        
+                        <text x="600" y="260" text-anchor="middle" font-size="14" font-weight="bold" fill="#667eea">运行阶段详细操作</text>
+                        
+                        <text x="300" y="300" text-anchor="middle" font-size="12" fill="#4a5568">处理请求</text>
+                        <text x="300" y="325" text-anchor="middle" font-size="11" fill="#4a5568">provider.handleRequest()</text>
+                        
+                        <text x="600" y="300" text-anchor="middle" font-size="12" fill="#4a5568">健康检查</text>
+                        <text x="600" y="325" text-anchor="middle" font-size="11" fill="#4a5568">provider.isHealthy()</text>
+                        
+                        <text x="900" y="300" text-anchor="middle" font-size="12" fill="#4a5568">注销</text>
+                        <text x="900" y="325" text-anchor="middle" font-size="11" fill="#4a5568">registry.unregister()</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 六、Discovery系统 -->
+            <div class="section" id="section7">
+                <h2>六、Discovery系统：南向协议的发现机制</h2>
+                
+                <h3>6.1 发现服务架构</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="350" viewBox="0 0 1200 350" preserveAspectRatio="xMidYMid meet">
+                        <!-- DiscoveryService -->
+                        <rect x="400" y="30" width="400" height="60" rx="10" fill="url(#coreGrad)" stroke="#667eea" stroke-width="3"/>
+                        <text x="600" y="65" text-anchor="middle" font-size="16" font-weight="bold" fill="#667eea">CapabilityDiscoveryService</text>
+                        
+                        <!-- Providers -->
+                        <rect x="50" y="130" width="180" height="70" rx="10" fill="#667eea"/>
+                        <text x="140" y="160" text-anchor="middle" font-size="12" fill="white" font-weight="bold">UDP Provider</text>
+                        <text x="140" y="185" text-anchor="middle" font-size="10" fill="white">(优先级100)</text>
+                        
+                        <rect x="250" y="130" width="180" height="70" rx="10" fill="#764ba2"/>
+                        <text x="340" y="160" text-anchor="middle" font-size="12" fill="white" font-weight="bold">mDNS Provider</text>
+                        <text x="340" y="185" text-anchor="middle" font-size="10" fill="white">(优先级90)</text>
+                        
+                        <rect x="450" y="130" width="180" height="70" rx="10" fill="#667eea"/>
+                        <text x="540" y="160" text-anchor="middle" font-size="12" fill="white" font-weight="bold">SkillCenter Provider</text>
+                        <text x="540" y="185" text-anchor="middle" font-size="10" fill="white">(优先级80)</text>
+                        
+                        <rect x="650" y="130" width="180" height="70" rx="10" fill="#764ba2"/>
+                        <text x="740" y="160" text-anchor="middle" font-size="12" fill="white" font-weight="bold">Local FS Provider</text>
+                        <text x="740" y="185" text-anchor="middle" font-size="10" fill="white">(优先级50)</text>
+                        
+                        <rect x="850" y="130" width="180" height="70" rx="10" fill="#667eea"/>
+                        <text x="940" y="160" text-anchor="middle" font-size="12" fill="white" font-weight="bold">GitHub Provider</text>
+                        <text x="940" y="185" text-anchor="middle" font-size="10" fill="white">(优先级60)</text>
+                        
+                        <!-- 发现范围 -->
+                        <rect x="50" y="230" width="1100" height="100" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="260" text-anchor="middle" font-size="14" font-weight="bold" fill="#667eea">发现范围与适用性</text>
+                        
+                        <rect x="100" y="280" width="200" height="40" rx="8" fill="#667eea"/>
+                        <text x="200" y="305" text-anchor="middle" font-size="12" fill="white">PERSONAL (个人设备)</text>
+                        
+                        <rect x="320" y="280" width="200" height="40" rx="8" fill="#764ba2"/>
+                        <text x="420" y="305" text-anchor="middle" font-size="12" fill="white">DEPARTMENT (部门分享)</text>
+                        
+                        <rect x="540" y="280" width="200" height="40" rx="8" fill="#667eea"/>
+                        <text x="640" y="305" text-anchor="middle" font-size="12" fill="white">COMPANY (公司管理)</text>
+                        
+                        <rect x="760" y="280" width="200" height="40" rx="8" fill="#764ba2"/>
+                        <text x="860" y="305" text-anchor="middle" font-size="12" fill="white">PUBLIC (公共社区)</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="140" y1="130" x2="500" y2="90" stroke="#667eea" stroke-width="2" marker-end="url(#arrow)"/>
+                        <line x1="340" y1="130" x2="550" y2="90" stroke="#764ba2" stroke-width="2" marker-end="url(#arrow)"/>
+                        <line x1="540" y1="130" x2="600" y2="90" stroke="#667eea" stroke-width="2" marker-end="url(#arrow)"/>
+                        <line x1="740" y1="130" x2="650" y2="90" stroke="#764ba2" stroke-width="2" marker-end="url(#arrow)"/>
+                        <line x1="940" y1="130" x2="700" y2="90" stroke="#667eea" stroke-width="2" marker-end="url(#arrow)"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 七、Session系统 -->
+            <div class="section" id="section8">
+                <h2>七、Session系统：南向协议的会话管理</h2>
+                
+                <h3>7.1 会话生命周期</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="300" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet">
+                        <!-- Created -->
+                        <rect x="50" y="50" width="250" height="80" rx="10" fill="#667eea"/>
+                        <text x="175" y="85" text-anchor="middle" font-size="16" fill="white" font-weight="bold">1. Created (创建)</text>
+                        <text x="175" y="110" text-anchor="middle" font-size="12" fill="white">用户登录、生成SessionId</text>
+                        
+                        <!-- Active -->
+                        <rect x="330" y="50" width="250" height="80" rx="10" fill="#764ba2"/>
+                        <text x="455" y="85" text-anchor="middle" font-size="16" fill="white" font-weight="bold">2. Active (活跃)</text>
+                        <text x="455" y="110" text-anchor="middle" font-size="12" fill="white">请求验证、刷新过期时间</text>
+                        
+                        <!-- Expired -->
+                        <rect x="610" y="50" width="250" height="80" rx="10" fill="#667eea"/>
+                        <text x="735" y="85" text-anchor="middle" font-size="16" fill="white" font-weight="bold">3. Expired (过期)</text>
+                        <text x="735" y="110" text-anchor="middle" font-size="12" fill="white">定时检查、清理过期会话</text>
+                        
+                        <!-- Destroyed -->
+                        <rect x="890" y="50" width="250" height="80" rx="10" fill="#764ba2"/>
+                        <text x="1015" y="85" text-anchor="middle" font-size="16" fill="white" font-weight="bold">4. Destroyed (销毁)</text>
+                        <text x="1015" y="110" text-anchor="middle" font-size="12" fill="white">用户登出、从Registry移除</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="300" y1="90" x2="330" y2="90" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="580" y1="90" x2="610" y2="90" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="860" y1="90" x2="890" y2="90" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 说明 -->
+                        <rect x="50" y="160" width="1100" height="100" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="190" text-anchor="middle" font-size="14" font-weight="bold" fill="#667eea">会话管理核心功能</text>
+                        <text x="600" y="220" text-anchor="middle" font-size="12" fill="#4a5568">会话创建、验证、刷新、销毁 | 并发控制 | 超时管理 | 事件发布</text>
+                        <text x="600" y="245" text-anchor="middle" font-size="11" fill="#667eea">完整的会话生命周期管理，确保会话的正确创建、使用和清理</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 八、Security系统 -->
+            <div class="section" id="section9">
+                <h2>八、Security系统：南向协议的安全保障</h2>
+                
+                <h3>8.1 安全拦截流程</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="350" viewBox="0 0 1200 350" preserveAspectRatio="xMidYMid meet">
+                        <!-- InputValidation -->
+                        <rect x="50" y="30" width="250" height="60" rx="10" fill="#667eea"/>
+                        <text x="175" y="55" text-anchor="middle" font-size="13" fill="white" font-weight="bold">InputValidation</text>
+                        <text x="175" y="75" text-anchor="middle" font-size="11" fill="white">输入验证 (Order: 50)</text>
+                        
+                        <!-- RateLimit -->
+                        <rect x="330" y="30" width="250" height="60" rx="10" fill="#764ba2"/>
+                        <text x="455" y="55" text-anchor="middle" font-size="13" fill="white" font-weight="bold">RateLimit</text>
+                        <text x="455" y="75" text-anchor="middle" font-size="11" fill="white">速率限制 (Order: 25)</text>
+                        
+                        <!-- PermissionCheck -->
+                        <rect x="610" y="30" width="250" height="60" rx="10" fill="#667eea"/>
+                        <text x="735" y="55" text-anchor="middle" font-size="13" fill="white" font-weight="bold">PermissionCheck</text>
+                        <text x="735" y="75" text-anchor="middle" font-size="11" fill="white">权限检查 (Order: 100)</text>
+                        
+                        <!-- AuditLog -->
+                        <rect x="890" y="30" width="250" height="60" rx="10" fill="#764ba2"/>
+                        <text x="1015" y="55" text-anchor="middle" font-size="13" fill="white" font-weight="bold">AuditLog</text>
+                        <text x="1015" y="75" text-anchor="middle" font-size="11" fill="white">审计日志 (Order: 200)</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="300" y1="60" x2="330" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="580" y1="60" x2="610" y2="60" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="860" y1="60" x2="890" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 执行业务逻辑 -->
+                        <rect x="400" y="130" width="400" height="60" rx="10" fill="#667eea"/>
+                        <text x="600" y="165" text-anchor="middle" font-size="16" fill="white" font-weight="bold">执行业务逻辑</text>
+                        
+                        <!-- 返回响应 -->
+                        <rect x="400" y="220" width="400" height="60" rx="10" fill="#764ba2"/>
+                        <text x="600" y="255" text-anchor="middle" font-size="16" fill="white" font-weight="bold">返回响应</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="600" y1="90" x2="600" y2="130" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="600" y1="190" x2="600" y2="220" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 说明 -->
+                        <text x="600" y="310" text-anchor="middle" font-size="12" fill="#4a5568">拦截器按优先级顺序执行，任一拦截器拒绝则终止请求</text>
+                        <text x="600" y="335" text-anchor="middle" font-size="11" fill="#667eea">所有拦截器通过后执行业务逻辑，最后返回响应</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 九、Event系统 -->
+            <div class="section" id="section10">
+                <h2>九、Event系统：南向协议的事件驱动</h2>
+                
+                <h3>9.1 事件驱动架构</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="300" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet">
+                        <!-- 事件源 -->
+                        <rect x="50" y="50" width="250" height="80" rx="10" fill="#667eea"/>
+                        <text x="175" y="80" text-anchor="middle" font-size="14" fill="white" font-weight="bold">事件源</text>
+                        <text x="175" y="105" text-anchor="middle" font-size="11" fill="white">Capability调用 | Session管理</text>
+                        <text x="175" y="120" text-anchor="middle" font-size="11" fill="white">Skill操作 | Security事件</text>
+                        
+                        <!-- SceneEventPublisher -->
+                        <rect x="350" y="50" width="250" height="80" rx="10" fill="#764ba2"/>
+                        <text x="475" y="80" text-anchor="middle" font-size="14" fill="white" font-weight="bold">SceneEventPublisher</text>
+                        <text x="475" y="105" text-anchor="middle" font-size="11" fill="white">同步发布 | 异步发布</text>
+                        <text x="475" y="120" text-anchor="middle" font-size="11" fill="white">事件分发</text>
+                        
+                        <!-- 事件监听器 -->
+                        <rect x="650" y="50" width="500" height="80" rx="10" fill="#667eea"/>
+                        <text x="900" y="80" text-anchor="middle" font-size="14" fill="white" font-weight="bold">事件监听器</text>
+                        <text x="750" y="105" text-anchor="middle" font-size="11" fill="white">AuditEventListener</text>
+                        <text x="900" y="105" text-anchor="middle" font-size="11" fill="white">MetricsEventListener</text>
+                        <text x="1050" y="105" text-anchor="middle" font-size="11" fill="white">NotificationEventListener</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="300" y1="90" x2="350" y2="90" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="600" y1="90" x2="650" y2="90" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 核心事件类型 -->
+                        <rect x="50" y="160" width="1100" height="100" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="190" text-anchor="middle" font-size="14" font-weight="bold" fill="#667eea">核心事件类型</text>
+                        
+                        <text x="200" y="220" text-anchor="middle" font-size="12" fill="#4a5568">CapabilityEvent</text>
+                        <text x="200" y="245" text-anchor="middle" font-size="11" fill="#667eea">能力调用事件</text>
+                        
+                        <text x="450" y="220" text-anchor="middle" font-size="12" fill="#4a5568">SessionEvent</text>
+                        <text x="450" y="245" text-anchor="middle" font-size="11" fill="#667eea">会话管理事件</text>
+                        
+                        <text x="700" y="220" text-anchor="middle" font-size="12" fill="#4a5568">SkillEvent</text>
+                        <text x="700" y="245" text-anchor="middle" font-size="11" fill="#667eea">技能操作事件</text>
+                        
+                        <text x="950" y="220" text-anchor="middle" font-size="12" fill="#4a5568">SecurityEvent</text>
+                        <text x="950" y="245" text-anchor="middle" font-size="11" fill="#667eea">安全事件</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 十、多协议安全交互实现 -->
+            <div class="section" id="section11">
+                <h2>十、多协议安全交互实现</h2>
+                
+                <h3>10.1 P2P直连模式</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="350" viewBox="0 0 1200 350" preserveAspectRatio="xMidYMid meet">
+                        <!-- Enterprise LLM -->
+                        <rect x="100" y="50" width="300" height="80" rx="10" fill="#667eea"/>
+                        <text x="250" y="85" text-anchor="middle" font-size="16" fill="white" font-weight="bold">Enterprise LLM</text>
+                        <text x="250" y="110" text-anchor="middle" font-size="12" fill="white">(大龙虾)</text>
+                        
+                        <!-- Personal LLM -->
+                        <rect x="800" y="50" width="300" height="80" rx="10" fill="#764ba2"/>
+                        <text x="950" y="85" text-anchor="middle" font-size="16" fill="white" font-weight="bold">Personal LLM</text>
+                        <text x="950" y="110" text-anchor="middle" font-size="12" fill="white">(小龙虾)</text>
+                        
+                        <!-- 交互流程 -->
+                        <line x1="400" y1="90" x2="800" y2="90" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <text x="600" y="80" text-anchor="middle" font-size="11" fill="#667eea">1. ECDH密钥交换</text>
+                        
+                        <line x1="800" y1="130" x2="400" y2="130" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <text x="600" y="120" text-anchor="middle" font-size="11" fill="#764ba2">2. 建立加密通道 (AES-256-GCM)</text>
+                        
+                        <line x1="400" y1="170" x2="800" y2="170" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <text x="600" y="160" text-anchor="middle" font-size="11" fill="#667eea">3. COMMAND传输</text>
+                        
+                        <line x1="800" y1="210" x2="400" y2="210" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <text x="600" y="200" text-anchor="middle" font-size="11" fill="#764ba2">4. 响应返回</text>
+                        
+                        <!-- 安全特性 -->
+                        <rect x="100" y="250" width="1000" height="80" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        <text x="600" y="280" text-anchor="middle" font-size="14" font-weight="bold" fill="#667eea">安全特性</text>
+                        <text x="600" y="310" text-anchor="middle" font-size="12" fill="#4a5568">✅ 端到端加密 | ✅ 双向身份认证 | ✅ 前向保密 | ✅ 完整性校验</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 十一、企业LLM与个人LLM交互实战 -->
+            <div class="section" id="section12">
+                <h2>十一、企业LLM与个人LLM交互实战</h2>
+                
+                <h3>11.1 完整交互流程</h3>
+                <div class="flow-container">
+                    <svg width="100%" height="500" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid meet">
+                        <!-- 步骤 -->
+                        <rect x="50" y="30" width="200" height="60" rx="10" fill="#667eea"/>
+                        <text x="150" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">1. 建立会话</text>
+                        
+                        <rect x="280" y="30" width="200" height="60" rx="10" fill="#764ba2"/>
+                        <text x="380" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">2. 发现能力</text>
+                        
+                        <rect x="510" y="30" width="200" height="60" rx="10" fill="#667eea"/>
+                        <text x="610" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">3. 调用能力</text>
+                        
+                        <rect x="740" y="30" width="200" height="60" rx="10" fill="#764ba2"/>
+                        <text x="840" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">4. 返回结果</text>
+                        
+                        <rect x="970" y="30" width="180" height="60" rx="10" fill="#667eea"/>
+                        <text x="1060" y="65" text-anchor="middle" font-size="14" fill="white" font-weight="bold">5. 会话管理</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="250" y1="60" x2="280" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="480" y1="60" x2="510" y2="60" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="710" y1="60" x2="740" y2="60" stroke="#667eea" stroke-width="3" marker-end="url(#arrow)"/>
+                        <line x1="940" y1="60" x2="970" y2="60" stroke="#764ba2" stroke-width="3" marker-end="url(#arrow)"/>
+                        
+                        <!-- 详细说明 -->
+                        <rect x="50" y="120" width="1100" height="350" rx="10" fill="#f8f9fa" stroke="#667eea" stroke-width="2"/>
+                        
+                        <text x="150" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">SessionManager</text>
+                        <text x="150" y="175" text-anchor="middle" font-size="11" fill="#4a5568">createSession()</text>
+                        <text x="150" y="200" text-anchor="middle" font-size="11" fill="#4a5568">TokenManager.validateToken()</text>
+                        <text x="150" y="225" text-anchor="middle" font-size="11" fill="#4a5568">ECDH密钥交换</text>
+                        
+                        <text x="380" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">DiscoveryService</text>
+                        <text x="380" y="175" text-anchor="middle" font-size="11" fill="#4a5568">searchCapabilities()</text>
+                        <text x="380" y="200" text-anchor="middle" font-size="11" fill="#4a5568">UDP Provider发现</text>
+                        <text x="380" y="225" text-anchor="middle" font-size="11" fill="#4a5568">mDNS Provider发现</text>
+                        
+                        <text x="610" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">CapRouter + Security</text>
+                        <text x="610" y="175" text-anchor="middle" font-size="11" fill="#4a5568">构建CapRequest</text>
+                        <text x="610" y="200" text-anchor="middle" font-size="11" fill="#4a5568">CapRouter路由</text>
+                        <text x="610" y="225" text-anchor="middle" font-size="11" fill="#4a5568">SecurityInterceptor拦截</text>
+                        
+                        <text x="840" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#764ba2">结果处理</text>
+                        <text x="840" y="175" text-anchor="middle" font-size="11" fill="#4a5568">数据脱敏</text>
+                        <text x="840" y="200" text-anchor="middle" font-size="11" fill="#4a5568">加密传输</text>
+                        <text x="840" y="225" text-anchor="middle" font-size="11" fill="#4a5568">发布事件</text>
+                        
+                        <text x="1060" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#667eea">会话管理</text>
+                        <text x="1060" y="175" text-anchor="middle" font-size="11" fill="#4a5568">refreshSession()</text>
+                        <text x="1060" y="200" text-anchor="middle" font-size="11" fill="#4a5568">cleanupExpiredSessions()</text>
+                        
+                        <text x="600" y="280" text-anchor="middle" font-size="14" font-weight="bold" fill="#667eea">安全控制要点</text>
+                        
+                        <text x="300" y="320" text-anchor="middle" font-size="12" fill="#4a5568">身份认证</text>
+                        <text x="300" y="345" text-anchor="middle" font-size="11" fill="#667eea">双向证书验证 + TOKEN</text>
+                        
+                        <text x="600" y="320" text-anchor="middle" font-size="12" fill="#4a5568">权限控制</text>
+                        <text x="600" y="345" text-anchor="middle" font-size="11" fill="#667eea">RBAC + 数据分类</text>
+                        
+                        <text x="900" y="320" text-anchor="middle" font-size="12" fill="#4a5568">审计日志</text>
+                        <text x="900" y="345" text-anchor="middle" font-size="11" fill="#667eea">完整操作记录</text>
+                        
+                        <text x="600" y="400" text-anchor="middle" font-size="12" fill="#4a5568">完整的交互流程，从会话建立到能力调用再到结果返回</text>
+                        <text x="600" y="430" text-anchor="middle" font-size="11" fill="#667eea">每个步骤都有完整的安全控制和事件发布</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 十二、南向协议的安全保障机制 -->
+            <div class="section" id="section13">
+                <h2>十二、南向协议的安全保障机制</h2>
+                
+                <h3>12.1 多层安全防护</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="400" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="layer1Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#c0392b;stop-opacity:0.8" />
+                            </linearGradient>
+                            <linearGradient id="layer2Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#e67e22;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#d35400;stop-opacity:0.8" />
+                            </linearGradient>
+                            <linearGradient id="layer3Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3498db;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#2980b9;stop-opacity:0.8" />
+                            </linearGradient>
+                            <linearGradient id="layer4Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#27ae60;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#229954;stop-opacity:0.8" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 第一层 -->
+                        <rect x="50" y="30" width="1100" height="80" rx="10" fill="url(#layer1Grad)"/>
+                        <text x="600" y="60" text-anchor="middle" font-size="16" fill="white" font-weight="bold">第一层：网络层安全</text>
+                        <text x="300" y="90" text-anchor="middle" font-size="12" fill="white">TLS 1.3传输加密</text>
+                        <text x="600" y="90" text-anchor="middle" font-size="12" fill="white">证书双向验证</text>
+                        <text x="900" y="90" text-anchor="middle" font-size="12" fill="white">网络隔离</text>
+                        
+                        <!-- 第二层 -->
+                        <rect x="50" y="120" width="1100" height="80" rx="10" fill="url(#layer2Grad)"/>
+                        <text x="600" y="150" text-anchor="middle" font-size="16" fill="white" font-weight="bold">第二层：会话层安全</text>
+                        <text x="300" y="180" text-anchor="middle" font-size="12" fill="white">Session管理</text>
+                        <text x="600" y="180" text-anchor="middle" font-size="12" fill="white">Token认证</text>
+                        <text x="900" y="180" text-anchor="middle" font-size="12" fill="white">会话超时</text>
+                        
+                        <!-- 第三层 -->
+                        <rect x="50" y="210" width="1100" height="80" rx="10" fill="url(#layer3Grad)"/>
+                        <text x="600" y="240" text-anchor="middle" font-size="16" fill="white" font-weight="bold">第三层：能力层安全</text>
+                        <text x="300" y="270" text-anchor="middle" font-size="12" fill="white">Capability权限控制</text>
+                        <text x="600" y="270" text-anchor="middle" font-size="12" fill="white">参数验证</text>
+                        <text x="900" y="270" text-anchor="middle" font-size="12" fill="white">数据脱敏</text>
+                        
+                        <!-- 第四层 -->
+                        <rect x="50" y="300" width="1100" height="80" rx="10" fill="url(#layer4Grad)"/>
+                        <text x="600" y="330" text-anchor="middle" font-size="16" fill="white" font-weight="bold">第四层：应用层安全</text>
+                        <text x="300" y="360" text-anchor="middle" font-size="12" fill="white">业务逻辑验证</text>
+                        <text x="600" y="360" text-anchor="middle" font-size="12" fill="white">数据完整性检查</text>
+                        <text x="900" y="360" text-anchor="middle" font-size="12" fill="white">异常行为检测</text>
+                    </svg>
+                </div>
+                
+                <h3>12.2 安全威胁防护</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>威胁类型</th>
+                            <th>攻击方式</th>
+                            <th>防护措施</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>中间人攻击</strong></td>
+                            <td>拦截并篡改通信</td>
+                            <td>双向证书验证 + 端到端加密</td>
+                        </tr>
+                        <tr>
+                            <td><strong>重放攻击</strong></td>
+                            <td>重放历史COMMAND</td>
+                            <td>COMMAND ID + 时间戳 + NONCE</td>
+                        </tr>
+                        <tr>
+                            <td><strong>身份伪造</strong></td>
+                            <td>伪造Agent身份</td>
+                            <td>证书验证 + TOKEN校验</td>
+                        </tr>
+                        <tr>
+                            <td><strong>权限提升</strong></td>
+                            <td>尝试越权访问</td>
+                            <td>RBAC + 数据分类 + 约束检查</td>
+                        </tr>
+                        <tr>
+                            <td><strong>数据泄露</strong></td>
+                            <td>窃取敏感数据</td>
+                            <td>端到端加密 + 数据脱敏</td>
+                        </tr>
+                        <tr>
+                            <td><strong>拒绝服务</strong></td>
+                            <td>大量请求耗尽资源</td>
+                            <td>速率限制 + 熔断机制</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 十三、最佳实践与建议 -->
+            <div class="section" id="section14">
+                <h2>十三、最佳实践与建议</h2>
+                
+                <h3>13.1 安全开发建议</h3>
+                <ul>
+                    <li><strong>最小权限原则</strong>: 只授予完成任务所需的最小权限</li>
+                    <li><strong>数据分类管理</strong>: 根据数据敏感度实施不同的安全策略</li>
+                    <li><strong>端到端加密</strong>: 敏感数据必须端到端加密</li>
+                    <li><strong>完整审计</strong>: 记录所有关键操作的审计日志</li>
+                    <li><strong>定期轮换</strong>: 定期轮换密钥和证书</li>
+                    <li><strong>安全测试</strong>: 定期进行安全渗透测试</li>
+                    <li><strong>应急响应</strong>: 建立安全事件应急响应机制</li>
+                </ul>
+            </div>
+
+            <!-- 十四、总结与展望 -->
+            <div class="section" id="section15">
+                <h2>十四、总结与展望</h2>
+                
+                <h3>14.1 核心价值总结</h3>
+                <div class="card-grid">
+                    <div class="card">
+                        <h4>🔐 安全性 (Security)</h4>
+                        <p>多层加密保护、双向身份认证、端到端加密通信</p>
+                    </div>
+                    <div class="card">
+                        <h4>✅ 可信性 (Trust)</h4>
+                        <p>数字签名验证、完整性校验、不可抵赖性</p>
+                    </div>
+                    <div class="card">
+                        <h4>🎛️ 可控性 (Control)</h4>
+                        <p>细粒度权限控制、数据分类管理、完整审计追溯</p>
+                    </div>
+                    <div class="card">
+                        <h4>🚀 高效性 (Efficiency)</h4>
+                        <p>多协议支持、智能路由选择、低延迟通信</p>
+                    </div>
+                    <div class="card">
+                        <h4>🔧 Capability系统</h4>
+                        <p>统一的能力抽象、灵活的路由机制、标准化的调用接口</p>
+                    </div>
+                    <div class="card">
+                        <h4>🏭 Provider系统</h4>
+                        <p>可插拔的能力提供、统一的生命周期管理、灵活的扩展机制</p>
+                    </div>
+                </div>
+                
+                <h3>14.2 技术优势</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>优势</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>架构清晰</strong></td>
+                            <td>三层架构，职责明确</td>
+                        </tr>
+                        <tr>
+                            <td><strong>扩展性强</strong></td>
+                            <td>Provider机制，易于扩展</td>
+                        </tr>
+                        <tr>
+                            <td><strong>安全可靠</strong></td>
+                            <td>多层防护，完整审计</td>
+                        </tr>
+                        <tr>
+                            <td><strong>性能优异</strong></td>
+                            <td>异步处理，事件驱动</td>
+                        </tr>
+                        <tr>
+                            <td><strong>易于维护</strong></td>
+                            <td>接口抽象，松耦合</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>14.3 未来展望</h3>
+                <ul>
+                    <li><strong>联邦学习支持</strong>: 支持在不共享原始数据的情况下进行模型训练</li>
+                    <li><strong>隐私计算集成</strong>: 集成多方安全计算（MPC）、可信执行环境（TEE）等技术</li>
+                    <li><strong>AI治理</strong>: 增加AI伦理、公平性、可解释性等治理能力</li>
+                    <li><strong>跨链互操作</strong>: 支持跨区块链网络的Agent互操作</li>
+                    <li><strong>量子安全</strong>: 研究抗量子密码算法，应对量子计算威胁</li>
+                    <li><strong>边缘计算</strong>: 支持边缘设备的轻量级部署</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑ 返回顶部</button>
+    </div>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>

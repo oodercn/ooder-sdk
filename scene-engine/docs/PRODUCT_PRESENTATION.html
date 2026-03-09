@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ooder SceneEngine 产品介绍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .presentation {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 60px 80px;
+            background: white;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s ease-in-out;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide.prev {
+            transform: translateX(-100%);
+        }
+
+        /* 标题幻灯片 */
+        .slide.title-slide {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide.title-slide h1 {
+            font-size: 4em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .slide.title-slide .subtitle {
+            font-size: 2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .slide.title-slide .meta {
+            font-size: 1.2em;
+            opacity: 0.7;
+            margin-top: 40px;
+        }
+
+        /* 内容幻灯片 */
+        .slide h2 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 40px;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .slide h3 {
+            font-size: 1.8em;
+            color: #764ba2;
+            margin: 30px 0 20px 0;
+        }
+
+        .slide p {
+            font-size: 1.3em;
+            line-height: 1.8;
+            margin: 15px 0;
+            color: #333;
+        }
+
+        .slide ul {
+            font-size: 1.3em;
+            line-height: 2;
+            margin: 20px 0 20px 40px;
+            color: #333;
+        }
+
+        .slide li {
+            margin: 10px 0;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        /* 架构图 */
+        .architecture-box {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 1.1em;
+            line-height: 1.4;
+        }
+
+        /* 优势列表 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-item {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .feature-item h4 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .feature-item p {
+            font-size: 1.1em;
+            margin: 0;
+        }
+
+        /* 数据卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        /* 导航控制 */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 页码指示器 */
+        .slide-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .indicator-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: #667eea;
+            transition: width 0.3s;
+            z-index: 1000;
+        }
+
+        /* 用户故事卡片 */
+        .story-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+
+        .story-card h4 {
+            color: #667eea;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+        }
+
+        /* 时间线 */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #667eea;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -32px;
+            top: 5px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .timeline-item h4 {
+            color: #667eea;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .slide {
+                padding: 40px 30px;
+            }
+
+            .slide h2 {
+                font-size: 2em;
+            }
+
+            .slide p, .slide ul {
+                font-size: 1.1em;
+            }
+
+            .feature-grid, .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card .number {
+                font-size: 2.5em;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            .slide {
+                page-break-after: always;
+                position: relative;
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            .nav-controls, .slide-indicator, .progress-bar {
+                display: none;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide.active .animate {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .slide.active .animate:nth-child(1) { animation-delay: 0.1s; }
+        .slide.active .animate:nth-child(2) { animation-delay: 0.2s; }
+        .slide.active .animate:nth-child(3) { animation-delay: 0.3s; }
+        .slide.active .animate:nth-child(4) { animation-delay: 0.4s; }
+        .slide.active .animate:nth-child(5) { animation-delay: 0.5s; }
+
+        /* 高亮文本 */
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* 图标 */
+        .icon {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .icon-check::before { content: '✅'; }
+        .icon-cross::before { content: '❌'; }
+        .icon-arrow::before { content: '→'; }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div class="presentation" id="presentation">
+        
+        <!-- 幻灯片 1: 标题页 -->
+        <div class="slide title-slide active" data-slide="1">
+            <h1 class="animate">Ooder SceneEngine</h1>
+            <div class="subtitle animate">企业级AI能力引擎</div>
+            <div class="subtitle animate" style="font-size: 1.5em; margin-top: 20px;">面向决策层产品介绍</div>
+            <div class="meta animate">
+                <p>版本: v2.3 | 日期: 2026-03-07</p>
+                <p style="margin-top: 10px;">官网: https://gitee.com/ooderCN</p>
+            </div>
+        </div>
+
+        <!-- 幻灯片 2: 产品定位 -->
+        <div class="slide" data-slide="2">
+            <h2 class="animate">产品定位</h2>
+            <div class="animate">
+                <h3>Ooder SceneEngine - 企业级AI能力引擎</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>🎯 定位</h4>
+                        <p>为企业提供统一的AI能力编排与场景驱动平台</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>🌟 愿景</h4>
+                        <p>让AI能力像搭积木一样简单组合，快速构建业务应用</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>🚀 使命</h4>
+                        <p>降低企业AI应用门槛，加速数字化转型</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>💡 核心价值</h4>
+                        <p>统一平台、模块化复用、知识资产化</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 3: 核心价值主张 -->
+        <div class="slide" data-slide="3">
+            <h2 class="animate">核心价值主张</h2>
+            <table class="animate">
+                <thead>
+                    <tr>
+                        <th style="width: 50%">传统AI应用开发</th>
+                        <th style="width: 50%">Ooder SceneEngine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>❌ 多个AI系统孤立</td>
+                        <td>✅ 统一能力平台</td>
+                    </tr>
+                    <tr>
+                        <td>❌ 重复开发相同功能</td>
+                        <td>✅ 技能模块化复用</td>
+                    </tr>
+                    <tr>
+                        <td>❌ 难以扩展和维护</td>
+                        <td>✅ 灵活编排扩展</td>
+                    </tr>
+                    <tr>
+                        <td>❌ 知识无法沉淀</td>
+                        <td>✅ 知识资产化</td>
+                    </tr>
+                    <tr>
+                        <td>❌ 缺乏统一标准</td>
+                        <td>✅ 标准化协议</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 幻灯片 4: 三层架构设计 -->
+        <div class="slide" data-slide="4">
+            <h2 class="animate">三层架构设计</h2>
+            <div class="architecture-box animate">
+┌─────────────────────────────────────────────────────────────┐
+│                    应用层 (Application)                      │
+│   智能问答 | 知识管理 | 会议助手 | 培训系统 | 项目管理        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    技能执行层 (Skill Layer)                  │
+│   Function Calling | 工具注册表 | 业务逻辑封装               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    知识增强层 (Knowledge Layer)              │
+│   RAG Pipeline | 知识库管理 | 向量存储 | 文档处理            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    模型服务层 (Model Layer)                  │
+│   对话生成 | 文本向量化 | 工具调用 | 多模型适配              │
+│   百度文心 | 讯飞星火 | OpenAI | 其他国产大模型              │
+└─────────────────────────────────────────────────────────────┘
+            </div>
+        </div>
+
+        <!-- 幻灯片 5: 架构优势 -->
+        <div class="slide" data-slide="5">
+            <h2 class="animate">架构优势</h2>
+            <table class="animate">
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>说明</th>
+                        <th>业务价值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>职责清晰</strong></td>
+                        <td>每层专注单一职责</td>
+                        <td>易于理解、维护和升级</td>
+                    </tr>
+                    <tr>
+                        <td><strong>灵活组合</strong></td>
+                        <td>按需组合不同层次能力</td>
+                        <td>快速响应业务变化</td>
+                    </tr>
+                    <tr>
+                        <td><strong>易于扩展</strong></td>
+                        <td>标准化接口设计</td>
+                        <td>无缝集成新能力</td>
+                    </tr>
+                    <tr>
+                        <td><strong>成本可控</strong></td>
+                        <td>微/小/大三层部署方案</td>
+                        <td>从开发到生产的平滑演进</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 幻灯片 6: 微/小/大部署架构 -->
+        <div class="slide" data-slide="6">
+            <h2 class="animate">微/小/大部署架构</h2>
+            <div class="timeline animate">
+                <div class="timeline-item">
+                    <h4>微层 (Micro Layer) - 开发测试环境</h4>
+                    <ul>
+                        <li>零配置、快速启动</li>
+                        <li>内存存储，重启丢失</li>
+                        <li>适合：开发测试、离线演示</li>
+                        <li>成本：零额外投入</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>小层 (Small Layer) - 小团队/边缘部署</h4>
+                    <ul>
+                        <li>轻量级、本地持久化</li>
+                        <li>SQLite向量存储，单机部署</li>
+                        <li>适合：小团队、边缘设备、私有化部署</li>
+                        <li>成本：低硬件投入</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>大层 (Large Layer) - 企业级生产环境</h4>
+                    <ul>
+                        <li>高可用、分布式</li>
+                        <li>Milvus向量库、集群部署</li>
+                        <li>适合：大规模生产、企业级应用</li>
+                        <li>成本：按需扩展</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 7: RAG检索增强生成 -->
+        <div class="slide" data-slide="7">
+            <h2 class="animate">RAG检索增强生成</h2>
+            <p class="animate" style="font-size: 1.5em; color: #667eea; margin-bottom: 30px;">让AI具备企业专属知识</p>
+            <div class="architecture-box animate" style="font-size: 1em;">
+用户提问 → 向量化查询(LLM.embed) → 知识检索(VectorStore.search) 
+→ 提示增强(检索结果+用户问题) → 智能回答(LLM.chat)
+            </div>
+            <div class="animate">
+                <h3>核心价值</h3>
+                <ul>
+                    <li>✅ 基于企业知识库回答，准确可靠</li>
+                    <li>✅ 支持文档、网页、文本等多种知识来源</li>
+                    <li>✅ 自动分块、向量化、索引</li>
+                    <li>✅ 答案可追溯，标注来源</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 幻灯片 8: Function Calling工具调用 -->
+        <div class="slide" data-slide="8">
+            <h2 class="animate">Function Calling工具调用</h2>
+            <p class="animate" style="font-size: 1.5em; color: #667eea; margin-bottom: 30px;">让AI具备业务执行能力</p>
+            <div class="architecture-box animate" style="font-size: 1em;">
+用户需求 → LLM理解(识别需要调用的工具) → 工具选择(从工具注册表匹配)
+→ 执行工具(知识检索/数据库查询/API调用) → 结果整合(LLM生成最终回答)
+            </div>
+            <div class="animate">
+                <h3>核心价值</h3>
+                <ul>
+                    <li>✅ AI可执行复杂业务流程</li>
+                    <li>✅ 支持多工具协同编排</li>
+                    <li>✅ 业务逻辑模块化封装</li>
+                    <li>✅ 易于扩展新能力</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 幻灯片 9: 三层知识架构 -->
+        <div class="slide" data-slide="9">
+            <h2 class="animate">三层知识架构</h2>
+            <p class="animate" style="font-size: 1.5em; color: #667eea; margin-bottom: 30px;">支持多粒度知识管理</p>
+            <div class="timeline animate">
+                <div class="timeline-item">
+                    <h4>场景知识层 (Scene Layer) - 优先级最高</h4>
+                    <p>特定场景的专属知识，例如：产品A知识库、项目B文档库</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>专业知识层 (Professional Layer) - 优先级中等</h4>
+                    <p>行业/领域通用知识，例如：技术文档、行业标准、法规政策</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>通用知识层 (General Layer) - 优先级基础</h4>
+                    <p>企业通用知识，例如：公司制度、流程规范、常见问题</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 10: 企业办公场景 -->
+        <div class="slide" data-slide="10">
+            <h2 class="animate">企业办公场景</h2>
+            <table class="animate">
+                <thead>
+                    <tr>
+                        <th>场景</th>
+                        <th>解决方案</th>
+                        <th>业务价值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>智能文档助手</strong></td>
+                        <td>RAG + 知识库</td>
+                        <td>员工快速查询制度流程，效率提升50%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>会议纪要整理</strong></td>
+                        <td>多轮对话 + 知识贡献</td>
+                        <td>自动整理会议内容，知识沉淀</td>
+                    </tr>
+                    <tr>
+                        <td><strong>跨部门协作</strong></td>
+                        <td>权限管理 + 知识分享</td>
+                        <td>打破信息孤岛，促进协作</td>
+                    </tr>
+                    <tr>
+                        <td><strong>新人培训</strong></td>
+                        <td>个人知识库 + 智能问答</td>
+                        <td>缩短适应期，降低培训成本</td>
+                    </tr>
+                    <tr>
+                        <td><strong>项目知识管理</strong></td>
+                        <td>批量导入 + 场景分类</td>
+                        <td>项目经验传承，避免重复造轮子</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 幻灯片 11: 用户故事1 -->
+        <div class="slide" data-slide="11">
+            <h2 class="animate">典型用户故事：智能文档助手</h2>
+            <div class="story-card animate">
+                <h4>场景：企业员工查询公司制度</h4>
+                <p><strong>传统方式：</strong></p>
+                <ul>
+                    <li>翻阅大量文档</li>
+                    <li>咨询HR部门</li>
+                    <li>耗时耗力</li>
+                </ul>
+            </div>
+            <div class="story-card animate">
+                <h4>Ooder方案：</h4>
+                <div class="code-block">
+员工: "请假流程是什么？需要提前几天申请？"
+
+AI助手: "根据《员工手册》第3.2条规定：
+        1. 年假需提前5个工作日申请
+        2. 病假需提供医院证明
+        3. 流程：提交申请 → 部门审批 → HR备案
+        参考文档：《员工手册》第3.2条"
+                </div>
+                <p style="text-align: center; font-size: 1.5em; color: #667eea; margin-top: 20px;">
+                    <strong>价值：查询时间从30分钟缩短至30秒</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- 幻灯片 12: 用户故事2 -->
+        <div class="slide" data-slide="12">
+            <h2 class="animate">典型用户故事：新人培训助手</h2>
+            <div class="story-card animate">
+                <h4>场景：新员工入职培训</h4>
+                <p><strong>传统方式：</strong></p>
+                <ul>
+                    <li>集中培训</li>
+                    <li>发放大量文档</li>
+                    <li>培训效果难评估</li>
+                </ul>
+            </div>
+            <div class="story-card animate">
+                <h4>Ooder方案：</h4>
+                <div class="code-block">
+新员工: "公司的绩效考核周期是多久？"
+
+AI助手: "公司绩效考核分为：
+        1. 月度考核：每月25日
+        2. 季度考核：每季度末
+        3. 年度考核：每年12月
+        详细指标请参考《绩效考核制度》"
+                </div>
+                <p style="text-align: center; font-size: 1.5em; color: #667eea; margin-top: 20px;">
+                    <strong>价值：培训周期缩短40%，培训成本降低60%</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- 幻灯片 13: 核心技术指标 -->
+        <div class="slide" data-slide="13">
+            <h2 class="animate">核心技术指标</h2>
+            <div class="stats-grid animate">
+                <div class="stat-card">
+                    <div class="number">99%</div>
+                    <div class="label">知识库创建成功率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">99%</div>
+                    <div class="label">文档上传成功率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">&lt;500ms</div>
+                    <div class="label">检索响应时间</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">&lt;3s</div>
+                    <div class="label">问答响应时间</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">99.9%</div>
+                    <div class="label">系统可用性</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">10x</div>
+                    <div class="label">开发效率提升</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 14: 多模型支持 -->
+        <div class="slide" data-slide="14">
+            <h2 class="animate">多模型支持</h2>
+            <p class="animate" style="font-size: 1.5em; color: #667eea; margin-bottom: 30px;">国产大模型优先，国际模型兼容</p>
+            <table class="animate">
+                <thead>
+                    <tr>
+                        <th>提供商</th>
+                        <th>模型</th>
+                        <th>用途</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>百度文心</strong></td>
+                        <td>ERNIE-Bot-4</td>
+                        <td>对话生成</td>
+                    </tr>
+                    <tr>
+                        <td><strong>讯飞星火</strong></td>
+                        <td>Spark-V3.5</td>
+                        <td>对话生成</td>
+                    </tr>
+                    <tr>
+                        <td><strong>阿里通义</strong></td>
+                        <td>Qwen</td>
+                        <td>对话生成</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OpenAI</strong></td>
+                        <td>GPT-4</td>
+                        <td>对话生成</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OpenAI</strong></td>
+                        <td>text-embedding-ada-002</td>
+                        <td>文本向量化</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 幻灯片 15: 竞争优势对比 -->
+        <div class="slide" data-slide="15">
+            <h2 class="animate">竞争优势对比</h2>
+            <table class="animate">
+                <thead>
+                    <tr>
+                        <th>维度</th>
+                        <th>传统AI应用</th>
+                        <th>Ooder SceneEngine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>开发效率</strong></td>
+                        <td>3-6个月</td>
+                        <td>1-2周</td>
+                    </tr>
+                    <tr>
+                        <td><strong>维护成本</strong></td>
+                        <td>高，需要专业团队</td>
+                        <td>低，标准化组件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>扩展性</strong></td>
+                        <td>差，耦合严重</td>
+                        <td>好，模块化设计</td>
+                    </tr>
+                    <tr>
+                        <td><strong>知识管理</strong></td>
+                        <td>分散，难以复用</td>
+                        <td>统一，资产化</td>
+                    </tr>
+                    <tr>
+                        <td><strong>部署灵活性</strong></td>
+                        <td>单一方案</td>
+                        <td>微/小/大三层</td>
+                    </tr>
+                    <tr>
+                        <td><strong>国产化支持</strong></td>
+                        <td>依赖国外模型</td>
+                        <td>原生支持国产模型</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 幻灯片 16: 核心竞争力 -->
+        <div class="slide" data-slide="16">
+            <h2 class="animate">核心竞争力</h2>
+            <div class="feature-grid animate">
+                <div class="feature-item">
+                    <h4>1. 统一能力平台</h4>
+                    <p>整合LLM、RAG、Skills三大核心能力，避免多个孤立系统</p>
+                </div>
+                <div class="feature-item">
+                    <h4>2. 灵活部署架构</h4>
+                    <p>微/小/大三层方案，从开发到生产的平滑演进</p>
+                </div>
+                <div class="feature-item">
+                    <h4>3. 国产化支持</h4>
+                    <p>原生支持百度文心、讯飞星火等国产大模型，满足信创要求</p>
+                </div>
+                <div class="feature-item">
+                    <h4>4. 知识资产化</h4>
+                    <p>企业知识沉淀为可复用资产，支持知识分享与协作</p>
+                </div>
+                <div class="feature-item">
+                    <h4>5. 低代码扩展</h4>
+                    <p>标准化技能开发框架，快速集成新能力</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 17: 产品路线图 -->
+        <div class="slide" data-slide="17">
+            <h2 class="animate">产品路线图</h2>
+            <div class="timeline animate">
+                <div class="timeline-item">
+                    <h4>2026 Q1 (当前)</h4>
+                    <ul>
+                        <li>✅ v2.3 架构重构完成</li>
+                        <li>✅ RAG检索增强生成</li>
+                        <li>✅ Function Calling工具调用</li>
+                        <li>✅ 三层知识架构</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>2026 Q2</h4>
+                    <ul>
+                        <li>🔄 多模态知识支持（图片、视频）</li>
+                        <li>🔄 知识图谱构建</li>
+                        <li>🔄 知识推荐系统</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>2026 Q3-Q4</h4>
+                    <ul>
+                        <li>⏳ Agent自主决策</li>
+                        <li>⏳ 知识协作编辑</li>
+                        <li>⏳ 企业知识中台</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 18: 商业模式 -->
+        <div class="slide" data-slide="18">
+            <h2 class="animate">商业模式</h2>
+            <table class="animate">
+                <thead>
+                    <tr>
+                        <th>模式</th>
+                        <th>说明</th>
+                        <th>适用客户</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>开源免费</strong></td>
+                        <td>基础功能开源</td>
+                        <td>开发者、小团队</td>
+                    </tr>
+                    <tr>
+                        <td><strong>企业版</strong></td>
+                        <td>增强功能+技术支持</td>
+                        <td>中型企业</td>
+                    </tr>
+                    <tr>
+                        <td><strong>私有化部署</strong></td>
+                        <td>定制化+本地部署</td>
+                        <td>大型企业、政府</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SaaS服务</strong></td>
+                        <td>云端托管服务</td>
+                        <td>中小企业</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 幻灯片 19: 核心价值总结 -->
+        <div class="slide" data-slide="19">
+            <h2 class="animate">核心价值总结</h2>
+            <div class="architecture-box animate" style="text-align: center; font-size: 1.2em; padding: 40px;">
+                <h3 style="color: #667eea; margin-bottom: 30px;">Ooder SceneEngine = AI能力操作系统</h3>
+                <div style="background: white; padding: 30px; border-radius: 10px; margin: 20px 0;">
+                    <p style="font-size: 1.3em; margin: 15px 0;">让AI能力像搭积木一样简单组合</p>
+                    <p style="font-size: 1.3em; margin: 15px 0;">让企业知识像资产一样高效管理</p>
+                    <p style="font-size: 1.3em; margin: 15px 0;">让业务应用像配置一样快速构建</p>
+                </div>
+            </div>
+            <div class="feature-grid animate" style="margin-top: 30px;">
+                <div class="feature-item">
+                    <h4>统一平台</h4>
+                    <p>整合LLM、RAG、Skills</p>
+                </div>
+                <div class="feature-item">
+                    <h4>灵活部署</h4>
+                    <p>微/小/大三层架构</p>
+                </div>
+                <div class="feature-item">
+                    <h4>国产支持</h4>
+                    <p>原生支持国产大模型</p>
+                </div>
+                <div class="feature-item">
+                    <h4>知识资产</h4>
+                    <p>企业知识沉淀与复用</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 20: 关键数据 -->
+        <div class="slide" data-slide="20">
+            <h2 class="animate">关键数据</h2>
+            <div class="stats-grid animate">
+                <div class="stat-card">
+                    <div class="number">10倍</div>
+                    <div class="label">开发效率提升</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">60%</div>
+                    <div class="label">培训成本降低</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">50倍</div>
+                    <div class="label">查询效率提升</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">99.9%</div>
+                    <div class="label">系统可用性</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">&lt;3秒</div>
+                    <div class="label">响应时间</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">1-2周</div>
+                    <div class="label">快速上线</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 21: 下一步行动 -->
+        <div class="slide" data-slide="21">
+            <h2 class="animate">下一步行动建议</h2>
+            <p class="animate" style="font-size: 1.5em; color: #667eea; margin-bottom: 30px;">建议优先试点场景</p>
+            <div class="timeline animate">
+                <div class="timeline-item">
+                    <h4>1. 智能文档助手 - HR制度查询</h4>
+                    <ul>
+                        <li>投入：1周</li>
+                        <li>见效：立即</li>
+                        <li>价值：员工效率提升</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>2. 新人培训助手 - 入职培训</h4>
+                    <ul>
+                        <li>投入：2周</li>
+                        <li>见效：1个月</li>
+                        <li>价值：培训成本降低</li>
+                    </ul>
+                </div>
+                <div class="timeline-item">
+                    <h4>3. 项目知识管理 - 项目文档沉淀</h4>
+                    <ul>
+                        <li>投入：2周</li>
+                        <li>见效：持续</li>
+                        <li>价值：知识资产化</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻灯片 22: 结束页 -->
+        <div class="slide title-slide" data-slide="22">
+            <h1 class="animate">感谢聆听</h1>
+            <div class="subtitle animate">Ooder SceneEngine</div>
+            <div class="subtitle animate" style="font-size: 1.3em; margin-top: 20px;">企业级AI能力引擎</div>
+            <div class="meta animate">
+                <p style="font-size: 1.3em; margin: 20px 0;">官网: https://gitee.com/ooderCN</p>
+                <p style="font-size: 1.1em; opacity: 0.8;">版本: v2.3 | 日期: 2026-03-07</p>
+                <p style="font-size: 1.1em; opacity: 0.8; margin-top: 10px;">Made with ❤️ by Ooder Team</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="slide-indicator" id="slideIndicator"></div>
+
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn" onclick="previousSlide()">◀ 上一页</button>
+        <button class="nav-btn" id="nextBtn" onclick="nextSlide()">下一页 ▶</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 22;
+
+        function updateSlide() {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index + 1 === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index + 1 < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            const progress = (currentSlide / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            updateIndicator();
+            updateNavButtons();
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function previousSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function goToSlide(slideNumber) {
+            currentSlide = slideNumber;
+            updateSlide();
+        }
+
+        function updateIndicator() {
+            const indicator = document.getElementById('slideIndicator');
+            indicator.innerHTML = '';
+            for (let i = 1; i <= totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'indicator-dot' + (i === currentSlide ? ' active' : '');
+                dot.onclick = () => goToSlide(i);
+                indicator.appendChild(dot);
+            }
+        }
+
+        function updateNavButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                previousSlide();
+            } else if (e.key === 'Home') {
+                goToSlide(1);
+            } else if (e.key === 'End') {
+                goToSlide(totalSlides);
+            }
+        });
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    previousSlide();
+                }
+            }
+        }
+
+        updateSlide();
+    </script>
+</body>
+</html>
