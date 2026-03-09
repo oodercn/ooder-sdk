@@ -3,6 +3,7 @@ package net.ooder.sdk.drivers.llm;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import net.ooder.sdk.llm.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
  * config.setApiKey("your-api-key");
  * driver.init(config);
  *
- * ChatResponse response = driver.chat(request).get();
+ * DriverChatResponse response = driver.chat(request).get();
  * </pre>
  */
 public class BaiduWenxinDriver extends AbstractLlmDriver {
@@ -60,7 +61,7 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
     }
 
     @Override
-    protected CompletableFuture<ChatResponse> doChat(ChatRequest request) {
+    protected CompletableFuture<DriverChatResponse> doChat(DriverChatRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String model = request.getModel() != null ? request.getModel() : "ernie-speed";
@@ -81,7 +82,7 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
                 requestBody.put("messages", messages);
 
                 // 可选参数
-                if (request.getMaxTokens() > 0) {
+                if (request.getMaxTokens() != null && request.getMaxTokens() > 0) {
                     requestBody.put("max_tokens", request.getMaxTokens());
                 }
                 if (config != null) {
@@ -103,7 +104,7 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
     }
 
     @Override
-    protected CompletableFuture<ChatResponse> doChatStream(ChatRequest request, ChatStreamHandler handler) {
+    protected CompletableFuture<DriverChatResponse> doChatStream(DriverChatRequest request, ChatStreamHandler handler) {
         // 百度文心支持流式输出，这里先返回非流式实现
         return doChat(request);
     }
@@ -173,8 +174,8 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
     protected CompletableFuture<ModelInfo> doGetModelInfo(String modelId) {
         return CompletableFuture.supplyAsync(() -> {
             ModelInfo info = new ModelInfo();
-            info.setId(modelId);
-            info.setName("Baidu " + modelId);
+            info.setModelId(modelId);
+            info.setModelName("Baidu " + modelId);
             info.setDescription("Baidu Wenxin LLM");
 
             switch (modelId) {
@@ -264,8 +265,8 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
     /**
      * 解析聊天响应
      */
-    private ChatResponse parseChatResponse(JSONObject responseObj) {
-        ChatResponse response = new ChatResponse();
+    private DriverChatResponse parseChatResponse(JSONObject responseObj) {
+        DriverChatResponse response = new DriverChatResponse();
         response.setId(responseObj.getString("id"));
         response.setModel(responseObj.getString("model"));
         response.setCreatedTime(System.currentTimeMillis());
@@ -282,11 +283,11 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
         // 解析 usage
         JSONObject usage = responseObj.getJSONObject("usage");
         if (usage != null) {
-            UsageInfo usageInfo = new UsageInfo();
-            usageInfo.setPromptTokens(usage.getIntValue("prompt_tokens"));
-            usageInfo.setCompletionTokens(usage.getIntValue("completion_tokens"));
-            usageInfo.setTotalTokens(usage.getIntValue("total_tokens"));
-            response.setUsage(usageInfo);
+            TokenUsage tokenUsage = new TokenUsage();
+            tokenUsage.setPromptTokens(usage.getIntValue("prompt_tokens"));
+            tokenUsage.setCompletionTokens(usage.getIntValue("completion_tokens"));
+            tokenUsage.setTotalTokens(usage.getIntValue("total_tokens"));
+            response.setUsage(tokenUsage);
         }
 
         response.setFinishReason(responseObj.getString("finish_reason"));
@@ -322,10 +323,10 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
         // 解析 usage
         JSONObject usage = responseObj.getJSONObject("usage");
         if (usage != null) {
-            UsageInfo usageInfo = new UsageInfo();
-            usageInfo.setPromptTokens(usage.getIntValue("prompt_tokens"));
-            usageInfo.setTotalTokens(usage.getIntValue("total_tokens"));
-            response.setUsage(usageInfo);
+            TokenUsage tokenUsage = new TokenUsage();
+            tokenUsage.setPromptTokens(usage.getIntValue("prompt_tokens"));
+            tokenUsage.setTotalTokens(usage.getIntValue("total_tokens"));
+            response.setUsage(tokenUsage);
         }
 
         return response;
@@ -356,11 +357,11 @@ public class BaiduWenxinDriver extends AbstractLlmDriver {
         // 解析 usage
         JSONObject usage = responseObj.getJSONObject("usage");
         if (usage != null) {
-            UsageInfo usageInfo = new UsageInfo();
-            usageInfo.setPromptTokens(usage.getIntValue("prompt_tokens"));
-            usageInfo.setCompletionTokens(usage.getIntValue("completion_tokens"));
-            usageInfo.setTotalTokens(usage.getIntValue("total_tokens"));
-            response.setUsage(usageInfo);
+            TokenUsage tokenUsage = new TokenUsage();
+            tokenUsage.setPromptTokens(usage.getIntValue("prompt_tokens"));
+            tokenUsage.setCompletionTokens(usage.getIntValue("completion_tokens"));
+            tokenUsage.setTotalTokens(usage.getIntValue("total_tokens"));
+            response.setUsage(tokenUsage);
         }
 
         return response;

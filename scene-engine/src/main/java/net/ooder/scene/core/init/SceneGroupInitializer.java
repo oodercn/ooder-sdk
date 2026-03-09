@@ -13,6 +13,8 @@ import net.ooder.sdk.api.scene.SceneMember;
 import net.ooder.sdk.common.enums.MemberRole;
 import net.ooder.skills.api.SkillPackage;
 
+// 明确导入 SDK 的 MemberRole，避免与 scene.core.MemberRole 冲突
+
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;

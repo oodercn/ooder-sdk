@@ -1,5 +1,7 @@
 package net.ooder.scene.core;
 
+import net.ooder.sdk.common.enums.MemberRole;
+
 /**
  * SceneAgent 核心接口 (scene-engine 内部使用)
  *
@@ -53,4 +55,22 @@ public interface SceneAgentCore {
      * 关闭
      */
     void shutdown();
+
+    /**
+     * 获取成员角色
+     *
+     * @return 成员角色
+     */
+    default MemberRole getMemberRole() {
+        return MemberRole.MEMBER;
+    }
+
+    /**
+     * 设置成员角色
+     *
+     * @param role 成员角色
+     */
+    default void setMemberRole(MemberRole role) {
+        // 默认空实现
+    }
 }

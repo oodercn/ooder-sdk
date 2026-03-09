@@ -1,6 +1,7 @@
 package net.ooder.sdk.llm.adapter.model;
 
 import net.ooder.sdk.llm.common.enums.LlmType;
+import net.ooder.sdk.llm.model.ModelInfo;
 
 import java.util.List;
 import java.util.Map;

@@ -1,6 +1,6 @@
 package net.ooder.sdk.llm.output;
 
-import net.ooder.sdk.llm.tool.ChatRequest;
+import net.ooder.sdk.llm.tool.ToolChatRequest;
 
 import java.util.Map;
 
@@ -43,7 +43,7 @@ public interface StructuredOutputApi {
      * @param type 返回类型
      * @return 结构化响应
      */
-    <T> StructuredResponse<T> chatStructured(ChatRequest request, String schemaId, Class<T> type);
+    <T> StructuredResponse<T> chatStructured(ToolChatRequest request, String schemaId, Class<T> type);
 
     /**
      * 结构化对话（带重试）
@@ -53,7 +53,7 @@ public interface StructuredOutputApi {
      * @param maxRetries 最大重试次数
      * @return 结构化响应
      */
-    <T> StructuredResponse<T> chatStructured(ChatRequest request, String schemaId, Class<T> type, int maxRetries);
+    <T> StructuredResponse<T> chatStructured(ToolChatRequest request, String schemaId, Class<T> type, int maxRetries);
 
     /**
      * 验证输出

@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONArray;
 import lombok.extern.slf4j.Slf4j;
 import net.ooder.sdk.llm.output.*;
-import net.ooder.sdk.llm.tool.ChatRequest;
+import net.ooder.sdk.llm.tool.ToolChatRequest;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,12 +47,12 @@ public class StructuredOutputApiImpl implements StructuredOutputApi {
     }
 
     @Override
-    public <T> StructuredResponse<T> chatStructured(ChatRequest request, String schemaId, Class<T> type) {
+    public <T> StructuredResponse<T> chatStructured(ToolChatRequest request, String schemaId, Class<T> type) {
         return chatStructured(request, schemaId, type, 0);
     }
 
     @Override
-    public <T> StructuredResponse<T> chatStructured(ChatRequest request, String schemaId, Class<T> type, int maxRetries) {
+    public <T> StructuredResponse<T> chatStructured(ToolChatRequest request, String schemaId, Class<T> type, int maxRetries) {
         /**
          * FIXME: 伪实现 - 需要集成真实LLM驱动
          *

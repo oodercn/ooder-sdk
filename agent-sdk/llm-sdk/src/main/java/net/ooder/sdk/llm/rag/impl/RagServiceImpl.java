@@ -60,7 +60,7 @@ public class RagServiceImpl implements RagService {
     }
 
     @Override
-    public LlmResponse chatWithRag(LlmSceneContext context, String message) {
+    public RagResponse chatWithRag(LlmSceneContext context, String message) {
         long startTime = System.currentTimeMillis();
 
         // 1. 检索相关知识
@@ -101,7 +101,7 @@ public class RagServiceImpl implements RagService {
          */
         log.warn("[STUB] chatWithRag() LLM integration not implemented");
 
-        LlmResponse response = new LlmResponse();
+        RagResponse response = new RagResponse();
         response.setContent("[STUB] RAG response placeholder. Retrieved " + retrievalResults.size() + " documents.");
         response.setSources(retrievalResults);
         response.setResponseTime(System.currentTimeMillis() - startTime);

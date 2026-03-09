@@ -168,8 +168,8 @@ public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryServic
                         if (!items.isEmpty()) {
                             DiscoveredItem item = items.get(0);
                             SceneDetail detail = new SceneDetail(sceneId, item.getName());
-                            detail.setDescription((String) item.getMetadata("description"));
-                            detail.setCategory((String) item.getMetadata("category"));
+                            detail.setDescription(item.getMetadata() != null ? (String) item.getMetadata().get("description") : null);
+                            detail.setCategory(item.getMetadata() != null ? (String) item.getMetadata().get("category") : null);
                             sceneCache.put(sceneId, detail);
                             return detail;
                         }
@@ -270,10 +270,10 @@ public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryServic
                         if (!items.isEmpty()) {
                             DiscoveredItem item = items.get(0);
                             CapabilityDetail detail = new CapabilityDetail(capId, item.getName());
-                            detail.setVersion((String) item.getMetadata("version"));
-                            detail.setCategory((String) item.getMetadata("category"));
-                            detail.setDescription((String) item.getMetadata("description"));
-                            detail.setStatus((String) item.getMetadata("status"));
+                            detail.setVersion(item.getMetadata() != null ? (String) item.getMetadata().get("version") : null);
+                            detail.setCategory(item.getMetadata() != null ? (String) item.getMetadata().get("category") : null);
+                            detail.setDescription(item.getMetadata() != null ? (String) item.getMetadata().get("description") : null);
+                            detail.setStatus(item.getMetadata() != null ? (String) item.getMetadata().get("status") : null);
                             capabilityCache.put(capId, detail);
                             return detail;
                         }

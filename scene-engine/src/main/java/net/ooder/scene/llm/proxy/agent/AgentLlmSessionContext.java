@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.agent;
 
-import net.ooder.llm.api.LlmConfig;
+import net.ooder.sdk.service.llm.LlmConfig;
 import net.ooder.scene.llm.proxy.common.AgentState;
 import net.ooder.scene.llm.proxy.connection.LlmConnectionPool;
 import net.ooder.sdk.memory.ConversationMemory;

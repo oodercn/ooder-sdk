@@ -9,13 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 对话请求
+ * 工具层对话请求
+ * 用于工具调用场景
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatRequest {
+public class ToolChatRequest {
 
     /**
      * 会话ID

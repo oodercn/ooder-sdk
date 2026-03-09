@@ -1,5 +1,6 @@
 package net.ooder.sdk.drivers.llm;
 
+import net.ooder.sdk.llm.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +38,10 @@ public class MockLlmDriver extends AbstractLlmDriver {
     }
 
     @Override
-    protected CompletableFuture<ChatResponse> doChat(ChatRequest request) {
+    protected CompletableFuture<DriverChatResponse> doChat(DriverChatRequest request) {
         return simulateLatency().thenCompose(v -> {
             if (shouldFail()) {
-                CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+                CompletableFuture<DriverChatResponse> future = new CompletableFuture<>();
                 future.completeExceptionally(new RuntimeException("Simulated chat error"));
                 return future;
             }
@@ -53,10 +54,10 @@ public class MockLlmDriver extends AbstractLlmDriver {
     }
 
     @Override
-    protected CompletableFuture<ChatResponse> doChatStream(ChatRequest request, LlmDriver.ChatStreamHandler handler) {
+    protected CompletableFuture<DriverChatResponse> doChatStream(DriverChatRequest request, ChatStreamHandler handler) {
         return simulateLatency().thenCompose(v -> {
             if (shouldFail()) {
-                CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+                CompletableFuture<DriverChatResponse> future = new CompletableFuture<>();
                 future.completeExceptionally(new RuntimeException("Simulated stream error"));
                 return future;
             }
@@ -64,7 +65,6 @@ public class MockLlmDriver extends AbstractLlmDriver {
             String responseText = generateMockResponse(request);
             String[] words = responseText.split(" ");
 
-            // 模拟流式输出
             StringBuilder contentBuilder = new StringBuilder();
             for (int i = 0; i < words.length; i++) {
                 String chunk = words[i] + (i < words.length - 1 ? " " : "");
@@ -74,17 +74,16 @@ public class MockLlmDriver extends AbstractLlmDriver {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+                    CompletableFuture<DriverChatResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(e);
                     return future;
                 }
             }
             
-            // 构建完整消息
             ChatMessage message = ChatMessage.assistant(contentBuilder.toString());
             handler.onMessage(message);
             
-            ChatResponse response = createChatResponse(contentBuilder.toString(), "mock-model");
+            DriverChatResponse response = createChatResponse(contentBuilder.toString(), "mock-model");
             handler.onComplete(response);
 
             return CompletableFuture.completedFuture(response);
@@ -103,7 +102,6 @@ public class MockLlmDriver extends AbstractLlmDriver {
             EmbeddingResponse response = new EmbeddingResponse();
             response.setModel("mock-embedding-model");
 
-            // 生成随机嵌入向量
             List<EmbeddingData> dataList = new java.util.ArrayList<>();
             for (int i = 0; i < request.getInput().size(); i++) {
                 EmbeddingData data = new EmbeddingData();
@@ -117,7 +115,7 @@ public class MockLlmDriver extends AbstractLlmDriver {
             }
             response.setData(dataList);
 
-            UsageInfo usage = new UsageInfo();
+            TokenUsage usage = new TokenUsage();
             int totalTokens = 0;
             for (String input : request.getInput()) {
                 totalTokens += input.length() / 4;
@@ -159,8 +157,8 @@ public class MockLlmDriver extends AbstractLlmDriver {
     protected CompletableFuture<ModelInfo> doGetModelInfo(String modelId) {
         return simulateLatency().thenApply(v -> {
             ModelInfo info = new ModelInfo();
-            info.setId(modelId);
-            info.setName("Mock " + modelId);
+            info.setModelId(modelId);
+            info.setModelName("Mock " + modelId);
             info.setDescription("Mock model for testing");
             info.setContextLength(4096);
             info.setSupportsStreaming(true);
@@ -184,9 +182,6 @@ public class MockLlmDriver extends AbstractLlmDriver {
         return "1.0.0-mock";
     }
 
-    /**
-     * 模拟网络延迟
-     */
     private CompletableFuture<Void> simulateLatency() {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -198,17 +193,11 @@ public class MockLlmDriver extends AbstractLlmDriver {
         });
     }
 
-    /**
-     * 判断是否模拟失败
-     */
     private boolean shouldFail() {
         return random.nextDouble() < errorRate;
     }
 
-    /**
-     * 生成模拟聊天响应
-     */
-    private String generateMockResponse(ChatRequest request) {
+    private String generateMockResponse(DriverChatRequest request) {
         String userMessage = request.getMessages().stream()
             .filter(m -> "user".equals(m.getRole()))
             .reduce((first, second) -> second)
@@ -232,9 +221,6 @@ public class MockLlmDriver extends AbstractLlmDriver {
                "In a real implementation, this would be processed by an actual LLM.";
     }
 
-    /**
-     * 生成模拟补全响应
-     */
     private String generateMockCompletion(CompletionRequest request) {
         String prompt = request.getPrompt();
 

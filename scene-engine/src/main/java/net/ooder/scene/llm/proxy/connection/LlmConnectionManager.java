@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.connection;
 
-import net.ooder.llm.api.LlmConfig;
+import net.ooder.sdk.service.llm.LlmConfig;
 import net.ooder.sdk.drivers.llm.LlmDriver;
 
 import org.slf4j.Logger;
@@ -37,8 +37,8 @@ public class LlmConnectionManager {
         LlmConnectionPoolKey key = LlmConnectionPoolKey.fromConfig(config);
         
         return pools.computeIfAbsent(key, k -> {
-            log.info("Creating new connection pool for config: provider={}, model={}", 
-                    config.getProvider(), config.getDefaultModel());
+            log.info("Creating new connection pool for config: endpoint={}, model={}", 
+                    config.getEndpoint(), config.getModel());
             
             LlmDriver driver = createDriver(config);
             String poolId = key.toString();
@@ -77,11 +77,9 @@ public class LlmConnectionManager {
      */
     private LlmDriver createDriver(LlmConfig config) {
         try {
-            // 根据provider创建对应的驱动
-            String provider = config.getProvider();
-            if (provider == null) {
-                provider = "mock";
-            }
+            // 从 endpoint 提取 provider
+            String endpoint = config.getEndpoint();
+            String provider = extractProvider(endpoint);
             
             switch (provider.toLowerCase()) {
                 case "baidu":
@@ -95,10 +93,25 @@ public class LlmConnectionManager {
                     return createMockDriver(config);
             }
         } catch (Exception e) {
-            log.error("Failed to create LLM driver: provider={}, model={}", 
-                    config.getProvider(), config.getDefaultModel(), e);
+            log.error("Failed to create LLM driver: endpoint={}, model={}", 
+                    config.getEndpoint(), config.getModel(), e);
             throw new RuntimeException("Failed to create LLM driver", e);
         }
+    }
+    
+    /**
+     * 从 endpoint 提取 provider
+     */
+    private String extractProvider(String endpoint) {
+        if (endpoint == null || endpoint.isEmpty()) {
+            return "mock";
+        }
+        if (endpoint.contains("baidu") || endpoint.contains("wenxin")) {
+            return "baidu";
+        } else if (endpoint.contains("spark") || endpoint.contains("xfyun")) {
+            return "spark";
+        }
+        return "mock";
     }
     
     /**
@@ -153,11 +166,11 @@ public class LlmConnectionManager {
     private LlmDriver.LlmConfig convertConfig(LlmConfig config) {
         LlmDriver.LlmConfig driverConfig = new LlmDriver.LlmConfig();
         driverConfig.setApiKey(config.getApiKey());
-        driverConfig.setBaseUrl(config.getBaseUrl());
-        driverConfig.setDefaultModel(config.getDefaultModel());
+        driverConfig.setBaseUrl(config.getEndpoint());
+        driverConfig.setDefaultModel(config.getModel());
         driverConfig.setMaxTokens(config.getMaxTokens());
-        driverConfig.setTemperature(config.getTemperature());
-        driverConfig.setTimeout(config.getTimeout());
+        driverConfig.setTemperature((float) config.getTemperature());
+        driverConfig.setTimeout((int) config.getTimeout());
         return driverConfig;
     }
     

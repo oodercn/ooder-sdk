@@ -1,5 +1,6 @@
 package net.ooder.sdk.drivers.llm;
 
+import net.ooder.sdk.llm.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public abstract class AbstractLlmDriver implements LlmDriver {
     protected abstract void doInit();
 
     @Override
-    public CompletableFuture<ChatResponse> chat(ChatRequest request) {
+    public CompletableFuture<DriverChatResponse> chat(DriverChatRequest request) {
         checkInitialized();
         return doChat(request);
     }
@@ -47,13 +48,13 @@ public abstract class AbstractLlmDriver implements LlmDriver {
     /**
      * 子类实现的聊天逻辑
      */
-    protected abstract CompletableFuture<ChatResponse> doChat(ChatRequest request);
+    protected abstract CompletableFuture<DriverChatResponse> doChat(DriverChatRequest request);
 
     @Override
-    public CompletableFuture<ChatResponse> chatStream(ChatRequest request, LlmDriver.ChatStreamHandler handler) {
+    public CompletableFuture<DriverChatResponse> chatStream(DriverChatRequest request, LlmDriver.ChatStreamHandler handler) {
         checkInitialized();
         if (!supportsStreaming()) {
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<DriverChatResponse> future = new CompletableFuture<>();
             future.completeExceptionally(new UnsupportedOperationException("Streaming not supported"));
             return future;
         }
@@ -63,8 +64,8 @@ public abstract class AbstractLlmDriver implements LlmDriver {
     /**
      * 子类实现的流式聊天逻辑
      */
-    protected abstract CompletableFuture<ChatResponse> doChatStream(
-        ChatRequest request, LlmDriver.ChatStreamHandler handler);
+    protected abstract CompletableFuture<DriverChatResponse> doChatStream(
+        DriverChatRequest request, LlmDriver.ChatStreamHandler handler);
 
     @Override
     public CompletableFuture<EmbeddingResponse> embed(EmbeddingRequest request) {
@@ -217,15 +218,15 @@ public abstract class AbstractLlmDriver implements LlmDriver {
     /**
      * 创建成功的聊天响应
      */
-    protected ChatResponse createChatResponse(String content, String model) {
-        ChatResponse response = new ChatResponse();
+    protected DriverChatResponse createChatResponse(String content, String model) {
+        DriverChatResponse response = new DriverChatResponse();
         response.setId("chat-" + System.currentTimeMillis());
         response.setModel(model);
         response.setMessage(ChatMessage.assistant(content));
         response.setCreatedTime(System.currentTimeMillis());
         response.setFinishReason("stop");
 
-        UsageInfo usage = new UsageInfo();
+        TokenUsage usage = new TokenUsage();
         usage.setPromptTokens(0);
         usage.setCompletionTokens(content.length() / 4);
         usage.setTotalTokens(usage.getCompletionTokens());
@@ -250,7 +251,7 @@ public abstract class AbstractLlmDriver implements LlmDriver {
         choices.add(choice);
         response.setChoices(choices);
 
-        UsageInfo usage = new UsageInfo();
+        TokenUsage usage = new TokenUsage();
         usage.setPromptTokens(0);
         usage.setCompletionTokens(text.length() / 4);
         usage.setTotalTokens(usage.getCompletionTokens());

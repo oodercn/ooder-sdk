@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.connection;
 
-import net.ooder.llm.api.LlmConfig;
+import net.ooder.sdk.service.llm.LlmConfig;
 import net.ooder.scene.llm.proxy.common.PoolState;
 import net.ooder.sdk.drivers.llm.LlmDriver;
 

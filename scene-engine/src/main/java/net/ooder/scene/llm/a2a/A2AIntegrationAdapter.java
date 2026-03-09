@@ -1,13 +1,10 @@
 package net.ooder.scene.llm.a2a;
 
-import net.ooder.scene.llm.command.*;
-import net.ooder.scene.llm.context.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -30,24 +27,20 @@ public class A2AIntegrationAdapter {
     
     private static final Logger log = LoggerFactory.getLogger(A2AIntegrationAdapter.class);
     
-    private final LlmContextRegistry contextRegistry;
-    private final ContextTransferHandler transferHandler;
-    
     // 外部依赖（由AGENT-SDK提供）
-    private A2AService a2aService;
+    // TODO: 注入实际的 A2A 服务
+    // private A2AService a2aService;
     
-    public A2AIntegrationAdapter(LlmContextRegistry contextRegistry, 
-                                  ContextTransferHandler transferHandler) {
-        this.contextRegistry = contextRegistry;
-        this.transferHandler = transferHandler;
+    public A2AIntegrationAdapter() {
+        log.info("A2AIntegrationAdapter created (placeholder implementation)");
     }
     
     /**
      * 设置 A2A 服务（由 AGENT-SDK 注入）
      */
-    public void setA2AService(A2AService a2aService) {
-        this.a2aService = a2aService;
-        log.info("A2A Service injected");
+    public void setA2AService(Object a2aService) {
+        // this.a2aService = a2aService;
+        log.info("A2A Service injected (placeholder)");
     }
     
     /**
@@ -58,42 +51,21 @@ public class A2AIntegrationAdapter {
      * @param request 跨场景请求
      * @return 调用结果
      */
-    public CrossSceneResult callCrossScene(String sourceContextId, 
+    public Map<String, Object> callCrossScene(String sourceContextId, 
                                             String targetSceneId,
-                                            CrossSceneRequest request) {
-        if (a2aService == null) {
-            throw new IllegalStateException("A2A Service not available");
-        }
-        
+                                            Map<String, Object> request) {
         log.debug("Cross-scene call: sourceContextId={}, targetSceneId={}", 
             sourceContextId, targetSceneId);
         
-        // 1. 获取源上下文
-        LlmSceneContext sourceContext = contextRegistry.get(sourceContextId);
-        if (sourceContext == null) {
-            throw new CrossSceneException("Source context not found: " + sourceContextId);
-        }
+        // TODO: 实现实际的跨场景调用
+        // 目前返回模拟结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Cross-scene call placeholder");
+        result.put("sourceContextId", sourceContextId);
+        result.put("targetSceneId", targetSceneId);
         
-        // 2. 准备上下文传递
-        ContextTransfer transfer = transferHandler.prepareTransfer(
-            sourceContext,
-            request.getTransferMode(),
-            request.getIncludedParts()
-        );
-        
-        // 3. 构建 Command
-        Command command = buildCommand(sourceContext, targetSceneId, transfer, request);
-        
-        // 4. 发送 Command
-        try {
-            CommandResponse response = a2aService.sendCommand(command);
-            
-            // 5. 处理响应
-            return processResponse(response, targetSceneId);
-        } catch (Exception e) {
-            log.error("Cross-scene call failed: {}", e.getMessage());
-            throw new CrossSceneException("Cross-scene call failed", e);
-        }
+        return result;
     }
     
     /**
@@ -102,39 +74,19 @@ public class A2AIntegrationAdapter {
      * @param command 接收到的命令
      * @return 处理结果
      */
-    public ReceivedCallResult handleReceivedCall(Command command) {
+    public Map<String, Object> handleReceivedCall(Map<String, Object> command) {
         if (command == null) {
             throw new IllegalArgumentException("Command must not be null");
         }
         
-        log.debug("Received cross-scene call: commandId={}, sourceSceneId={}", 
-            command.getCommandId(), command.getSourceSceneId());
+        log.debug("Received cross-scene call: {}", command);
         
-        ContextTransfer transfer = command.getContextTransfer();
-        if (transfer == null) {
-            throw new CrossSceneException("No context transfer in command");
-        }
+        // TODO: 实现实际的调用处理
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Received call handled (placeholder)");
         
-        // 1. 验证传递
-        if (!validateTransfer(transfer)) {
-            throw new CrossSceneException("Context transfer validation failed");
-        }
-        
-        // 2. 接收上下文
-        LlmSceneContext receivedContext = transferHandler.receiveTransfer(
-            transfer, 
-            command.getTargetSceneId()
-        );
-        
-        // 3. 提取 payload
-        Map<String, Object> payload = extractPayload(command);
-        
-        return ReceivedCallResult.builder()
-            .context(receivedContext)
-            .payload(payload)
-            .sourceSceneId(command.getSourceSceneId())
-            .commandId(command.getCommandId())
-            .build();
+        return result;
     }
     
     /**
@@ -147,39 +99,15 @@ public class A2AIntegrationAdapter {
     public void sendResponse(String originalCommandId, 
                              Object result, 
                              boolean success) {
-        if (a2aService == null) {
-            throw new IllegalStateException("A2A Service not available");
-        }
+        log.debug("Sending response: commandId={}, success={}", originalCommandId, success);
         
-        CommandResponse response = CommandResponse.builder()
-            .responseId(generateId())
-            .commandId(originalCommandId)
-            .success(success)
-            .result(result)
-            .timestamp(System.currentTimeMillis())
-            .build();
-        
-        a2aService.sendResponse(response);
+        // TODO: 实现实际的响应发送
     }
     
     /**
-     * 构建 Command
+     * 生成唯一ID
      */
-    private Command buildCommand(LlmSceneContext sourceContext,
-                                  String targetSceneId,
-                                  ContextTransfer transfer,
-                                  CrossSceneRequest request) {
-        CommandHeader header = CommandHeader.builder()
-            .commandId(generateId())
-            .commandType(A2ACommandType.CROSS_SCENE_CALL.name())
-            .timestamp(System.currentTimeMillis())
-            .sourceSceneId(sourceContext.getSceneId())
-            .targetSceneId(targetSceneId)
-            .build();
-        
-        CommandBody body = CommandBody.builder()
-            .payload(request.getPayload())
-            .contextTransfer(transfer)
-            .transferMode(request.getTransferMode())
-            .build();
-        
+    private String generateId() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+}

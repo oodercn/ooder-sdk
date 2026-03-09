@@ -129,7 +129,7 @@ public class ToolCallingApiImpl implements ToolCallingApi {
     }
 
     @Override
-    public ChatResponse chatWithTools(ChatRequest request) {
+    public ChatResponse chatWithTools(ToolChatRequest request) {
         /**
          * FIXME: 伪实现 - 需要集成真实LLM驱动
          * 

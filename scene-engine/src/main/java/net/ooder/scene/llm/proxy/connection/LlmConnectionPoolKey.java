@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.connection;
 
-import net.ooder.llm.api.LlmConfig;
+import net.ooder.sdk.service.llm.LlmConfig;
 
 import java.util.Objects;
 
@@ -26,12 +26,34 @@ public class LlmConnectionPoolKey {
      * 从LlmConfig创建池标识符
      */
     public static LlmConnectionPoolKey fromConfig(LlmConfig config) {
+        // 从 endpoint 提取 provider 和 baseUrl
+        String endpoint = config.getEndpoint();
+        String provider = extractProvider(endpoint);
+        String baseUrl = endpoint;
+        
         return new LlmConnectionPoolKey(
-            config.getProvider(),
-            config.getBaseUrl(),
+            provider,
+            baseUrl,
             hashApiKey(config.getApiKey()),
-            config.getDefaultModel()
+            config.getModel()
         );
+    }
+    
+    /**
+     * 从 endpoint 提取 provider
+     */
+    private static String extractProvider(String endpoint) {
+        if (endpoint == null || endpoint.isEmpty()) {
+            return "unknown";
+        }
+        if (endpoint.contains("baidu") || endpoint.contains("wenxin")) {
+            return "baidu";
+        } else if (endpoint.contains("openai")) {
+            return "openai";
+        } else if (endpoint.contains("anthropic")) {
+            return "anthropic";
+        }
+        return "unknown";
     }
     
     /**

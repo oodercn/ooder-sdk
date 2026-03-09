@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.user;
 
-import net.ooder.llm.api.LlmConfig;
+import net.ooder.sdk.service.llm.LlmConfig;
 import net.ooder.scene.llm.proxy.agent.AgentCreationOptions;
 import net.ooder.scene.llm.proxy.agent.AgentLlmSessionContext;
 import net.ooder.scene.llm.proxy.agent.AgentLlmSessionHandle;

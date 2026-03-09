@@ -79,7 +79,6 @@ public class ListDocumentsTool implements Tool {
                 item.put("docId", doc.getDocId());
                 item.put("title", doc.getTitle());
                 item.put("source", doc.getSource());
-                item.put("fileSize", doc.getFileSize());
                 item.put("createdAt", doc.getCreatedAt());
                 docList.add(item);
                 count++;

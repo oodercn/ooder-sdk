@@ -61,7 +61,9 @@ public class InMemoryVectorStore implements VectorStore {
             }
             
             float score = cosineSimilarity(queryVector, entry.vector);
-            results.add(new SearchResult(entry.id, entry.vector, score, entry.metadata));
+            SearchResult result = new SearchResult(entry.id, score, entry.metadata);
+            result.setVector(entry.vector);
+            results.add(result);
         }
         
         // 按相似度降序排序

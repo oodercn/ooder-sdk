@@ -34,9 +34,9 @@ public interface RagService {
      *
      * @param context 场景上下文
      * @param message 消息
-     * @return LLM 响应
+     * @return RAG 响应
      */
-    LlmResponse chatWithRag(LlmSceneContext context, String message);
+    RagResponse chatWithRag(LlmSceneContext context, String message);
 
     /**
      * 检索结果
@@ -66,9 +66,9 @@ public interface RagService {
     }
 
     /**
-     * LLM 响应
+     * RAG 响应
      */
-    class LlmResponse {
+    class RagResponse {
         private String content;
         private List<RetrievalResult> sources;
         private long responseTime;

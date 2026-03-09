@@ -16,6 +16,8 @@ import net.ooder.sdk.llm.output.StructuredOutputApi;
 import net.ooder.sdk.llm.output.impl.StructuredOutputApiImpl;
 import net.ooder.sdk.llm.pool.LlmPoolManager;
 import net.ooder.sdk.llm.pool.LlmRouter;
+import net.ooder.sdk.llm.pool.impl.LlmPoolManagerImpl;
+import net.ooder.sdk.llm.pool.impl.LlmRouterImpl;
 import net.ooder.sdk.llm.rag.RagService;
 import net.ooder.sdk.llm.rag.impl.RagServiceImpl;
 import net.ooder.sdk.llm.scene.NlpContextManager;
@@ -92,9 +94,9 @@ public class LlmSdkFactory {
             this.nlpContextManager = new NlpContextManagerImpl();
             this.contextTransferHandler = new ContextTransferHandlerImpl(sceneContextInitializer);
             this.ragService = new RagServiceImpl();
-            // TODO: 实现 LLM Pool 和 Router
-            this.llmPoolManager = null;
-            this.llmRouter = null;
+            // 初始化 LLM Pool 和 Router
+            this.llmPoolManager = new LlmPoolManagerImpl();
+            this.llmRouter = new LlmRouterImpl(llmPoolManager);
         }
 
         @Override
@@ -329,7 +331,7 @@ public class LlmSdkFactory {
         }
         
         @Override
-        public net.ooder.sdk.llm.adapter.model.ModelInfo selectModel(net.ooder.sdk.llm.adapter.model.ModelSelectionCriteria criteria) {
+        public net.ooder.sdk.llm.model.ModelInfo selectModel(net.ooder.sdk.llm.adapter.model.ModelSelectionCriteria criteria) {
             throw new UnsupportedOperationException("Not implemented yet");
         }
         

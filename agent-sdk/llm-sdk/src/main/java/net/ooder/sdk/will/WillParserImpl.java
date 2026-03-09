@@ -1,6 +1,8 @@
 package net.ooder.sdk.will;
 
 import net.ooder.sdk.drivers.llm.LlmDriver;
+import net.ooder.sdk.llm.model.CompletionRequest;
+import net.ooder.sdk.llm.model.CompletionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,11 +182,11 @@ public class WillParserImpl implements WillParser {
         
         try {
             // 调用 LLM 进行解析
-            LlmDriver.CompletionRequest request = new LlmDriver.CompletionRequest();
+            CompletionRequest request = new CompletionRequest();
             request.setPrompt(prompt);
             request.setMaxTokens(1000);
             
-            LlmDriver.CompletionResponse response = llmDriver.complete(request).get();
+            CompletionResponse response = llmDriver.complete(request).get();
             String llmResponse = response.getChoices().get(0).getText();
             
             // 解析 LLM 返回的结果

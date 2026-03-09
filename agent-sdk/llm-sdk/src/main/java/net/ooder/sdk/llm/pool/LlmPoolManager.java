@@ -1,6 +1,6 @@
 package net.ooder.sdk.llm.pool;
 
-import net.ooder.sdk.llm.adapter.model.ModelInfo;
+import net.ooder.sdk.llm.model.ModelInfo;
 
 import java.util.List;
 

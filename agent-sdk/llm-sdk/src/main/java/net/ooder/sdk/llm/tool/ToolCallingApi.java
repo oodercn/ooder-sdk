@@ -52,7 +52,7 @@ public interface ToolCallingApi {
      * @param request 对话请求
      * @return 对话响应
      */
-    ChatResponse chatWithTools(ChatRequest request);
+    ChatResponse chatWithTools(ToolChatRequest request);
 
     /**
      * 执行工具调用并继续对话
