@@ -14,6 +14,16 @@ import net.ooder.sdk.llm.monitoring.MonitoringApi;
 import net.ooder.sdk.llm.nlp.NlpInteractionApi;
 import net.ooder.sdk.llm.output.StructuredOutputApi;
 import net.ooder.sdk.llm.output.impl.StructuredOutputApiImpl;
+import net.ooder.sdk.llm.pool.LlmPoolManager;
+import net.ooder.sdk.llm.pool.LlmRouter;
+import net.ooder.sdk.llm.rag.RagService;
+import net.ooder.sdk.llm.rag.impl.RagServiceImpl;
+import net.ooder.sdk.llm.scene.NlpContextManager;
+import net.ooder.sdk.llm.scene.SceneContextInitializer;
+import net.ooder.sdk.llm.scene.impl.NlpContextManagerImpl;
+import net.ooder.sdk.llm.scene.impl.SceneContextInitializerImpl;
+import net.ooder.sdk.llm.scene.transfer.ContextTransferHandler;
+import net.ooder.sdk.llm.scene.transfer.impl.ContextTransferHandlerImpl;
 import net.ooder.sdk.llm.scheduling.SchedulingApi;
 import net.ooder.sdk.llm.security.SecurityApi;
 import net.ooder.sdk.llm.tool.ToolCallingApi;
@@ -52,6 +62,14 @@ public class LlmSdkFactory {
         private final DegradationApi degradationApi;
         private final InstallationContextManager installationContextManager;
 
+        // V2.3.1 Context-Core 新增 API
+        private final SceneContextInitializer sceneContextInitializer;
+        private final NlpContextManager nlpContextManager;
+        private final ContextTransferHandler contextTransferHandler;
+        private final RagService ragService;
+        private final LlmPoolManager llmPoolManager;
+        private final LlmRouter llmRouter;
+
         LlmSdkImpl(LlmSdkConfig config) {
             this.config = config;
             this.capabilityRequestApi = new CapabilityRequestApiImpl();
@@ -68,6 +86,15 @@ public class LlmSdkFactory {
             this.contextTemplateApi = new ContextTemplateApiImpl();
             this.degradationApi = new DegradationApiImpl();
             this.installationContextManager = new InstallationContextManagerImpl();
+
+            // 初始化 V2.3.1 API
+            this.sceneContextInitializer = new SceneContextInitializerImpl();
+            this.nlpContextManager = new NlpContextManagerImpl();
+            this.contextTransferHandler = new ContextTransferHandlerImpl(sceneContextInitializer);
+            this.ragService = new RagServiceImpl();
+            // TODO: 实现 LLM Pool 和 Router
+            this.llmPoolManager = null;
+            this.llmRouter = null;
         }
 
         @Override
@@ -132,6 +159,38 @@ public class LlmSdkFactory {
             return installationContextManager;
         }
 
+        // === V2.3.1 Context-Core 新增 API ===
+
+        @Override
+        public SceneContextInitializer getSceneContextInitializer() {
+            return sceneContextInitializer;
+        }
+
+        @Override
+        public NlpContextManager getNlpContextManager() {
+            return nlpContextManager;
+        }
+
+        @Override
+        public ContextTransferHandler getContextTransferHandler() {
+            return contextTransferHandler;
+        }
+
+        @Override
+        public RagService getRagService() {
+            return ragService;
+        }
+
+        @Override
+        public LlmPoolManager getLlmPoolManager() {
+            return llmPoolManager;
+        }
+
+        @Override
+        public LlmRouter getLlmRouter() {
+            return llmRouter;
+        }
+
         @Override
         public String getVersion() {
             return VERSION;
@@ -142,6 +201,10 @@ public class LlmSdkFactory {
             // 关闭新增 API 的资源
             if (toolCallingApi instanceof ToolCallingApiImpl) {
                 ((ToolCallingApiImpl) toolCallingApi).shutdown();
+            }
+            // 关闭 V2.3.1 API 资源
+            if (sceneContextInitializer instanceof SceneContextInitializerImpl) {
+                ((SceneContextInitializerImpl) sceneContextInitializer).shutdown();
             }
         }
     }

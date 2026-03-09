@@ -32,8 +32,8 @@ public class SceneCollaborationCommands {
         
         return A2ACommand.builder()
             .commandType(SCENE_INSTALL)
-            .targetAgent(targetAgentId)
-            .body(body)
+            .targetAgentId(targetAgentId)
+            .payload(body)
             .build();
     }
 
@@ -47,8 +47,8 @@ public class SceneCollaborationCommands {
         
         return A2ACommand.builder()
             .commandType(SCENE_ACTIVATE)
-            .targetAgent(targetAgentId)
-            .body(body)
+            .targetAgentId(targetAgentId)
+            .payload(body)
             .build();
     }
 
@@ -61,8 +61,8 @@ public class SceneCollaborationCommands {
         
         return A2ACommand.builder()
             .commandType(SCENE_DEACTIVATE)
-            .targetAgent(targetAgentId)
-            .body(body)
+            .targetAgentId(targetAgentId)
+            .payload(body)
             .build();
     }
 
@@ -75,8 +75,8 @@ public class SceneCollaborationCommands {
         
         return A2ACommand.builder()
             .commandType(SCENE_UNINSTALL)
-            .targetAgent(targetAgentId)
-            .body(body)
+            .targetAgentId(targetAgentId)
+            .payload(body)
             .build();
     }
 
@@ -89,8 +89,8 @@ public class SceneCollaborationCommands {
         
         return A2ACommand.builder()
             .commandType(SCENE_STATUS)
-            .targetAgent(targetAgentId)
-            .body(body)
+            .targetAgentId(targetAgentId)
+            .payload(body)
             .build();
     }
 
@@ -104,8 +104,8 @@ public class SceneCollaborationCommands {
         
         return A2ACommand.builder()
             .commandType(SCENE_SYNC)
-            .targetAgent(targetAgentId)
-            .body(body)
+            .targetAgentId(targetAgentId)
+            .payload(body)
             .build();
     }
 
