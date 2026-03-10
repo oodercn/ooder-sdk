@@ -4,9 +4,7 @@ import net.ooder.common.JDSCommand;
 import net.ooder.common.JDSException;
 import net.ooder.context.JDSContext;
 import net.ooder.engine.ConnectInfo;
-import net.ooder.engine.ConnectionHandle;
 import net.ooder.engine.JDSSessionHandle;
-import net.ooder.msg.Msg;
 import net.ooder.server.JDSClientService;
 
 /**
@@ -15,10 +13,10 @@ import net.ooder.server.JDSClientService;
  * <p>用于JDSServer管理SceneEngine连接生命周期。</p>
  *
  * @author Ooder Team
- * @version 2.3
+ * @version 2.3.1
  * @since 2.3.0
  */
-public class SecureSceneConnectionHandle implements ConnectionHandle {
+public class SecureSceneConnectionHandle {
 
     private static final long serialVersionUID = 1L;
 
@@ -43,96 +41,51 @@ public class SecureSceneConnectionHandle implements ConnectionHandle {
         this.connected = this.connectInfo != null;
     }
 
-    @Override
     public JDSClientService getClient() throws JDSException {
         return this.clientService;
     }
 
-    @Override
     public ConnectInfo getConnectInfo() {
         return this.connectInfo;
     }
 
-    @Override
     public void connect(JDSContext context) throws JDSException {
-        // SceneEngine的连接逻辑在SecureSceneEngineProxy中处理
         this.connected = true;
     }
 
-    @Override
     public boolean isconnect() throws JDSException {
         return this.connected;
     }
 
-    @Override
     public void disconnect() throws JDSException {
-        // 断开连接时的清理逻辑
-        if (clientService instanceof SecureSceneEngineProxy) {
-            SecureSceneEngineProxy proxy = (SecureSceneEngineProxy) clientService;
-            if (proxy.isSceneClientLoggedIn()) {
-                try {
-                    proxy.getSceneClient().getSessionId();
-                } catch (Exception e) {
-                    // 忽略异常
-                }
-            }
-        }
         this.connected = false;
     }
 
-    @Override
-    public void receive(String receiveStr) throws JDSException {
-        // SceneEngine不需要处理receive
+    public void onException(JDSException exception) {
+        // 处理异常情况
     }
 
-    @Override
-    public boolean send(String msgStr) throws JDSException {
-        // SceneEngine不需要处理send
-        return true;
+    public void onCommand(JDSCommand command) {
+        // 处理命令
     }
 
-    @Override
-    public boolean repeatMsg(Msg msg, JDSSessionHandle handle) throws JDSException {
-        // SceneEngine不需要处理repeatMsg
-        return true;
-    }
-
-    @Override
-    public boolean repeatCommand(JDSCommand command, JDSSessionHandle handle) throws JDSException {
-        // SceneEngine不需要处理repeatCommand
-        return true;
-    }
-
-    @Override
-    public boolean send(JDSCommand command) throws JDSException {
-        // SceneEngine不需要处理send
-        return true;
-    }
-
-    /**
-     * 获取SessionHandle
-     *
-     * @return JDSSessionHandle
-     */
     public JDSSessionHandle getSessionHandle() {
         return this.sessionHandle;
     }
 
-    /**
-     * 设置SessionHandle
-     *
-     * @param sessionHandle JDSSessionHandle
-     */
     public void setSessionHandle(JDSSessionHandle sessionHandle) {
         this.sessionHandle = sessionHandle;
     }
 
-    /**
-     * 获取系统代码
-     *
-     * @return 系统代码
-     */
     public String getSystemCode() {
         return this.systemCode;
+    }
+
+    public boolean isConnected() {
+        return this.connected;
+    }
+
+    public void close() throws JDSException {
+        disconnect();
     }
 }

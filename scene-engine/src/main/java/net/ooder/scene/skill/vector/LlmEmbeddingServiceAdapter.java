@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * LLM 嵌入服务适配器
@@ -53,7 +52,6 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
         log.debug("Embedding text, length: {}", text.length());
         
         try {
-            // 使用 LLM-SDK 的嵌入服务
             EmbeddingService.EmbeddingRequest request = EmbeddingService.EmbeddingRequest.builder()
                     .requestId(generateRequestId())
                     .model(embeddingModel != null ? embeddingModel : getDefaultModel())
@@ -63,7 +61,6 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
             
             EmbeddingService.EmbeddingResponse response = embeddingService.embed(request);
             
-            // 将 List<Float> 转换为 float[]
             return convertToArray(response.getEmbedding());
         } catch (Exception e) {
             log.error("Failed to embed text: {}", e.getMessage(), e);
@@ -80,7 +77,6 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
         log.debug("Batch embedding {} texts", texts.size());
         
         try {
-            // 使用 LLM-SDK 的批量嵌入服务
             EmbeddingService.BatchEmbeddingRequest request = EmbeddingService.BatchEmbeddingRequest.builder()
                     .requestId(generateRequestId())
                     .model(embeddingModel != null ? embeddingModel : getDefaultModel())
@@ -90,12 +86,10 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
             
             EmbeddingService.BatchEmbeddingResponse response = embeddingService.embedBatch(request);
             
-            // 转换结果
             List<float[]> results = new ArrayList<>();
             for (EmbeddingService.EmbeddingResult result : response.getResults()) {
                 if (result.getError() != null) {
                     log.warn("Embedding failed for index {}: {}", result.getIndex(), result.getError());
-                    // 使用零向量作为 fallback
                     results.add(new float[getDimension()]);
                 } else {
                     results.add(convertToArray(result.getEmbedding()));
@@ -108,9 +102,6 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
         }
     }
     
-    /**
-     * 将 List<Float> 转换为 float[]
-     */
     private float[] convertToArray(List<Float> list) {
         if (list == null) {
             return new float[0];
@@ -122,34 +113,29 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
         return array;
     }
     
-    /**
-     * 生成请求ID
-     */
     private String generateRequestId() {
         return "emb-" + System.currentTimeMillis() + "-" + Thread.currentThread().getId();
     }
     
-    /**
-     * 获取默认模型
-     */
     private String getDefaultModel() {
-        // 获取支持的模型列表
-        List<String> models = embeddingService.getSupportedModels();
-        if (models != null && !models.isEmpty()) {
-            // 优先使用较小的模型
-            for (String model : models) {
-                if (model.contains("small") || model.contains("ada")) {
-                    return model;
+        try {
+            List<String> models = embeddingService.getSupportedModels();
+            if (models != null && !models.isEmpty()) {
+                for (String model : models) {
+                    if (model.contains("small") || model.contains("ada")) {
+                        return model;
+                    }
                 }
+                return models.get(0);
             }
-            return models.get(0);
+        } catch (Exception e) {
+            log.debug("Failed to get supported models, using default");
         }
         return "text-embedding-3-small";
     }
     
     @Override
     public int getDimension() {
-        // 根据模型返回维度
         if (embeddingModel != null) {
             if (embeddingModel.contains("large")) {
                 return 3072;
@@ -157,7 +143,7 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
                 return 1024;
             }
         }
-        return 1536; // 默认维度
+        return 1536;
     }
     
     @Override
@@ -165,23 +151,14 @@ public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.
         return embeddingModel != null ? embeddingModel : getDefaultModel();
     }
     
-    /**
-     * 异步嵌入
-     */
     public CompletableFuture<float[]> embedAsync(String text) {
         return CompletableFuture.supplyAsync(() -> embed(text), executorService);
     }
     
-    /**
-     * 异步批量嵌入
-     */
     public CompletableFuture<List<float[]>> embedBatchAsync(List<String> texts) {
         return CompletableFuture.supplyAsync(() -> embedBatch(texts), executorService);
     }
     
-    /**
-     * 关闭服务
-     */
     public void shutdown() {
         executorService.shutdown();
         log.info("LlmEmbeddingServiceAdapter shutdown");

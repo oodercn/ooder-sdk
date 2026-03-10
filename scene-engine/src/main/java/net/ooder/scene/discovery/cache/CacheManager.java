@@ -3,11 +3,10 @@ package net.ooder.scene.discovery.cache;
 import net.ooder.scene.discovery.api.DiscoveryService;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 缓存管理器接口
- * 
+ *
  * 统一管理多级缓存：内存缓存 + 文件缓存
  * 提供缓存策略：TTL、容量限制、去重
  *
@@ -16,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
  * @since 2.3.0
  */
 public interface CacheManager {
-    
+
     /**
      * 获取缓存的Skill
      *
@@ -24,7 +23,7 @@ public interface CacheManager {
      * @return Skill信息，如果不存在或已过期返回null
      */
     DiscoveryService.SkillInfo getSkill(String skillId);
-    
+
     /**
      * 获取缓存的Skill（指定版本）
      *
@@ -33,35 +32,35 @@ public interface CacheManager {
      * @return Skill信息
      */
     DiscoveryService.SkillInfo getSkill(String skillId, String version);
-    
+
     /**
      * 获取所有缓存的Skills
      *
      * @return Skill列表
      */
     List<DiscoveryService.SkillInfo> getAllSkills();
-    
+
     /**
      * 缓存Skill
      *
      * @param skill Skill信息
      */
     void putSkill(DiscoveryService.SkillInfo skill);
-    
+
     /**
      * 批量缓存Skills
      *
      * @param skills Skill列表
      */
     void putSkills(List<DiscoveryService.SkillInfo> skills);
-    
+
     /**
      * 移除缓存
      *
      * @param skillId Skill ID
      */
     void removeSkill(String skillId);
-    
+
     /**
      * 检查是否存在有效缓存
      *
@@ -69,7 +68,7 @@ public interface CacheManager {
      * @return 是否存在
      */
     boolean exists(String skillId);
-    
+
     /**
      * 检查是否存在有效缓存（指定版本）
      *
@@ -78,7 +77,7 @@ public interface CacheManager {
      * @return 是否存在
      */
     boolean exists(String skillId, String version);
-    
+
     /**
      * 获取缓存状态
      *
@@ -86,35 +85,35 @@ public interface CacheManager {
      * @return 缓存状态
      */
     CacheStatus getStatus(String skillId);
-    
+
     /**
      * 清除所有缓存
      */
     void clear();
-    
+
     /**
      * 清除过期缓存
      *
      * @return 清除数量
      */
     int clearExpired();
-    
+
     /**
      * 获取缓存统计
      *
      * @return 统计信息
      */
     CacheStats getStats();
-    
+
     /**
      * 设置缓存配置
      *
      * @param config 配置
      */
     void setConfig(CacheConfig config);
-    
+
     // ========== 数据类定义 ==========
-    
+
     /**
      * 缓存配置
      */
@@ -126,7 +125,7 @@ public interface CacheManager {
         private String cacheDir = "./.ooder/cache/skills";  // 缓存目录
         private boolean enableMemoryCache = true;
         private boolean enableFileCache = true;
-        
+
         // Getters and Setters
         public long getMemoryCacheTtlMs() { return memoryCacheTtlMs; }
         public void setMemoryCacheTtlMs(long memoryCacheTtlMs) { this.memoryCacheTtlMs = memoryCacheTtlMs; }
@@ -143,7 +142,7 @@ public interface CacheManager {
         public boolean isEnableFileCache() { return enableFileCache; }
         public void setEnableFileCache(boolean enableFileCache) { this.enableFileCache = enableFileCache; }
     }
-    
+
     /**
      * 缓存状态
      */
@@ -154,7 +153,7 @@ public interface CacheManager {
         private long expireTime;
         private long size;
         private String location;  // memory/file
-        
+
         // Getters and Setters
         public boolean isCached() { return cached; }
         public void setCached(boolean cached) { this.cached = cached; }
@@ -169,7 +168,7 @@ public interface CacheManager {
         public String getLocation() { return location; }
         public void setLocation(String location) { this.location = location; }
     }
-    
+
     /**
      * 缓存统计
      */
@@ -180,7 +179,7 @@ public interface CacheManager {
         private int hitCount;
         private int missCount;
         private double hitRate;
-        
+
         // Getters and Setters
         public int getMemoryCacheSize() { return memoryCacheSize; }
         public void setMemoryCacheSize(int memoryCacheSize) { this.memoryCacheSize = memoryCacheSize; }

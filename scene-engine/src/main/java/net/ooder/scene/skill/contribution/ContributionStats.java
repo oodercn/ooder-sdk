@@ -1,100 +1,58 @@
 package net.ooder.scene.skill.contribution;
 
+import java.util.Map;
+
 /**
- * 用户贡献统计
+ * 贡献统计
  *
- * @author ooder
- * @since 2.3
+ * @author Ooder Team
+ * @version 2.3.1
  */
 public class ContributionStats {
-    
+
     private String userId;
-    private int totalDocuments;
-    private int totalFiles;
-    private int totalTexts;
-    private int totalUrls;
-    private long totalSize;
-    private long lastContributionTime;
-    
-    public ContributionStats() {
-    }
-    
-    public ContributionStats(String userId) {
-        this.userId = userId;
-    }
-    
+    private int totalContributions;
+    private long totalPoints;
+    private int level;
+    private Map<String, Long> typeCounts;
+
     public String getUserId() {
         return userId;
     }
-    
+
     public void setUserId(String userId) {
         this.userId = userId;
     }
-    
-    public int getTotalDocuments() {
-        return totalDocuments;
+
+    public int getTotalContributions() {
+        return totalContributions;
     }
-    
-    public void setTotalDocuments(int totalDocuments) {
-        this.totalDocuments = totalDocuments;
+
+    public void setTotalContributions(int totalContributions) {
+        this.totalContributions = totalContributions;
     }
-    
-    public int getTotalFiles() {
-        return totalFiles;
+
+    public long getTotalPoints() {
+        return totalPoints;
     }
-    
-    public void setTotalFiles(int totalFiles) {
-        this.totalFiles = totalFiles;
+
+    public void setTotalPoints(long totalPoints) {
+        this.totalPoints = totalPoints;
     }
-    
-    public int getTotalTexts() {
-        return totalTexts;
+
+    public int getLevel() {
+        return level;
     }
-    
-    public void setTotalTexts(int totalTexts) {
-        this.totalTexts = totalTexts;
+
+    public void setLevel(int level) {
+        this.level = level;
     }
-    
-    public int getTotalUrls() {
-        return totalUrls;
+
+    public Map<String, Long> getTypeCounts() {
+        return typeCounts;
     }
-    
-    public void setTotalUrls(int totalUrls) {
-        this.totalUrls = totalUrls;
-    }
-    
-    public long getTotalSize() {
-        return totalSize;
-    }
-    
-    public void setTotalSize(long totalSize) {
-        this.totalSize = totalSize;
-    }
-    
-    public long getLastContributionTime() {
-        return lastContributionTime;
-    }
-    
-    public void setLastContributionTime(long lastContributionTime) {
-        this.lastContributionTime = lastContributionTime;
-    }
-    
-    public void incrementFiles() {
-        this.totalFiles++;
-        this.totalDocuments++;
-    }
-    
-    public void incrementTexts() {
-        this.totalTexts++;
-        this.totalDocuments++;
-    }
-    
-    public void incrementUrls() {
-        this.totalUrls++;
-        this.totalDocuments++;
-    }
-    
-    public void addSize(long size) {
-        this.totalSize += size;
+
+    public void setTypeCounts(Map<String, Long> typeCounts) {
+        this.typeCounts = typeCounts;
     }
 }

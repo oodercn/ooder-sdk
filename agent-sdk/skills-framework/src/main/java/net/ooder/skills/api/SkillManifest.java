@@ -352,7 +352,7 @@ public class SkillManifest {
     public static class SceneCapabilityDef {
         private String capabilityId;
         private boolean mainFirst;
-        private MainFirstConfig mainFirstConfig;
+        private net.ooder.skills.config.MainFirstConfiguration mainFirstConfig;
         private List<String> capabilities;
         private List<CollaborativeCapabilityRef> collaborativeCapabilities;
         
@@ -360,34 +360,13 @@ public class SkillManifest {
         public void setCapabilityId(String capabilityId) { this.capabilityId = capabilityId; }
         public boolean isMainFirst() { return mainFirst; }
         public void setMainFirst(boolean mainFirst) { this.mainFirst = mainFirst; }
-        public MainFirstConfig getMainFirstConfig() { return mainFirstConfig; }
-        public void setMainFirstConfig(MainFirstConfig mainFirstConfig) { this.mainFirstConfig = mainFirstConfig; }
+        public net.ooder.skills.config.MainFirstConfiguration getMainFirstConfig() { return mainFirstConfig; }
+        public void setMainFirstConfig(net.ooder.skills.config.MainFirstConfiguration mainFirstConfig) { this.mainFirstConfig = mainFirstConfig; }
         public List<String> getCapabilities() { return capabilities; }
         public void setCapabilities(List<String> capabilities) { this.capabilities = capabilities; }
         public List<CollaborativeCapabilityRef> getCollaborativeCapabilities() { return collaborativeCapabilities; }
         public void setCollaborativeCapabilities(List<CollaborativeCapabilityRef> collaborativeCapabilities) { 
             this.collaborativeCapabilities = collaborativeCapabilities; 
-        }
-    }
-    
-    /**
-     * 自驱入口配置
-     */
-    public static class MainFirstConfig {
-        private List<SelfCheck> selfChecks;
-        private List<SelfStart> selfStarts;
-        private SelfDriveConfig selfDrive;
-        private List<CollaborationStart> collaborationStarts;
-        
-        public List<SelfCheck> getSelfChecks() { return selfChecks; }
-        public void setSelfChecks(List<SelfCheck> selfChecks) { this.selfChecks = selfChecks; }
-        public List<SelfStart> getSelfStarts() { return selfStarts; }
-        public void setSelfStarts(List<SelfStart> selfStarts) { this.selfStarts = selfStarts; }
-        public SelfDriveConfig getSelfDrive() { return selfDrive; }
-        public void setSelfDrive(SelfDriveConfig selfDrive) { this.selfDrive = selfDrive; }
-        public List<CollaborationStart> getCollaborationStarts() { return collaborationStarts; }
-        public void setCollaborationStarts(List<CollaborationStart> collaborationStarts) { 
-            this.collaborationStarts = collaborationStarts; 
         }
     }
     

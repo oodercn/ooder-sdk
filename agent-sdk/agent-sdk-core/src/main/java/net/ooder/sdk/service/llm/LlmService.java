@@ -13,20 +13,22 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.ooder.sdk.drivers.llm.LlmDriver;
+
 public class LlmService {
     
     private static final Logger log = LoggerFactory.getLogger(LlmService.class);
     
-    private final LlmConfig config;
+    private final LlmDriver.LlmConfig config;
     private final LlmClient client;
     private final ExecutorService executor;
     private final Map<String, Conversation> conversations;
     
     public LlmService() {
-        this(new LlmConfig());
+        this(new LlmDriver.LlmConfig());
     }
     
-    public LlmService(LlmConfig config) {
+    public LlmService(LlmDriver.LlmConfig config) {
         this.config = config;
         this.client = new LlmClient(config);
         this.executor = Executors.newCachedThreadPool();
@@ -98,7 +100,7 @@ public class LlmService {
         return sb.toString();
     }
     
-    public LlmConfig getConfig() {
+    public LlmDriver.LlmConfig getConfig() {
         return config;
     }
     

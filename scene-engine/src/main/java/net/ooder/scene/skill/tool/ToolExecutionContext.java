@@ -1,75 +1,63 @@
 package net.ooder.scene.skill.tool;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 工具执行上下文
  *
- * @author ooder
- * @since 2.3
+ * @author Ooder Team
+ * @version 2.3.1
  */
-public class ToolExecutionContext {
-    
-    private String userId;
-    private String kbId;
-    private String sessionId;
-    private String conversationId;
-    private Map<String, Object> metadata;
-    
+public class ToolExecutionContext extends ToolContext {
+
+    private String executionId;
+    private long startTime;
+    private Map<String, Object> executionMetadata = new HashMap<>();
+
     public ToolExecutionContext() {
+        super();
+        this.startTime = System.currentTimeMillis();
     }
-    
-    public ToolExecutionContext(String userId) {
-        this.userId = userId;
+
+    public ToolExecutionContext(String sessionId, String userId) {
+        super(sessionId, userId);
+        this.startTime = System.currentTimeMillis();
     }
-    
-    public String getUserId() {
-        return userId;
+
+    public String getExecutionId() {
+        return executionId;
     }
-    
-    public void setUserId(String userId) {
-        this.userId = userId;
+
+    public void setExecutionId(String executionId) {
+        this.executionId = executionId;
     }
-    
-    public String getKbId() {
-        return kbId;
+
+    public long getStartTime() {
+        return startTime;
     }
-    
-    public void setKbId(String kbId) {
-        this.kbId = kbId;
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
-    
-    public String getSessionId() {
-        return sessionId;
+
+    public Map<String, Object> getExecutionMetadata() {
+        return executionMetadata;
     }
-    
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+
+    public void setExecutionMetadata(Map<String, Object> executionMetadata) {
+        this.executionMetadata = executionMetadata;
     }
-    
-    public String getConversationId() {
-        return conversationId;
-    }
-    
+
     public void setConversationId(String conversationId) {
-        this.conversationId = conversationId;
+        setAttribute("conversationId", conversationId);
     }
-    
-    public Map<String, Object> getMetadata() {
-        return metadata;
+
+    public String getConversationId() {
+        return getAttribute("conversationId");
     }
-    
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
-    }
-    
-    public static ToolExecutionContext of(String userId) {
-        return new ToolExecutionContext(userId);
-    }
-    
-    public static ToolExecutionContext of(String userId, String kbId) {
-        ToolExecutionContext ctx = new ToolExecutionContext(userId);
-        ctx.setKbId(kbId);
-        return ctx;
+
+    public static ToolExecutionContext of(String sessionId, String userId) {
+        return new ToolExecutionContext(sessionId, userId);
     }
 }

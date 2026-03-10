@@ -39,16 +39,16 @@ public class ToolCallResult {
         ToolCallResult tcr = new ToolCallResult();
         tcr.setToolCallId(toolCallId);
         tcr.setToolName(toolName);
-        tcr.setToolResult(ToolResult.failure(errorMessage));
+        tcr.setToolResult(ToolResult.failure(STATUS_FAILURE, errorMessage));
         tcr.setStatus(STATUS_FAILURE);
         return tcr;
     }
-    
+
     public static ToolCallResult timeout(String toolCallId, String toolName) {
         ToolCallResult tcr = new ToolCallResult();
         tcr.setToolCallId(toolCallId);
         tcr.setToolName(toolName);
-        tcr.setToolResult(ToolResult.failure("Tool execution timeout"));
+        tcr.setToolResult(ToolResult.failure(STATUS_TIMEOUT, "Tool execution timeout"));
         tcr.setStatus(STATUS_TIMEOUT);
         return tcr;
     }

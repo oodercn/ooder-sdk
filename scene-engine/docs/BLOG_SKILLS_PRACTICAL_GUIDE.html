@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ooderAgent 深度实战：给你的应用挂上懂程序的 AI 小助手</title>
+    <script src="./mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: move 20s linear infinite;
+        }
+        
+        @keyframes move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .meta {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .meta span {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+        
+        .content {
+            padding: 50px;
+        }
+        
+        .section {
+            margin-bottom: 60px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section h2::before {
+            content: '';
+            width: 10px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin: 35px 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .intro-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 25px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 25px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .code-block .keyword { color: #569cd6; }
+        .code-block .string { color: #ce9178; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .number { color: #b5cea8; }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(255,193,7,0.2);
+        }
+        
+        .highlight-box h4 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .step-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .step-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.2em;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin: 35px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .feature-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 12px;
+        }
+        
+        .feature-card p {
+            opacity: 0.95;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .mermaid-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .mermaid {
+            text-align: center;
+        }
+        
+        .tip-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.2);
+        }
+        
+        .tip-box h4 {
+            color: #155724;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(220,53,69,0.2);
+        }
+        
+        .warning-box h4 {
+            color: #721c24;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .wwwww-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(33,150,243,0.2);
+        }
+        
+        .wwwww-box h4 {
+            color: #1565c0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .wwwww-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .wwwww-card {
+            background: white;
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .wwwww-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33,150,243,0.2);
+        }
+        
+        .wwwww-card .label {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2196f3;
+            margin-bottom: 10px;
+        }
+        
+        .wwwww-card .title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .wwwww-card .desc {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .footer p {
+            color: #666;
+            margin: 8px 0;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .process-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .process-step {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .process-step::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .process-step:last-child::after {
+            display: none;
+        }
+        
+        .process-step .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .process-step .title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .process-step .desc {
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .wwwww-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .process-step::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 ooderAgent 深度实战</h1>
+            <p class="subtitle">给你的应用挂上懂程序的 AI 小助手</p>
+            <div class="meta">
+                <span>📅 2026-03-09</span>
+                <span>👤 Ooder Team</span>
+                <span>⏱️ 阅读时间：20分钟</span>
+                <span>📊 技术深度：进阶</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- 5W 描述 -->
+            <div class="wwwww-box">
+                <h4>🎯 5W 速览：快速了解 ooderAgent Skills-LLM</h4>
+                <div class="wwwww-grid">
+                    <div class="wwwww-card">
+                        <div class="label">What</div>
+                        <div class="title">是什么</div>
+                        <div class="desc">一套让应用程序拥有AI能力的框架，通过Skill封装LLM能力</div>
+                    </div>
+                    <div class="wwwww-card">
+                        <div class="label">Why</div>
+                        <div class="title">为什么</div>
+                        <div class="desc">传统编程难以处理自然语言，AI助手能理解、推理、执行复杂任务</div>
+                    </div>
+                    <div class="wwwww-card">
+                        <div class="label">Who</div>
+                        <div class="title">给谁用</div>
+                        <div class="desc">Java开发者、架构师、需要为应用添加AI能力的技术团队</div>
+                    </div>
+                    <div class="wwwww-card">
+                        <div class="label">When</div>
+                        <div class="title">何时用</div>
+                        <div class="desc">需要自然语言交互、智能决策、自动化处理、多Agent协作的场景</div>
+                    </div>
+                    <div class="wwwww-card">
+                        <div class="label">Where</div>
+                        <div class="title">在哪用</div>
+                        <div class="desc">企业应用、客服系统、数据分析、招聘管理、任何Java后端项目</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 引言 -->
+            <div class="intro-box">
+                <h3>💡 开篇：一个程序员的烦恼</h3>
+                <p>想象一下这个场景：你正在开发一个招聘管理系统，需要实现简历筛选功能。传统的做法是：</p>
+                <ul style="margin: 15px 0; padding-left: 30px;">
+                    <li>写正则表达式解析简历</li>
+                    <li>维护技能关键词库</li>
+                    <li>手动调整匹配算法</li>
+                    <li>处理各种格式异常</li>
+                </ul>
+                <p><strong>但是，如果你有一个懂程序的 AI 小助手呢？</strong></p>
+                <p>你只需要说："帮我筛选有 5 年以上 Java 经验的候选人"，AI 就能自动理解、解析、评估，甚至还能学习你的偏好，越用越聪明！</p>
+            </div>
+            
+            <!-- 第一部分 -->
+            <div class="section">
+                <h2>一、Skills-LLM 体系：让程序拥有"智慧"</h2>
+                
+                <h3>1.1 什么是 Skills-LLM？</h3>
+                <p>Skills-LLM 是 ooderAgent 的核心架构，它将 LLM（大语言模型）的能力封装成可复用的 Skill（技能），让你的应用程序能够：</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🎯 Function Calling</h4>
+                        <p>自动识别用户意图，调用相应的程序功能</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📚 知识库加载</h4>
+                        <p>四级知识加载：基础/进阶/专家/完整</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🧩 上下文重组</h4>
+                        <p>角色+知识+Skill+记忆自动组装</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔄 A2A 协作</h4>
+                        <p>多 Agent 之间智能传递上下文</p>
+                    </div>
+                </div>
+                
+                <h3>1.2 整体架构图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+flowchart TB
+    subgraph UI["用户界面层"]
+        A[角色选择] --> B[知识库选择]
+        B --> C[Skill选择]
+        C --> D[会话管理]
+    end
+
+    subgraph Context["上下文重组层"]
+        E[SkillActivationContext]
+        F[RoleContext]
+        G[KnowledgeContext]
+        H[SkillContext]
+        I[LlmRuntimeContext]
+        I1[SystemPrompt]
+        I2[Functions]
+        I3[Knowledge]
+        I4[ConversationMemory]
+        
+        E --> F
+        E --> G
+        E --> H
+        I --> I1
+        I --> I2
+        I --> I3
+        I --> I4
+    end
+
+    subgraph A2A["A2A传输层"]
+        J[ContextTransfer]
+        J1[TransferMode]
+        J2[DefaultParts]
+        J --> J1
+        J --> J2
+    end
+
+    UI --> Context
+    Context --> A2A
+
+    style UI fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    style Context fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style A2A fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+                    </div>
+                </div>
+                
+                <h3>1.3 核心组件一览</h3>
+                <table>
+                    <tr>
+                        <th>组件</th>
+                        <th>功能</th>
+                        <th>状态</th>
+                    </tr>
+                    <tr>
+                        <td>SkillActivationContext</td>
+                        <td>Skill 激活上下文，管理运行时状态</td>
+                        <td><span class="status-badge status-success">✅ 已实现</span></td>
+                    </tr>
+                    <tr>
+                        <td>FunctionContext</td>
+                        <td>函数定义上下文，管理 Function Calling</td>
+                        <td><span class="status-badge status-success">✅ 已实现</span></td>
+                    </tr>
+                    <tr>
+                        <td>KnowledgeContext</td>
+                        <td>知识库上下文，四级加载知识</td>
+                        <td><span class="status-badge status-success">✅ 已实现</span></td>
+                    </tr>
+                    <tr>
+                        <td>RoleContext</td>
+                        <td>角色上下文，定义 AI 助手人格</td>
+                        <td><span class="status-badge status-success">✅ 已实现</span></td>
+                    </tr>
+                    <tr>
+                        <td>MemoryContext</td>
+                        <td>记忆上下文，管理对话历史</td>
+                        <td><span class="status-badge status-success">✅ 已实现</span></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- 第二部分 -->
+            <div class="section">
+                <h2>二、实战：5 分钟给你的应用挂上 AI 助手</h2>
+                
+                <h3>2.1 快速开始流程</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+flowchart LR
+    A[定义 Skill<br/>配置技能元数据] -->|激活| B[激活 Skill<br/>创建运行时上下文]
+    B -->|处理| C[处理请求<br/>AI自动理解和执行]
+    C -->|协作| D[A2A协作<br/>多Agent智能协作]
+    
+    style A fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    style B fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style C fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style D fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <h3><span class="step-number">1</span>定义你的 Skill</h3>
+                    <p>首先，创建一个 skill.json 文件，定义你的 AI 助手能做什么：</p>
+                    <div class="code-block">{
+  <span class="string">"skillId"</span>: <span class="string">"recruitment-skill"</span>,
+  <span class="string">"name"</span>: <span class="string">"招聘助手"</span>,
+  <span class="string">"version"</span>: <span class="string">"1.0.0"</span>,
+  <span class="string">"metadata"</span>: {
+    <span class="string">"llmConfig"</span>: {
+      <span class="string">"systemPrompt"</span>: <span class="string">"你是招聘场景的智能助手..."</span>,
+      <span class="string">"temperature"</span>: <span class="number">0.7</span>,
+      <span class="string">"functions"</span>: [
+        {
+          <span class="string">"name"</span>: <span class="string">"scan_resume"</span>,
+          <span class="string">"description"</span>: <span class="string">"扫描并解析简历"</span>,
+          <span class="string">"parameters"</span>: {
+            <span class="string">"resumeId"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>}
+          },
+          <span class="string">"capability"</span>: <span class="string">"resume_scan"</span>
+        }
+      ]
+    },
+    <span class="string">"knowledgeConfig"</span>: {
+      <span class="string">"defaultLevel"</span>: <span class="string">"ADVANCED"</span>,
+      <span class="string">"ragEnabled"</span>: <span class="keyword">true</span>,
+      <span class="string">"knowledgeFiles"</span>: [<span class="string">"skills.md"</span>, <span class="string">"knowledge/advanced.md"</span>]
+    }
+  }
+}</div>
+                </div>
+                
+                <div class="step-card">
+                    <h3><span class="step-number">2</span>激活 Skill</h3>
+                    <p>使用 SkillActivationContext 激活你的 Skill：</p>
+                    <div class="code-block"><span class="comment">// 激活 Skill</span>
+<span class="keyword">SkillActivationContext</span> context = <span class="keyword">SkillActivationContext</span>.<span class="function">activate</span>(
+    <span class="keyword">ActivationRequest</span>.<span class="function">builder</span>()
+        .<span class="function">skillId</span>(<span class="string">"recruitment-skill"</span>)
+        .<span class="function">userId</span>(<span class="string">"user-xxx"</span>)
+        .<span class="function">roleId</span>(<span class="string">"hr-assistant"</span>)
+        .<span class="function">build</span>()
+);
+
+<span class="comment">// 获取系统提示词</span>
+<span class="keyword">String</span> systemPrompt = context.<span class="function">buildSystemPrompt</span>();
+
+<span class="comment">// 获取函数定义</span>
+<span class="keyword">List</span>&lt;<span class="keyword">Map</span>&lt;<span class="keyword">String</span>, <span class="keyword">Object</span>&gt;&gt; tools = context.<span class="function">getTools</span>();</div>
+                </div>
+                
+                <div class="step-card">
+                    <h3><span class="step-number">3</span>处理用户请求</h3>
+                    <p>当用户发送消息时，AI 助手会自动处理：</p>
+                    <div class="code-block"><span class="comment">// 用户发送消息</span>
+context.<span class="function">addUserMessage</span>(<span class="string">"请帮我筛选有 5 年 Java 经验的候选人"</span>);
+
+<span class="comment">// 调用 LLM</span>
+<span class="keyword">LlmResponse</span> response = llmProvider.<span class="function">chatWithFunctions</span>(
+    context.<span class="function">buildSystemPrompt</span>(),
+    context.<span class="function">getMessages</span>(),
+    context.<span class="function">getTools</span>()
+);
+
+<span class="comment">// 处理 Function Calling</span>
+<span class="keyword">if</span> (response.<span class="function">hasToolCalls</span>()) {
+    <span class="keyword">for</span> (<span class="keyword">ToolCall</span> toolCall : response.<span class="function">getToolCalls</span>()) {
+        <span class="comment">// 自动执行函数</span>
+        <span class="keyword">Object</span> result = context.<span class="function">executeFunction</span>(
+            toolCall.<span class="function">getName</span>(),
+            toolCall.<span class="function">getArguments</span>()
+        );
+    }
+}</div>
+                </div>
+                
+                <div class="step-card">
+                    <h3><span class="step-number">4</span>多 Agent 协作（可选）</h3>
+                    <p>如果需要多个 AI 助手协作，使用 A2A 上下文传递：</p>
+                    <div class="code-block"><span class="comment">// 简历筛选 Agent 传递上下文给面试安排 Agent</span>
+<span class="keyword">ContextTransfer</span> transfer = transferHandler.<span class="function">prepareTransfer</span>(
+    sourceContext,
+    <span class="keyword">TransferMode</span>.SELECTIVE,
+    <span class="keyword">Set</span>.<span class="function">of</span>(<span class="keyword">ContextPart</span>.USER_CONTEXT, <span class="keyword">ContextPart</span>.KNOWLEDGE_CONTEXT)
+);
+
+<span class="comment">// 面试安排 Agent 接收上下文</span>
+<span class="keyword">LlmSceneContext</span> targetContext = transferHandler.<span class="function">receiveTransfer</span>(
+    transfer,
+    targetSceneId
+);</div>
+                </div>
+            </div>
+            
+            <!-- 第三部分 -->
+            <div class="section">
+                <h2>三、进阶技巧：让你的 AI 助手更聪明</h2>
+                
+                <h3>3.1 知识库四级加载</h3>
+                <p>根据场景智能加载不同级别的知识：</p>
+                <table>
+                    <tr>
+                        <th>级别</th>
+                        <th>描述</th>
+                        <th>Token 限制</th>
+                        <th>适用场景</th>
+                    </tr>
+                    <tr>
+                        <td>BASIC</td>
+                        <td>基础知识</td>
+                        <td>~2K</td>
+                        <td>快速问答</td>
+                    </tr>
+                    <tr>
+                        <td>ADVANCED</td>
+                        <td>进阶知识</td>
+                        <td>~4K</td>
+                        <td>标准业务流程</td>
+                    </tr>
+                    <tr>
+                        <td>EXPERT</td>
+                        <td>专家知识</td>
+                        <td>~8K</td>
+                        <td>复杂问题处理</td>
+                    </tr>
+                    <tr>
+                        <td>FULL</td>
+                        <td>完整知识</td>
+                        <td>无限制</td>
+                        <td>深度分析</td>
+                    </tr>
+                </table>
+                
+                <div class="code-block"><span class="comment">// 根据场景选择加载级别</span>
+<span class="keyword">KnowledgeContext</span> knowledge = <span class="keyword">KnowledgeContext</span>.<span class="function">builder</span>()
+    .<span class="function">knowledgeBaseId</span>(<span class="string">"recruitment-kb"</span>)
+    .<span class="function">loadLevel</span>(<span class="keyword">KnowledgeLoadLevel</span>.ADVANCED)  <span class="comment">// 选择进阶级别</span>
+    .<span class="function">build</span>();</div>
+                
+                <h3>3.2 A2A 上下文传递流程</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+sequenceDiagram
+    participant A as Agent A (源)
+    participant B as A2A协议层
+    participant C as Agent B (目标)
+    
+    A->>A: 1. 选择传递模式
+    A->>A: 2. 过滤上下文部分
+    A->>A: 3. 序列化上下文
+    
+    A->>B: A2ACommand<br/>TransferMode: SELECTIVE<br/>IncludedParts: [USER, KNOWLEDGE]
+    
+    B->>C: 传输上下文
+    
+    C->>C: 1. 验证权限
+    C->>C: 2. 反序列化上下文
+    C->>C: 3. 合并到本地上下文
+    C->>C: 4. 更新运行时状态
+    
+    C-->>B: 确认接收
+    B-->>A: 传递完成
+                    </div>
+                </div>
+                
+                <h3>3.3 角色定义</h3>
+                <p>为你的 AI 助手定义专业角色：</p>
+                <div class="code-block"><span class="comment">// 定义 HR 助手角色</span>
+<span class="keyword">RoleContext</span> role = <span class="keyword">RoleContext</span>.<span class="function">builder</span>()
+    .<span class="function">roleId</span>(<span class="string">"hr-assistant"</span>)
+    .<span class="function">roleName</span>(<span class="string">"HR 助手"</span>)
+    .<span class="function">definition</span>(<span class="string">"你是招聘场景的智能助手..."</span>)
+    .<span class="function">guidelines</span>(<span class="keyword">Arrays</span>.<span class="function">asList</span>(
+        <span class="string">"熟悉招聘流程和最佳实践"</span>,
+        <span class="string">"保护候选人隐私信息"</span>,
+        <span class="string">"提供客观公正的候选人评估"</span>
+    ))
+    .<span class="function">build</span>();</div>
+                
+                <h3>3.4 记忆管理</h3>
+                <p>让 AI 助手记住对话历史：</p>
+                <div class="code-block"><span class="comment">// 创建记忆上下文</span>
+<span class="keyword">MemoryContext</span> memory = <span class="keyword">MemoryContext</span>.<span class="function">builder</span>()
+    .<span class="function">sessionId</span>(<span class="string">"session-xxx"</span>)
+    .<span class="function">maxHistoryLength</span>(<span class="number">20</span>)  <span class="comment">// 保留最近 20 条消息</span>
+    .<span class="function">build</span>();
+
+<span class="comment">// 添加消息</span>
+memory.<span class="function">addMessage</span>(<span class="string">"user"</span>, <span class="string">"请帮我筛选简历"</span>);
+memory.<span class="function">addMessage</span>(<span class="string">"assistant"</span>, <span class="string">"好的，我来处理"</span>);
+
+<span class="comment">// 获取历史</span>
+<span class="keyword">List</span>&lt;<span class="keyword">Message</span>&gt; history = memory.<span class="function">getRecentHistory</span>(<span class="number">10</span>);</div>
+            </div>
+            
+            <!-- 第四部分 -->
+            <div class="section">
+                <h2>四、完整案例：招聘管理系统</h2>
+                
+                <div class="highlight-box">
+                    <h4>🎯 案例目标</h4>
+                    <p>构建一个智能招聘管理系统，实现：</p>
+                    <ul style="margin: 10px 0; padding-left: 30px;">
+                        <li>简历智能筛选</li>
+                        <li>候选人评估</li>
+                        <li>面试安排</li>
+                        <li>自动通知</li>
+                    </ul>
+                </div>
+                
+                <h3>4.1 系统架构</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+flowchart TB
+    subgraph System["智能招聘管理系统"]
+        subgraph Agents["AI Agents"]
+            A[简历筛选 Agent]
+            B[面试安排 Agent]
+            C[通知发送 Agent]
+        end
+        
+        subgraph A2A["A2A 上下文传递"]
+            D[ContextTransfer]
+        end
+        
+        subgraph Services["业务服务"]
+            E[简历解析]
+            F[日程管理]
+            G[邮件服务]
+        end
+    end
+    
+    A <-->|A2A| D
+    B <-->|A2A| D
+    C <-->|A2A| D
+    
+    A --> E
+    B --> F
+    C --> G
+    
+    style Agents fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    style A2A fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style Services fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+                    </div>
+                </div>
+                
+                <h3>4.2 业务流程图</h3>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+flowchart TD
+    Start([用户上传简历]) --> A[简历筛选 Agent]
+    
+    A --> A1[解析简历内容]
+    A1 --> A2[提取关键信息]
+    A2 --> A3[评估匹配度]
+    
+    A3 -->|匹配度 > 0.8| B[面试安排 Agent]
+    A3 -->|匹配度 <= 0.8| End1([结束])
+    
+    B --> B1[查询可用时间]
+    B1 --> B2[安排面试]
+    B2 --> B3[预订会议室]
+    
+    B3 -->|A2A传递| C[通知发送 Agent]
+    
+    C --> C1[生成通知邮件]
+    C1 --> C2[发送给候选人]
+    C2 --> C3[记录沟通历史]
+    
+    C3 --> End2([完成])
+    
+    style Start fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style End1 fill:#ffebee,stroke:#f44336,stroke-width:2px
+    style End2 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style A fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    style B fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style C fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+                    </div>
+                </div>
+                
+                <h3>4.3 核心代码</h3>
+                <div class="code-block"><span class="comment">// 1. 初始化招聘 Skill</span>
+<span class="keyword">SkillActivationContext</span> recruitmentContext = 
+    <span class="keyword">SkillActivationContext</span>.<span class="function">activate</span>(
+        <span class="keyword">ActivationRequest</span>.<span class="function">builder</span>()
+            .<span class="function">skillId</span>(<span class="string">"recruitment-skill"</span>)
+            .<span class="function">roleId</span>(<span class="string">"hr-assistant"</span>)
+            .<span class="function">knowledgeBaseIds</span>(<span class="keyword">Arrays</span>.<span class="function">asList</span>(<span class="string">"recruitment-kb"</span>))
+            .<span class="function">build</span>()
+    );
+
+<span class="comment">// 2. 处理简历筛选请求</span>
+<span class="keyword">public</span> <span class="keyword">void</span> <span class="function">processResumeScreening</span>(<span class="keyword">String</span> resumeId) {
+    <span class="comment">// 添加用户消息</span>
+    recruitmentContext.<span class="function">addUserMessage</span>(
+        <span class="string">"请分析简历 "</span> + resumeId + <span class="string">"，评估候选人匹配度"</span>
+    );
+    
+    <span class="comment">// 调用 LLM</span>
+    <span class="keyword">LlmResponse</span> response = llmProvider.<span class="function">chatWithFunctions</span>(
+        recruitmentContext.<span class="function">buildSystemPrompt</span>(),
+        recruitmentContext.<span class="function">getMessages</span>(),
+        recruitmentContext.<span class="function">getTools</span>()
+    );
+    
+    <span class="comment">// 处理 Function Calling</span>
+    <span class="keyword">if</span> (response.<span class="function">hasToolCalls</span>()) {
+        <span class="keyword">for</span> (<span class="keyword">ToolCall</span> toolCall : response.<span class="function">getToolCalls</span>()) {
+            <span class="keyword">switch</span> (toolCall.<span class="function">getName</span>()) {
+                <span class="keyword">case</span> <span class="string">"scan_resume"</span>:
+                    <span class="keyword">ResumeResult</span> result = resumeService.<span class="function">scan</span>(
+                        toolCall.<span class="function">getArguments</span>().<span class="function">get</span>(<span class="string">"resumeId"</span>)
+                    );
+                    recruitmentContext.<span class="function">addToolResult</span>(
+                        toolCall.<span class="function">getId</span>(),
+                        result
+                    );
+                    <span class="keyword">break</span>;
+                    
+                <span class="keyword">case</span> <span class="string">"evaluate_candidate"</span>:
+                    <span class="keyword">Evaluation</span> eval = evaluationService.<span class="function">evaluate</span>(
+                        toolCall.<span class="function">getArguments</span>()
+                    );
+                    <span class="keyword">if</span> (eval.<span class="function">getScore</span>() > <span class="number">0.8</span>) {
+                        <span class="comment">// 高分候选人，传递给面试安排 Agent</span>
+                        <span class="function">transferToInterviewAgent</span>(recruitmentContext, eval);
+                    }
+                    <span class="keyword">break</span>;
+            }
+        }
+    }
+}
+
+<span class="comment">// 3. A2A 上下文传递</span>
+<span class="keyword">private</span> <span class="keyword">void</span> <span class="function">transferToInterviewAgent</span>(
+    <span class="keyword">SkillActivationContext</span> context,
+    <span class="keyword">Evaluation</span> evaluation
+) {
+    <span class="keyword">ContextTransfer</span> transfer = transferHandler.<span class="function">prepareTransfer</span>(
+        context.<span class="function">getContextId</span>(),
+        <span class="keyword">TransferMode</span>.SELECTIVE,
+        <span class="keyword">Set</span>.<span class="function">of</span>(
+            <span class="keyword">ContextPart</span>.USER_CONTEXT,
+            <span class="keyword">ContextPart</span>.KNOWLEDGE_CONTEXT,
+            <span class="keyword">ContextPart</span>.FUNCTION_CONTEXT
+        )
+    );
+    
+    <span class="comment">// 发送给面试安排 Agent</span>
+    a2aClient.<span class="function">send</span>(<span class="keyword">A2ACommand</span>.<span class="function">builder</span>()
+        .<span class="function">type</span>(<span class="keyword">A2ACommandType</span>.LLM_CONTEXT_SHARE)
+        .<span class="function">targetAgent</span>(<span class="string">"interview-agent"</span>)
+        .<span class="function">contextTransfer</span>(transfer)
+        .<span class="function">build</span>()
+    );
+}</div>
+            </div>
+            
+            <!-- 第五部分 -->
+            <div class="section">
+                <h2>五、最佳实践与注意事项</h2>
+                
+                <div class="tip-box">
+                    <h4>💡 最佳实践</h4>
+                    <ul style="margin: 10px 0; padding-left: 30px;">
+                        <li><strong>合理选择知识加载级别</strong>：根据场景选择 BASIC/ADVANCED/EXPERT/FULL</li>
+                        <li><strong>明确角色定义</strong>：为 AI 助手定义清晰的角色和行为准则</li>
+                        <li><strong>管理好对话历史</strong>：设置合理的 maxHistoryLength，避免上下文过长</li>
+                        <li><strong>使用 A2A 协作</strong>：复杂场景拆分为多个 Agent，通过 A2A 协作</li>
+                        <li><strong>监控和日志</strong>：记录关键操作，便于调试和优化</li>
+                    </ul>
+                </div>
+                
+                <div class="warning-box">
+                    <h4>⚠️ 注意事项</h4>
+                    <ul style="margin: 10px 0; padding-left: 30px;">
+                        <li><strong>敏感信息保护</strong>：不要在上下文中传递密码、Token 等敏感信息</li>
+                        <li><strong>上下文大小限制</strong>：注意 Token 限制，避免超出 LLM 的最大上下文长度</li>
+                        <li><strong>错误处理</strong>：Function Calling 可能失败，需要做好错误处理</li>
+                        <li><strong>权限控制</strong>：A2A 传递时要验证源 Agent 的身份和权限</li>
+                        <li><strong>性能优化</strong>：批量操作使用 embedBatch，减少 LLM 调用次数</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 结语 -->
+            <div class="section">
+                <h2>六、结语：开启智能应用新时代</h2>
+                
+                <div class="intro-box">
+                    <h3>🚀 从"程序"到"智能体"</h3>
+                    <p>通过 Skills-LLM 体系，你的应用程序不再是冰冷的代码，而是拥有了"理解、推理、执行"能力的智能体。</p>
+                    <p>无论是招聘管理、客户服务、数据分析，还是任何业务场景，只需要：</p>
+                    <ol style="margin: 15px 0; padding-left: 30px;">
+                        <li>定义 Skill（技能）</li>
+                        <li>配置知识库（知识）</li>
+                        <li>设定角色（人格）</li>
+                        <li>激活运行（启动）</li>
+                    </ol>
+                    <p>你的应用就拥有了一个懂业务的 AI 小助手！</p>
+                </div>
+                
+                <div class="highlight-box">
+                    <h4>📚 相关资源</h4>
+                    <ul style="margin: 10px 0; padding-left: 30px;">
+                        <li><a href="./SKILLS_LLM_ARCHITECTURE.md">Skills-LLM 体系架构设计</a></li>
+                        <li><a href="./SKILLS_LLM_COVERAGE_REPORT.md">需求覆盖度报告</a></li>
+                        <li><a href="./BLOG_A2A_CONTEXT_MANAGEMENT.md">A2A 上下文管理深度揭秘</a></li>
+                        <li><a href="../src/main/java/net/ooder/scene/llm/context">上下文管理源码</a></li>
+                    </ul>
+                </div>
+                
+                <p style="text-align: center; margin-top: 40px; font-size: 1.3em; color: #667eea;">
+                    <strong>现在，就开始给你的应用挂上懂程序的 AI 小助手吧！</strong> 🎉
+                </p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>作者：</strong>Ooder Team</p>
+            <p><strong>发布日期：</strong>2026-03-09</p>
+            <div style="margin-top: 20px;">
+                <span class="tag">#ooderAgent</span>
+                <span class="tag">#Skills-LLM</span>
+                <span class="tag">#AI助手</span>
+                <span class="tag">#实战教程</span>
+                <span class="tag">#FunctionCalling</span>
+                <span class="tag">#A2A协作</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 50,
+                diagramMarginY: 10
+            }
+        });
+    </script>
+</body>
+</html>

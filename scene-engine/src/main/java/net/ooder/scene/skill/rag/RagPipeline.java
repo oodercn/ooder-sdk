@@ -29,14 +29,17 @@ import java.util.*;
  * @since 2.3
  */
 public class RagPipeline implements RagApi {
-    
+
     private static final Logger log = LoggerFactory.getLogger(RagPipeline.class);
-    
+
     private final KnowledgeBaseService kbService;
     private final EmbeddingService embeddingService;
     private final VectorStore vectorStore;
     private final LlmGenerator generator;
-    
+
+    // 知识库配置缓存
+    private final Map<String, KnowledgeBaseConfig> knowledgeBaseConfigs = new HashMap<>();
+
     public RagPipeline(KnowledgeBaseService kbService,
                        EmbeddingService embeddingService,
                        VectorStore vectorStore,
@@ -46,43 +49,43 @@ public class RagPipeline implements RagApi {
         this.vectorStore = vectorStore;
         this.generator = generator;
     }
-    
+
     @Override
     public RagResult retrieve(RagContext context) {
         log.info("RAG retrieve: kbId={}, query={}", context.getKbId(), context.getQuery());
-        
+
         // 1. 检查知识库是否存在
         if (!kbService.exists(context.getKbId())) {
             throw new IllegalArgumentException("Knowledge base not found: " + context.getKbId());
         }
-        
+
         // 2. 向量化查询
         float[] queryVector = embeddingService.embed(context.getQuery());
-        
+
         // 3. 构建过滤条件
         Map<String, Object> filters = new HashMap<>();
         filters.put("kbId", context.getKbId());
         if (context.getFilters() != null) {
             filters.putAll(context.getFilters());
         }
-        
+
         // 4. 向量检索
         List<SearchResult> vectorResults = vectorStore.search(
             queryVector,
             context.getTopK(),
             filters
         );
-        
+
         // 5. 构建结果
         List<RagResult.RetrievedChunk> chunks = new ArrayList<>();
         for (SearchResult vr : vectorResults) {
             if (vr.getScore() < context.getThreshold()) {
                 continue;
             }
-            
+
             String docId = (String) vr.getMetadata().get("docId");
             Document doc = kbService.getDocument(context.getKbId(), docId);
-            
+
             if (doc != null) {
                 RagResult.RetrievedChunk chunk = new RagResult.RetrievedChunk();
                 chunk.setChunkId((String) vr.getMetadata().get("chunkId"));
@@ -94,29 +97,29 @@ public class RagPipeline implements RagApi {
                 chunks.add(chunk);
             }
         }
-        
+
         RagResult result = new RagResult();
         result.setQuery(context.getQuery());
         result.setChunks(chunks);
         result.setTotalFound(chunks.size());
-        
+
         log.info("RAG retrieve completed: found {} chunks", chunks.size());
         return result;
     }
-    
+
     @Override
     public String augmentPrompt(String query, RagResult result) {
         log.debug("Augmenting prompt with {} chunks", result.getChunks().size());
-        
+
         StringBuilder prompt = new StringBuilder();
-        
+
         // 添加系统提示
         prompt.append("请根据以下参考资料回答问题。如果参考资料中没有相关信息，请说明。\n\n");
-        
+
         // 添加检索到的内容
         prompt.append("参考资料：\n");
         prompt.append("---\n");
-        
+
         for (int i = 0; i < result.getChunks().size(); i++) {
             RagResult.RetrievedChunk chunk = result.getChunks().get(i);
             prompt.append("[").append(i + 1).append("] ");
@@ -124,47 +127,47 @@ public class RagPipeline implements RagApi {
             prompt.append(chunk.getContent()).append("\n");
             prompt.append("---\n");
         }
-        
+
         // 添加用户问题
         prompt.append("\n问题：").append(query).append("\n");
         prompt.append("\n请回答：");
-        
+
         return prompt.toString();
     }
-    
+
     @Override
     public String generate(String query, RagContext context) {
         log.info("RAG generate: kbId={}, query={}", context.getKbId(), query);
-        
+
         // 1. 检索相关知识
         RagResult result = retrieve(context);
-        
+
         if (result.getChunks().isEmpty()) {
             return "抱歉，在知识库中没有找到相关信息。";
         }
-        
+
         // 2. 增强提示
         String augmentedPrompt = augmentPrompt(query, result);
-        
+
         // 3. 生成回答
         String answer = generator.generate(augmentedPrompt);
-        
+
         log.info("RAG generate completed");
         return answer;
     }
-    
+
     @Override
     public RagResult hybridRetrieve(RagContext context, List<String> kbIds) {
         log.info("RAG hybrid retrieve: kbIds={}, query={}", kbIds, context.getQuery());
-        
+
         List<RagResult.RetrievedChunk> allChunks = new ArrayList<>();
-        
+
         // 从多个知识库检索
         for (String kbId : kbIds) {
             RagContext singleContext = new RagContext(context.getQuery(), kbId);
             singleContext.setTopK(context.getTopK() / kbIds.size());
             singleContext.setThreshold(context.getThreshold());
-            
+
             try {
                 RagResult result = retrieve(singleContext);
                 allChunks.addAll(result.getChunks());
@@ -172,25 +175,37 @@ public class RagPipeline implements RagApi {
                 log.warn("Failed to retrieve from kb: {}", kbId, e);
             }
         }
-        
+
         // 按分数排序
         allChunks.sort((a, b) -> Float.compare(b.getScore(), a.getScore()));
-        
+
         // 截取 topK
         if (allChunks.size() > context.getTopK()) {
             allChunks = allChunks.subList(0, context.getTopK());
         }
-        
+
         RagResult result = new RagResult();
         result.setQuery(context.getQuery());
         result.setChunks(allChunks);
         result.setTotalFound(allChunks.size());
-        
+
         return result;
     }
-    
+
+    @Override
+    public void registerKnowledgeBase(String kbId, KnowledgeBaseConfig config) {
+        log.info("Registering knowledge base: {}", kbId);
+        knowledgeBaseConfigs.put(kbId, config);
+    }
+
+    @Override
+    public void unregisterKnowledgeBase(String kbId) {
+        log.info("Unregistering knowledge base: {}", kbId);
+        knowledgeBaseConfigs.remove(kbId);
+    }
+
     // ========== 配置方法 ==========
-    
+
     /**
      * 设置检索模板
      */

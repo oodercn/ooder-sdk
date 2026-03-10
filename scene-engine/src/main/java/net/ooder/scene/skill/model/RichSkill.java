@@ -4,8 +4,11 @@ import net.ooder.scene.discovery.cache.CacheManager;
 import net.ooder.scene.skill.SkillService;
 import net.ooder.skills.api.SkillPackage;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Skill充血模型
@@ -115,10 +118,28 @@ public class RichSkill {
      * 
      * @return 依赖的RichSkill列表
      */
+    @SuppressWarnings("unchecked")
     public List<RichSkill> getDependencies() {
-        // 从DiscoveryCoordinator查询依赖的RichSkill
-        // 简化实现
-        return null;
+        if (rawPackage == null) {
+            return Collections.emptyList();
+        }
+        
+        List<String> dependencyIds = rawPackage.getDependencies();
+        if (dependencyIds == null || dependencyIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        // 使用 SkillService 查询依赖的 RichSkill
+        if (skillService != null) {
+            return dependencyIds.stream()
+                .map(skillService::findSkill)
+                .filter(Objects::nonNull)
+                .filter(obj -> obj instanceof RichSkill)
+                .map(obj -> (RichSkill) obj)
+                .collect(Collectors.toList());
+        }
+        
+        return Collections.emptyList();
     }
     
     /**

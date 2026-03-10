@@ -166,7 +166,7 @@ public class SceneActivationFlowImpl implements SceneActivationFlow {
 
                     // 启动MainFirst协作
                     if (manifest.getMainFirstScene() != null && manifest.getMainFirstScene().isMainFirst()) {
-                        MainFirstService.CollaborativeConfig collabConfig = new MainFirstService.CollaborativeConfig();
+                        net.ooder.skills.config.CollaborativeConfiguration collabConfig = new net.ooder.skills.config.CollaborativeConfiguration();
                         collabConfig.setCollaborativeCapabilityIds(collaborativeCapabilities);
                         collabConfig.setInitParams(config.getInitParams());
                         collabConfig.setAutoSyncState(true);

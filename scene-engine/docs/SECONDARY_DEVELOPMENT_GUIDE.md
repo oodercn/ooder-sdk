@@ -2254,14 +2254,1114 @@ Capability 调用 ──▶ LLM ──▶ 结果生成
 
 ---
 
-## 二十六、版本历史
+## 二十六、LLM Provider 标准实现指南
+
+### 26.1 接口定义
+
+**基础接口**: `LlmProvider`
+
+**位置**: `net.ooder.scene.skill.llm.LlmProvider`
+
+```java
+public interface LlmProvider {
+    String getProviderType();
+    List<String> getSupportedModels();
+    Map<String, Object> chat(String model, List<Map<String, Object>> messages, Map<String, Object> options);
+    String complete(String model, String prompt, Map<String, Object> options);
+    List<double[]> embed(String model, List<String> texts);
+    String translate(String model, String text, String targetLanguage, String sourceLanguage);
+    String summarize(String model, String text, int maxLength);
+    boolean supportsStreaming();
+    boolean supportsFunctionCalling();
+    void chatStream(String model, List<Map<String, Object>> messages, Map<String, Object> options, StreamHandler handler);
+}
+```
+
+**增强接口**: `EnhancedLlmProvider`
+
+**位置**: `net.ooder.scene.skill.llm.EnhancedLlmProvider`
+
+```java
+public interface EnhancedLlmProvider extends LlmProvider {
+    Map<String, Object> chatWithFunctions(String model, List<Map<String, Object>> messages, List<FunctionCall> functions, Map<String, Object> options);
+    Map<String, Object> executeFunctionCall(String model, List<Map<String, Object>> messages, String functionName, Map<String, Object> functionArgs, Object functionResult, Map<String, Object> options);
+    Map<String, Object> chatMultimodal(String model, List<Map<String, Object>> messages, Map<String, Object> options);
+    Map<String, Object> chatWithContext(String model, List<Map<String, Object>> messages, String systemPrompt, Map<String, Object> context, Map<String, Object> options);
+    List<Map<String, Object>> batchChat(List<ChatRequest> requests);
+    boolean supportsFunctionCalling(String model);
+    boolean supportsMultimodal(String model);
+    int getContextWindowSize(String model);
+    int countTokens(String model, String text);
+}
+```
+
+### 26.2 实现规范
+
+#### 26.2.1 JSON 解析规范
+
+**必须使用 fastjson 进行 JSON 解析**，禁止手动解析：
+
+```java
+// ✅ 正确：使用 fastjson
+private Map<String, Object> parseResponse(String response) {
+    Map<String, Object> result = new HashMap<>();
+    try {
+        JSONObject json = JSON.parseObject(response);
+        JSONArray choices = json.getJSONArray("choices");
+        if (choices != null && !choices.isEmpty()) {
+            JSONObject message = choices.getJSONObject(0).getJSONObject("message");
+            result.put("content", message.getString("content"));
+        }
+    } catch (Exception e) {
+        log.error("Parse response error", e);
+        result.put("error", true);
+    }
+    return result;
+}
+
+// ❌ 错误：手动解析 JSON
+private String extractJsonValue(String json, String key) {
+    // 不要这样做！
+}
+```
+
+#### 26.2.2 请求构建规范
+
+```java
+private JSONObject buildRequestBody(String model, List<Map<String, Object>> messages,
+                                     Map<String, Object> options) {
+    JSONObject body = new JSONObject();
+    body.put("model", model);
+    body.put("messages", messages);
+    
+    if (options != null) {
+        if (options.containsKey("temperature")) {
+            body.put("temperature", options.get("temperature"));
+        }
+        if (options.containsKey("max_tokens")) {
+            body.put("max_tokens", options.get("max_tokens"));
+        }
+        if (options.containsKey("tools")) {
+            body.put("tools", options.get("tools"));
+        }
+    }
+    
+    return body;
+}
+```
+
+#### 26.2.3 错误处理规范
+
+```java
+@Override
+public Map<String, Object> chat(String model, List<Map<String, Object>> messages, 
+                                 Map<String, Object> options) {
+    Map<String, Object> result = new HashMap<>();
+    
+    try {
+        JSONObject requestBody = buildRequestBody(model, messages, options);
+        String response = sendRequest(API_URL, requestBody);
+        result = parseResponse(response);
+        result.put("model", model);
+        result.put("provider", getProviderType());
+    } catch (Exception e) {
+        log.error("Chat API error", e);
+        result.put("error", true);
+        result.put("content", "Error: " + e.getMessage());
+    }
+    
+    return result;
+}
+```
+
+### 26.3 标准实现示例
+
+参考代码：[StandardLlmProviderExample.java](../src/main/java/net/ooder/scene/skill/llm/example/StandardLlmProviderExample.java)
+
+---
+
+## 二十七、Function Calling 标准实现指南
+
+### 27.1 函数定义规范
+
+```java
+// 函数参数定义
+Map<String, Object> params = new LinkedHashMap<>();
+params.put("city", createStringParam("城市名称"));
+params.put("unit", createStringParam("温度单位", Arrays.asList("celsius", "fahrenheit")));
+
+// 辅助方法
+public static Map<String, Object> createStringParam(String description) {
+    Map<String, Object> param = new LinkedHashMap<>();
+    param.put("type", "string");
+    param.put("description", description);
+    return param;
+}
+
+public static Map<String, Object> createStringParam(String description, List<String> enumValues) {
+    Map<String, Object> param = createStringParam(description);
+    param.put("enum", enumValues);
+    return param;
+}
+```
+
+### 27.2 函数注册规范
+
+```java
+// 注册函数
+functionRegistry.register("get_weather", "获取指定城市的天气信息",
+    params, Arrays.asList("city"),  // required 参数
+    arguments -> {
+        String city = (String) arguments.get("city");
+        String unit = (String) arguments.getOrDefault("unit", "celsius");
+        
+        // 执行实际业务逻辑
+        Map<String, Object> result = new HashMap<>();
+        result.put("city", city);
+        result.put("temperature", 25);
+        result.put("unit", unit);
+        return result;
+    });
+```
+
+### 27.3 LLM Tools 格式转换
+
+```java
+public List<Map<String, Object>> getToolsForLLM() {
+    List<Map<String, Object>> tools = new ArrayList<>();
+    
+    for (FunctionDefinition def : functions.values()) {
+        Map<String, Object> tool = new LinkedHashMap<>();
+        tool.put("type", "function");
+        
+        Map<String, Object> function = new LinkedHashMap<>();
+        function.put("name", def.getName());
+        function.put("description", def.getDescription());
+        
+        Map<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("type", "object");
+        parameters.put("properties", def.getParameters());
+        if (def.getRequired() != null) {
+            parameters.put("required", def.getRequired());
+        }
+        function.put("parameters", parameters);
+        
+        tool.put("function", function);
+        tools.add(tool);
+    }
+    
+    return tools;
+}
+```
+
+### 27.4 函数调用处理
+
+```java
+@SuppressWarnings("unchecked")
+public Object executeFunctionCall(Map<String, Object> toolCall) {
+    Map<String, Object> func = (Map<String, Object>) toolCall.get("function");
+    String funcName = (String) func.get("name");
+    String argsJson = (String) func.get("arguments");
+    
+    // 使用 fastjson 解析参数
+    Map<String, Object> args = new HashMap<>();
+    if (argsJson != null && !argsJson.isEmpty()) {
+        JSONObject json = JSON.parseObject(argsJson);
+        for (String key : json.keySet()) {
+            args.put(key, json.get(key));
+        }
+    }
+    
+    return executeFunction(funcName, args);
+}
+```
+
+### 27.5 标准实现示例
+
+参考代码：[FunctionCallingExample.java](../src/main/java/net/ooder/scene/skill/llm/example/FunctionCallingExample.java)
+
+---
+
+## 二十八、应用端集成最佳实践
+
+### 28.1 Controller 层设计
+
+```java
+@RestController
+@RequestMapping("/api/llm")
+public class LlmController {
+    
+    private final Map<String, LlmProvider> providers = new ConcurrentHashMap<>();
+    private final FunctionRegistry functionRegistry = new FunctionRegistry();
+    
+    // 使用有界线程池
+    private final ExecutorService executor = new ThreadPoolExecutor(
+        4, 16, 60L, TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(100),
+        new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+    
+    @PostMapping("/chat")
+    public ResultModel<ChatResponseDTO> chat(@RequestBody @Valid ChatRequestDTO request) {
+        String providerType = request.getProvider() != null ? 
+            request.getProvider() : defaultProvider;
+        String model = request.getModel() != null ? 
+            request.getModel() : defaultModel;
+        
+        LlmProvider provider = providers.get(providerType);
+        if (provider == null) {
+            return ResultModel.error(503, "Provider not available");
+        }
+        
+        try {
+            List<Map<String, Object>> messages = buildMessages(request);
+            Map<String, Object> options = buildOptions(request);
+            
+            // 添加 Function Calling 支持
+            if (provider.supportsFunctionCalling() && request.isEnableFunctions()) {
+                List<FunctionCall> functions = functionRegistry.getFunctionCalls();
+                Map<String, Object> result = provider.chatWithFunctions(
+                    model, messages, functions, options);
+                return handleChatResult(result, model, providerType);
+            } else {
+                Map<String, Object> result = provider.chat(model, messages, options);
+                return handleChatResult(result, model, providerType);
+            }
+        } catch (Exception e) {
+            log.error("Chat error", e);
+            return ResultModel.error(500, "Chat failed: " + e.getMessage());
+        }
+    }
+    
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+```
+
+### 28.2 会话历史管理
+
+```java
+public class ConversationManager {
+    private final Map<String, List<Map<String, Object>>> conversations = 
+        new ConcurrentHashMap<>();
+    private final int maxHistoryLength = 50;
+    
+    public void addMessage(String conversationId, Map<String, Object> message) {
+        List<Map<String, Object>> history = conversations.computeIfAbsent(
+            conversationId, k -> new ArrayList<>());
+        history.add(message);
+        
+        // 限制历史长度
+        if (history.size() > maxHistoryLength) {
+            history.remove(0);
+        }
+    }
+    
+    public List<Map<String, Object>> getHistory(String conversationId) {
+        return new ArrayList<>(conversations.getOrDefault(
+            conversationId, Collections.emptyList()));
+    }
+    
+    public void clearHistory(String conversationId) {
+        conversations.remove(conversationId);
+    }
+}
+```
+
+### 28.3 系统提示词配置
+
+```yaml
+# application.yml
+ooder:
+  llm:
+    provider: deepseek
+    model: deepseek-chat
+    sse-timeout: 180000
+    system-prompt: |
+      你是Ooder场景技能平台的智能助手。
+      你的职责是帮助用户管理场景、发现和安装能力、配置场景参数。
+      请用简洁专业的中文回复。
+```
+
+```java
+@Value("${ooder.llm.system-prompt:#{null}}")
+private String configSystemPrompt;
+
+private String getSystemPrompt() {
+    return configSystemPrompt != null ? configSystemPrompt : DEFAULT_SYSTEM_PROMPT;
+}
+```
+
+### 28.4 标准实现示例
+
+参考代码：[LlmControllerExample.java](../src/main/java/net/ooder/scene/skill/llm/example/LlmControllerExample.java)
+
+---
+
+## 二十九、常见问题与解决方案
+
+### Q1: JSON 解析失败如何处理？
+
+**问题**：手动解析 JSON 容易出错，特别是嵌套结构和特殊字符。
+
+**解决方案**：统一使用 fastjson 解析：
+
+```java
+// 使用 fastjson 安全解析
+try {
+    JSONObject json = JSON.parseObject(response);
+    // 处理逻辑
+} catch (Exception e) {
+    log.error("JSON parse error", e);
+    // 返回错误响应
+}
+```
+
+### Q2: Function Calling 结果如何处理？
+
+**问题**：LLM 返回的 tool_calls 需要正确解析和执行。
+
+**解决方案**：
+
+```java
+if (result.containsKey("tool_calls")) {
+    List<Map<String, Object>> toolCalls = 
+        (List<Map<String, Object>>) result.get("tool_calls");
+    
+    for (Map<String, Object> toolCall : toolCalls) {
+        Map<String, Object> func = (Map<String, Object>) toolCall.get("function");
+        String funcName = (String) func.get("name");
+        String argsJson = (String) func.get("arguments");
+        
+        Map<String, Object> args = JSON.parseObject(argsJson, 
+            new TypeReference<Map<String, Object>>() {});
+        
+        Object funcResult = functionRegistry.execute(funcName, args);
+        // 处理结果...
+    }
+}
+```
+
+### Q3: 线程池如何正确配置？
+
+**问题**：CachedThreadPool 无上限，可能导致资源耗尽。
+
+**解决方案**：
+
+```java
+// 推荐配置
+private final ExecutorService executor = new ThreadPoolExecutor(
+    4,                          // 核心线程数
+    16,                         // 最大线程数
+    60L, TimeUnit.SECONDS,      // 空闲线程存活时间
+    new LinkedBlockingQueue<>(100),  // 有界队列
+    new ThreadPoolExecutor.CallerRunsPolicy()  // 拒绝策略
+);
+
+// 优雅关闭
+@PreDestroy
+public void shutdown() {
+    executor.shutdown();
+    try {
+        if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+            executor.shutdownNow();
+        }
+    } catch (InterruptedException e) {
+        executor.shutdownNow();
+        Thread.currentThread().interrupt();
+    }
+}
+```
+
+### Q4: 如何支持多轮对话上下文？
+
+**问题**：ChatRequestDTO 有 history 字段但未使用。
+
+**解决方案**：
+
+```java
+private List<Map<String, Object>> buildMessages(ChatRequestDTO request) {
+    List<Map<String, Object>> messages = new ArrayList<>();
+    
+    // 添加系统提示
+    if (request.getSystemPrompt() != null) {
+        Map<String, Object> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", request.getSystemPrompt());
+        messages.add(systemMessage);
+    }
+    
+    // 添加历史消息
+    if (request.getHistory() != null && !request.getHistory().isEmpty()) {
+        messages.addAll(request.getHistory());
+    }
+    
+    // 添加用户消息
+    Map<String, Object> userMessage = new HashMap<>();
+    userMessage.put("role", "user");
+    userMessage.put("content", request.getMessage());
+    messages.add(userMessage);
+    
+    return messages;
+}
+```
+
+### Q5: Provider 不可用时如何降级？
+
+**问题**：LLM 服务不可用时系统完全失效。
+
+**解决方案**：
+
+```java
+public Map<String, Object> chat(String model, List<Map<String, Object>> messages,
+                                 Map<String, Object> options) {
+    LlmProvider provider = providers.get(currentProviderType);
+    
+    if (provider != null) {
+        try {
+            return provider.chat(model, messages, options);
+        } catch (Exception e) {
+            log.warn("Primary provider failed, trying fallback", e);
+        }
+    }
+    
+    // 降级到 Mock Provider
+    if (mockEnabled) {
+        return getMockResponse(messages);
+    }
+    
+    // 返回错误
+    Map<String, Object> error = new HashMap<>();
+    error.put("error", true);
+    error.put("content", "No LLM provider available");
+    return error;
+}
+```
+
+---
+
+## 三十、版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| 2.3.1 | 2026-03-09 | 新增 LLM Provider 标准实现指南、Function Calling 标准实现指南、应用端集成最佳实践、常见问题与解决方案 |
 | 2.3.1 | 2026-03-07 | 新增 MVEL 规则引擎 API、决策引擎 API、LLM 规则生成器 API、知识能力 API、增强型 LLM Provider API；场景技能分类体系修订；新增 LLM 与场景技能集成；新增知识库分层架构 |
 | 2.3 | 2026-03-06 | 新增知识库管理、向量存储、RAG Pipeline、用户知识贡献、权限管理、知识分享、批量导入、Function Calling、多轮对话 |
 
 ---
 
+---
+
+## 三十一、动态 LLM 驱动设计
+
+### 31.1 问题背景
+
+当前应用层实现中，系统提示词和 Function 定义是硬编码的：
+
+```java
+// 硬编码问题示例
+private static final String SYSTEM_PROMPT = "你是Ooder场景技能平台的智能助手...";
+
+private void initFunctions() {
+    functionRegistry.register("start_scan", "开始扫描发现能力", params, args -> {
+        // 硬编码的执行逻辑
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        return result;
+    });
+}
+```
+
+**问题**：
+1. 不同 Skill 需要不同的系统提示词，无法动态切换
+2. 函数定义硬编码，新增功能需要修改代码
+3. 无法支持多 Skill 场景
+
+### 31.2 动态驱动架构
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    SkillLlmDriver (动态加载器)                       │
+├─────────────────────────────────────────────────────────────────────┤
+│  输入: SkillPackage.metadata                                       │
+│  输出: SkillLlmConfig                                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  + getSystemPrompt(skillId) -> String                              │
+│  + getFunctions(skillId) -> List<FunctionDefinition>               │
+│  + getFunctionCalls(skillId) -> List<FunctionCall>                 │
+│  + executeFunction(skillId, funcName, args) -> Object              │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Skill 元数据结构 (skill.json)                     │
+├─────────────────────────────────────────────────────────────────────┤
+│  {                                                                 │
+│    "skillId": "recruitment-skill",                                 │
+│    "name": "招聘助手",                                              │
+│    "metadata": {                                                   │
+│      "llmConfig": {                                                │
+│        "systemPrompt": "你是招聘场景的智能助手...",                  │
+│        "temperature": 0.7,                                         │
+│        "maxTokens": 2000,                                          │
+│        "functions": [                                              │
+│          {                                                         │
+│            "name": "scan_resume",                                  │
+│            "description": "扫描并解析简历",                         │
+│            "parameters": {                                         │
+│              "resumeId": {"type": "string", "description": "简历ID"}│
+│            },                                                      │
+│            "required": ["resumeId"],                               │
+│            "capability": "resume_scan"                            │
+│          }                                                         │
+│        ]                                                           │
+│      },                                                            │
+│      "sceneCapabilities": [...]                                    │
+│    }                                                               │
+│  }                                                                 │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 31.3 核心组件
+
+#### 31.3.1 SkillLlmConfig
+
+```java
+public class SkillLlmConfig {
+    private String skillId;
+    private String systemPrompt;
+    private Double temperature;
+    private Integer maxTokens;
+    private String defaultModel;
+    private String defaultProvider;
+    private List<FunctionDefinition> functions;
+    private List<CapabilityMapping> capabilityMappings;
+    private Map<String, Object> extendedConfig;
+}
+```
+
+#### 31.3.2 SkillLlmDriver
+
+```java
+public class SkillLlmDriver {
+    // 从 SkillPackage 加载配置
+    public SkillLlmConfig loadConfig(Object skillPackage);
+    
+    // 获取系统提示词
+    public String getSystemPrompt(String skillId);
+    
+    // 获取函数定义
+    public List<FunctionDefinition> getFunctions(String skillId);
+    
+    // 获取 LLM 可用的函数调用
+    public List<FunctionCall> getFunctionCalls(String skillId);
+    
+    // 注册函数执行器
+    public void registerFunctionExecutor(String skillId, String funcName, FunctionExecutor executor);
+    
+    // 执行函数
+    public Object executeFunction(String skillId, String funcName, 
+                                   Map<String, Object> args, ExecutionContext context);
+}
+```
+
+#### 31.3.3 DynamicLlmController
+
+```java
+public class DynamicLlmController {
+    private final SkillLlmDriver llmDriver;
+    
+    // 动态聊天接口
+    public ChatResponse chat(ChatRequest request) {
+        String skillId = request.getSkillId();
+        SkillLlmConfig config = llmDriver.getLlmConfig(skillId);
+        
+        // 动态获取系统提示词
+        String systemPrompt = config.getSystemPrompt();
+        
+        // 动态获取函数定义
+        List<FunctionCall> functions = llmDriver.getFunctionCalls(skillId);
+        
+        // 调用 LLM
+        return provider.chatWithFunctions(model, messages, functions, options);
+    }
+}
+```
+
+### 31.4 使用示例
+
+#### 31.4.1 配置 Skill 元数据
+
+```json
+{
+  "skillId": "recruitment-skill",
+  "name": "招聘助手",
+  "metadata": {
+    "llmConfig": {
+      "systemPrompt": "你是招聘场景的智能助手，帮助HR筛选简历和安排面试。",
+      "temperature": 0.7,
+      "maxTokens": 2000,
+      "functions": [
+        {
+          "name": "scan_resume",
+          "description": "扫描并解析简历",
+          "parameters": {
+            "resumeId": {"type": "string", "description": "简历ID"}
+          },
+          "required": ["resumeId"],
+          "capability": "resume_scan"
+        },
+        {
+          "name": "schedule_interview",
+          "description": "安排面试",
+          "parameters": {
+            "candidateId": {"type": "string", "description": "候选人ID"},
+            "interviewerId": {"type": "string", "description": "面试官ID"},
+            "time": {"type": "string", "description": "面试时间"}
+          },
+          "required": ["candidateId", "interviewId", "time"],
+          "capability": "schedule_interview"
+        }
+      ]
+    }
+  }
+}
+```
+
+#### 31.4.2 应用层集成
+
+```java
+// 初始化
+SkillLlmDriver driver = new SkillLlmProvider().createDriver();
+DynamicLlmController controller = new DynamicLlmController(driver);
+
+// 加载 Skill 配置
+SkillPackage skillPackage = skillRegistry.getSkill("recruitment-skill");
+controller.loadSkillConfig(skillPackage);
+
+// 注册函数执行器（执行逻辑由应用层实现）
+controller.registerFunctionExecutor("recruitment-skill", "scan_resume", (args, ctx) -> {
+    String resumeId = (String) args.get("resumeId");
+    return resumeService.scan(resumeId);
+});
+
+controller.registerFunctionExecutor("recruitment-skill", "schedule_interview", (args, ctx) -> {
+    return interviewService.schedule(
+        (String) args.get("candidateId"),
+        (String) args.get("interviewId"),
+        (String) args.get("time")
+    );
+});
+
+// 处理聊天请求
+ChatRequest request = new ChatRequest();
+request.setSkillId("recruitment-skill");
+request.setMessage("请帮我扫描简历 RESUME-001");
+
+ChatResponse response = controller.chat(request);
+```
+
+### 31.5 架构优势
+
+| 特性 | 硬编码方式 | 动态驱动方式 |
+|------|-----------|-------------|
+| 系统提示词 | 固定，修改需改代码 | 可配置，每个 Skill 可不同 |
+| 函数定义 | 硬编码，扩展困难 | 动态加载，扩展灵活 |
+| 多 Skill 支持 | 需大量 if-else 判断 | 自动适配不同 Skill |
+| 版本管理 | 无法支持版本差异 | 不同版本可配置不同 LLM 行为 |
+| 部署灵活性 | 需重新部署 | 热更新配置即可 |
+
+### 31.6 扩展点
+
+1. **Capability 映射**：将 LLM 函数映射到具体的 Capability 执行
+2. **参数转换**：支持 LLM 参数到 Capability 参数的转换
+3. **权限控制**：基于 Skill 配置控制函数调用权限
+4. **多轮对话**：支持上下文管理和历史记录
+
+### 31.7 核心组件详解
+
+#### 31.7.1 SkillLlmConfig
+
+配置模型，从 Skill 元数据中提取的 LLM 驱动配置：
+
+```java
+public class SkillLlmConfig {
+    private String skillId;
+    private String systemPrompt;        // 动态系统提示词
+    private Double temperature;          // 温度参数
+    private Integer maxTokens;           // 最大 Token 数
+    private String defaultModel;         // 默认模型
+    private String defaultProvider;      // 默认 Provider
+    private List<FunctionDefinition> functions;  // 函数定义列表
+    private List<CapabilityMapping> capabilityMappings;  // 能力映射
+}
+```
+
+#### 31.7.2 SkillLlmDriver
+
+动态驱动器，负责加载配置和执行函数：
+
+```java
+public class SkillLlmDriver {
+    // 从 SkillPackage 加载配置
+    public SkillLlmConfig loadConfig(Object skillPackage);
+    
+    // 获取系统提示词
+    public String getSystemPrompt(String skillId);
+    
+    // 获取函数定义（用于 LLM API）
+    public List<FunctionCall> getFunctionCalls(String skillId);
+    
+    // 注册函数执行器
+    public void registerFunctionExecutor(String skillId, String funcName, FunctionExecutor executor);
+    
+    // 执行函数
+    public Object executeFunction(String skillId, String funcName, 
+                                   Map<String, Object> args, ExecutionContext context);
+}
+```
+
+#### 31.7.3 SkillFunctionExecutor
+
+函数执行器，将 LLM 函数映射到 Skill Capability：
+
+```java
+public class SkillFunctionExecutor {
+    // 注册函数到 Capability 的映射
+    public void registerMapping(String skillId, FunctionDefinition function);
+    
+    // 执行函数调用（自动映射到 Capability）
+    public Object execute(String skillId, String functionName, 
+                          Map<String, Object> arguments, ExecutionContext context);
+}
+```
+
+#### 31.7.4 SkillLlmDriverFactory
+
+工厂类，简化驱动器创建和配置：
+
+```java
+public class SkillLlmDriverFactory {
+    // 设置 SkillSDKAdapter
+    public SkillLlmDriverFactory withSkillSDKAdapter(SkillSDKAdapter adapter);
+    
+    // 设置默认 Provider
+    public SkillLlmDriverFactory withDefaultProvider(String provider);
+    
+    // 设置默认 Model
+    public SkillLlmDriverFactory withDefaultModel(String model);
+    
+    // 创建驱动器
+    public SkillLlmDriver createDriver();
+    
+    // 自动注册函数执行器
+    public void registerFunctionExecutors(SkillLlmDriver driver, Object skillPackage);
+}
+```
+
+### 31.8 完整集成示例
+
+```java
+// 1. 创建工厂
+SkillLlmDriverFactory factory = new SkillLlmDriverFactory()
+    .withSkillSDKAdapter(skillSDKAdapter)
+    .withDefaultProvider("deepseek")
+    .withDefaultModel("deepseek-chat");
+
+// 2. 创建驱动器
+SkillLlmDriver driver = factory.createDriver();
+
+// 3. 加载 Skill 配置
+SkillPackage skillPackage = skillRegistry.getSkill("recruitment-skill");
+driver.loadConfig(skillPackage);
+
+// 4. 自动注册函数执行器（映射到 Capability）
+factory.registerFunctionExecutors(driver, skillPackage);
+
+// 5. 处理聊天请求
+ChatRequest request = new ChatRequest();
+request.setSkillId("recruitment-skill");
+request.setMessage("请帮我扫描简历 RESUME-001");
+
+// 6. 获取动态配置
+String systemPrompt = driver.getSystemPrompt("recruitment-skill");
+List<FunctionCall> functions = driver.getFunctionCalls("recruitment-skill");
+
+// 7. 调用 LLM
+Map<String, Object> result = provider.chatWithFunctions(model, messages, functions, options);
+
+// 8. 处理 Function Calling 结果
+if (result.containsKey("tool_calls")) {
+    for (Map<String, Object> toolCall : (List<Map<String, Object>>) result.get("tool_calls")) {
+        String funcName = ((Map<String, Object>) toolCall.get("function")).get("name");
+        Map<String, Object> args = JSON.parseObject(
+            (String) ((Map<String, Object>) toolCall.get("function")).get("arguments"),
+            new TypeReference<Map<String, Object>>() {});
+        
+        // 执行函数（自动映射到 Capability）
+        Object funcResult = driver.executeFunction(skillId, funcName, args, context);
+    }
+}
+```
+
+### 31.9 迁移指南
+
+从硬编码方式迁移到动态驱动方式：
+
+| 步骤 | 硬编码方式 | 动态驱动方式 |
+|------|-----------|-------------|
+| 1. 系统提示词 | `private static final String SYSTEM_PROMPT = "..."` | `driver.getSystemPrompt(skillId)` |
+| 2. 函数定义 | `functionRegistry.register("name", "desc", params, executor)` | 从 `metadata.llmConfig.functions` 自动加载 |
+| 3. 函数执行 | 硬编码执行逻辑 | 自动映射到 `Capability` 执行 |
+| 4. 多 Skill 支持 | 需要 if-else 判断 | 自动适配不同 Skill |
+
+### 31.10 前端 JavaScript 集成
+
+前端 JavaScript 应用通过 REST API 调用后端服务，实现函数到 Capability 的自动映射。
+
+#### 31.10.1 架构设计
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        前端 JavaScript                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  SkillLlmDriver SDK                                                │
+│  - loadSkillConfig(skillId)      加载 Skill 配置                   │
+│  - getSystemPrompt(skillId)      获取系统提示词                     │
+│  - getFunctions(skillId)         获取函数定义                       │
+│  - executeFunction(skillId, fn, args)  执行函数（自动映射 Capability）│
+├─────────────────────────────────────────────────────────────────────┤
+│                          REST API 调用                              │
+│  POST /api/skill/{skillId}/llm/config    获取 LLM 配置             │
+│  POST /api/skill/{skillId}/capability    调用 Capability           │
+│  POST /api/llm/chat                      LLM 对话                  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### 31.10.2 函数到 Capability 映射规则
+
+```javascript
+// 函数定义中指定 capability 字段
+{
+  "name": "scan_resume",
+  "capability": "resume_scan",  // 映射到此 Capability
+  "parameters": {...}
+}
+
+// 调用流程
+// 1. LLM 返回 function_call: { name: "scan_resume", arguments: {...} }
+// 2. SDK 查找映射: scan_resume -> resume_scan
+// 3. SDK 调用: POST /api/skill/{skillId}/capability { capability: "resume_scan", params: {...} }
+```
+
+#### 31.10.3 完整使用示例
+
+```javascript
+// 初始化
+const driver = new SkillLlmDriver({ baseUrl: 'https://api.example.com' });
+const chatClient = new LlmChatClient(driver);
+
+// 加载 Skill 配置
+await driver.loadSkillConfig('recruitment-skill');
+
+// 发送聊天
+const response = await chatClient.chat({
+  skillId: 'recruitment-skill',
+  message: '请帮我扫描简历 RESUME-001'
+});
+
+// 处理响应
+console.log('回复:', response.content);
+if (response.actions) {
+  console.log('执行的动作:', response.actions);
+}
+```
+
+#### 31.10.4 后端 API 要求
+
+应用层需要实现以下 REST API：
+
+| API | 方法 | 说明 |
+|-----|------|------|
+| `/api/skill/{skillId}/llm/config` | GET | 获取 Skill LLM 配置 |
+| `/api/skill/{skillId}/capability` | POST | 调用 Capability |
+| `/api/llm/chat` | POST | LLM 对话 |
+
+详细文档请参考：[JavaScript SDK 开发配置说明](./JAVASCRIPT_SDK_GUIDE.md)
+
+### 31.11 参考代码
+
+| 文件 | 说明 |
+|------|------|
+| [SkillLlmConfig.java](../src/main/java/net/ooder/scene/skill/llm/driver/SkillLlmConfig.java) | Skill LLM 配置模型 |
+| [SkillLlmDriver.java](../src/main/java/net/ooder/scene/skill/llm/driver/SkillLlmDriver.java) | 动态 LLM 驱动器 |
+| [SkillFunctionExecutor.java](../src/main/java/net/ooder/scene/skill/llm/driver/SkillFunctionExecutor.java) | 函数执行器 |
+| [SkillLlmDriverFactory.java](../src/main/java/net/ooder/scene/skill/llm/driver/SkillLlmDriverFactory.java) | 驱动器工厂 |
+| [DynamicLlmController.java](../src/main/java/net/ooder/scene/skill/llm/driver/DynamicLlmController.java) | 动态 LLM 控制器示例 |
+| [IntegrationExample.java](../src/main/java/net/ooder/scene/skill/llm/driver/IntegrationExample.java) | 完整集成示例 |
+| [JAVASCRIPT_SDK_GUIDE.md](./JAVASCRIPT_SDK_GUIDE.md) | JavaScript SDK 开发配置说明 |
+
+---
+
+## 三十二、Skills-LLM 体系架构
+
+### 32.1 核心设计理念
+
+Skills-LLM 体系解决以下核心问题：
+
+| 问题 | 解决方案 |
+|------|----------|
+| Function Calling 注入 | 激活 Skill 时自动注入函数定义到上下文 |
+| 知识库多级加载 | skills.md 支持 BASIC/ADVANCED/EXPERT/FULL 四级加载 |
+| 页面上下文重组 | 角色 + 知识库 + Skill + 记忆 自动组装运行时上下文 |
+| A2A 上下文传递 | 定义默认传递规则，支持四种传递模式 |
+
+### 32.2 架构层次
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Skills-LLM 体系架构                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  用户界面层: 角色选择 | 知识库选择 | Skill选择 | 会话管理           │
+├─────────────────────────────────────────────────────────────────────┤
+│  上下文重组层: RoleContext + KnowledgeContext + FunctionContext    │
+├─────────────────────────────────────────────────────────────────────┤
+│  A2A 传输层: ContextTransfer (FULL | REFERENCE | DELTA | SELECTIVE) │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 32.3 Skill 激活时注入 Function Calling
+
+```java
+// 激活 Skill 时自动加载函数定义
+SkillActivationContext context = SkillActivationContext.activate(
+    ActivationRequest.builder()
+        .skillId("recruitment-skill")
+        .userId("user-xxx")
+        .roleId("hr-assistant")
+        .build()
+);
+
+// 函数定义自动注入到上下文
+List<Map<String, Object>> tools = context.getFunctionContext().toTools();
+```
+
+### 32.4 知识库多级加载
+
+```java
+// 四级加载
+public enum KnowledgeLoadLevel {
+    BASIC(1, "基础知识", 2048),      // ~2K tokens
+    ADVANCED(2, "进阶知识", 4096),    // ~4K tokens
+    EXPERT(3, "专家知识", 8192),      // ~8K tokens
+    FULL(4, "完整知识", -1);          // 无限制
+}
+
+// 加载知识
+KnowledgeContext knowledge = KnowledgeContext.load(
+    "recruitment-skill", 
+    KnowledgeLoadLevel.ADVANCED
+);
+```
+
+### 32.5 页面上下文重组
+
+```java
+// 用户打开页面时重组上下文
+LlmRuntimeContext context = LlmRuntimeContext.assemble(
+    AssemblyRequest.builder()
+        .userId("user-xxx")
+        .roleId("hr-assistant")
+        .knowledgeBaseIds(["kb-xxx"])
+        .skillId("recruitment-skill")
+        .sessionId("sess-xxx")
+        .build()
+);
+
+// 组装后的上下文
+// - systemPrompt: 角色定义 + 知识库内容
+// - tools: 函数定义列表
+// - messages: 对话历史
+```
+
+### 32.6 A2A 默认上下文传递
+
+```java
+// 默认传递配置
+A2AContextTransferConfig config = new A2AContextTransferConfig();
+config.setDefaultMode(TransferMode.SELECTIVE);
+config.setDefaultIncludedParts(Set.of(
+    ContextPart.USER_CONTEXT,        // 用户身份
+    ContextPart.KNOWLEDGE_CONTEXT,   // 知识库引用
+    ContextPart.FUNCTION_CONTEXT,    // 函数定义
+    ContextPart.MEMORY_CONTEXT       // 对话记忆
+));
+
+// 准备传递
+ContextTransfer transfer = transferHandler.prepareTransfer(
+    sourceContextId,
+    TransferMode.SELECTIVE,
+    null  // 使用默认配置
+);
+```
+
+### 32.7 详细文档
+
+完整架构设计请参考：[Skills-LLM 体系架构设计](./SKILLS_LLM_ARCHITECTURE.md)
+
+### 32.8 核心实现类
+
+| 类 | 文件 | 说明 |
+|----|------|------|
+| SkillActivationContext | [SkillActivationContext.java](../src/main/java/net/ooder/scene/llm/context/SkillActivationContext.java) | Skill 激活上下文，管理激活时的完整上下文 |
+| FunctionContext | [FunctionContext.java](../src/main/java/net/ooder/scene/llm/context/FunctionContext.java) | 函数定义上下文，管理 Function Calling |
+| RoleContext | [RoleContext.java](../src/main/java/net/ooder/scene/llm/context/RoleContext.java) | 角色上下文，定义 AI 助手角色和行为 |
+| MemoryContext | [MemoryContext.java](../src/main/java/net/ooder/scene/llm/context/MemoryContext.java) | 记忆上下文，管理对话历史 |
+| KnowledgeContext | [KnowledgeContext.java](../src/main/java/net/ooder/scene/llm/context/KnowledgeContext.java) | 知识库上下文，支持多级加载 |
+
+### 32.9 使用示例
+
+```java
+// 1. 激活 Skill
+SkillActivationContext context = SkillActivationContext.activate(
+    SkillActivationContext.ActivationRequest.builder()
+        .skillId("recruitment-skill")
+        .userId("user-xxx")
+        .roleId("hr-assistant")
+        .knowledgeBaseIds(Arrays.asList("kb-001"))
+        .build()
+);
+
+// 2. 获取系统提示词（角色 + 知识）
+String systemPrompt = context.buildSystemPrompt();
+
+// 3. 获取函数定义
+List<Map<String, Object>> tools = context.getTools();
+
+// 4. 获取消息历史
+List<Map<String, Object>> messages = context.getMessages();
+
+// 5. 执行函数调用
+Map<String, Object> args = new HashMap<>();
+args.put("resumeId", "RESUME-001");
+Object result = context.executeFunction("scan_resume", args);
+```
+
+### 32.10 需求覆盖度
+
+详细覆盖度报告请参考：[Skills-LLM 体系需求覆盖度报告](./SKILLS_LLM_COVERAGE_REPORT.md)
+
+---
+
 **文档维护**: Ooder Team  
-**最后更新**: 2026-03-07
+**最后更新**: 2026-03-09

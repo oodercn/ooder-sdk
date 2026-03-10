@@ -85,7 +85,7 @@ public interface MainFirstService {
      * @param config 协作配置
      * @return 协作启动结果
      */
-    CompletableFuture<CollaborationResult> startCollaboration(String capabilityId, CollaborativeConfig config);
+    CompletableFuture<CollaborationResult> startCollaboration(String capabilityId, net.ooder.skills.config.CollaborativeConfiguration config);
     
     /**
      * 停止协作

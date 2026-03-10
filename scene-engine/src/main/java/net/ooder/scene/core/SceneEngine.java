@@ -2,6 +2,10 @@ package net.ooder.scene.core;
 
 import net.ooder.scene.engine.EngineStatus;
 import net.ooder.scene.session.SessionInfo;
+import net.ooder.scene.skill.SkillService;
+import net.ooder.scene.provider.SceneProvider;
+import net.ooder.scene.provider.UserSettingsProvider;
+import net.ooder.scene.provider.HeartbeatProvider;
 
 /**
  * SceneEngine 核心入口接口
@@ -18,7 +22,7 @@ import net.ooder.scene.session.SessionInfo;
  * </ul>
  * 
  * @author Ooder Team
- * @version 0.7.3
+ * @version 2.3.1
  */
 public interface SceneEngine {
 
@@ -113,4 +117,83 @@ public interface SceneEngine {
      * @return 引擎版本
      */
     String getVersion();
+
+    /**
+     * 检查引擎是否运行中
+     * @return true 如果引擎正在运行
+     */
+    boolean isRunning();
+
+    /**
+     * 获取服务
+     * @param serviceType 服务类型
+     * @return 服务实例
+     */
+    <T> T getService(Class<T> serviceType);
+
+    /**
+     * 获取服务
+     * @param serviceId 服务ID
+     * @param serviceType 服务类型
+     * @return 服务实例
+     */
+    <T> T getService(String serviceId, Class<T> serviceType);
+
+    /**
+     * 执行命令
+     * @param command 命令
+     * @param args 参数
+     * @return 执行结果
+     */
+    Object execute(String command, Object... args);
+
+    /**
+     * 注册能力
+     * @param capabilityId 能力ID
+     * @param capability 能力实例
+     */
+    void registerCapability(String capabilityId, Object capability);
+
+    /**
+     * 注销能力
+     * @param capabilityId 能力ID
+     */
+    void unregisterCapability(String capabilityId);
+
+    /**
+     * 检查是否有指定能力
+     * @param capabilityId 能力ID
+     * @return true 如果存在
+     */
+    boolean hasCapability(String capabilityId);
+
+    /**
+     * 获取引擎配置
+     * @return 引擎配置
+     */
+    SceneEngineConfig getConfig();
+
+    /**
+     * 获取 Skill 服务
+     * @return SkillService 实例
+     */
+    SkillService getSkillService();
+
+    /**
+     * 获取场景提供者
+     * @return SceneProvider 实例
+     */
+    SceneProvider getSceneProvider();
+
+    /**
+     * 获取用户设置提供者
+     * @return UserSettingsProvider 实例
+     */
+    UserSettingsProvider getUserSettingsProvider();
+
+    /**
+     * 获取心跳提供者
+     * @return HeartbeatProvider 实例
+     */
+    HeartbeatProvider getHeartbeatProvider();
 }

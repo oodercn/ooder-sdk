@@ -1,91 +1,89 @@
 package net.ooder.scene.skill.tool;
 
+import java.util.Map;
+
 /**
  * 工具执行结果
  *
- * @author ooder
- * @since 2.3
+ * @author Ooder Team
+ * @version 2.3.1
  */
 public class ToolResult {
-    
+
     private boolean success;
-    private Object data;
-    private String errorMessage;
-    private String errorCode;
-    private long executionTime;
-    
-    public ToolResult() {
+    private String message;
+    private Map<String, Object> data;
+
+    public ToolResult() {}
+
+    public ToolResult(boolean success, String message) {
+        this.success = success;
+        this.message = message;
     }
-    
-    public static ToolResult success(Object data) {
+
+    public ToolResult(boolean success, String message, Map<String, Object> data) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+    }
+
+    public static ToolResult success(Map<String, Object> data) {
         ToolResult result = new ToolResult();
-        result.setSuccess(true);
-        result.setData(data);
+        result.success = true;
+        result.data = data;
         return result;
     }
-    
-    public static ToolResult failure(String errorMessage) {
+
+    public static ToolResult error(String message) {
         ToolResult result = new ToolResult();
-        result.setSuccess(false);
-        result.setErrorMessage(errorMessage);
+        result.success = false;
+        result.message = message;
         return result;
     }
-    
-    public static ToolResult failure(String errorCode, String errorMessage) {
+
+    public static ToolResult failure(String code, String message) {
         ToolResult result = new ToolResult();
-        result.setSuccess(false);
-        result.setErrorCode(errorCode);
-        result.setErrorMessage(errorMessage);
+        result.success = false;
+        result.message = message;
+        if (result.data == null) {
+            result.data = new java.util.HashMap<>();
+        }
+        result.data.put("code", code);
+        result.data.put("error", message);
         return result;
     }
-    
+
+    public String asText() {
+        if (data != null && data.containsKey("text")) {
+            return (String) data.get("text");
+        }
+        if (data != null && data.containsKey("content")) {
+            return (String) data.get("content");
+        }
+        return message;
+    }
+
     public boolean isSuccess() {
         return success;
     }
-    
+
     public void setSuccess(boolean success) {
         this.success = success;
     }
-    
-    public Object getData() {
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Map<String, Object> getData() {
         return data;
     }
-    
-    public void setData(Object data) {
+
+    public void setData(Map<String, Object> data) {
         this.data = data;
-    }
-    
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-    
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-    
-    public String getErrorCode() {
-        return errorCode;
-    }
-    
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
-    
-    public long getExecutionTime() {
-        return executionTime;
-    }
-    
-    public void setExecutionTime(long executionTime) {
-        this.executionTime = executionTime;
-    }
-    
-    public String asText() {
-        if (data == null) {
-            return "";
-        }
-        if (data instanceof String) {
-            return (String) data;
-        }
-        return data.toString();
     }
 }

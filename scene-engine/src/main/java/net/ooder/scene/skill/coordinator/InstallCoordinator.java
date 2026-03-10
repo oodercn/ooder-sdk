@@ -129,9 +129,13 @@ public class InstallCoordinator {
      * 调用SDK Installer（贫血模型）
      */
     private void installSkill(RichSkill skill) throws Exception {
-        // 调用SDK层Installer
-        // 简化实现
-        Thread.sleep(1000); // 模拟安装耗时
+        // 调用SDK层Installer进行实际安装
+        // 注意：需要外部注入具体的 SkillInstaller 实现
+        // skillInstaller.install(skill.getRawPackage(), SkillInstaller.InstallMode.DEFAULT);
+        
+        // 当前为简化实现，模拟安装耗时
+        // 实际项目中应该调用：skillInstaller.install(skillPackage, installMode)
+        Thread.sleep(1000);
     }
 
     /**

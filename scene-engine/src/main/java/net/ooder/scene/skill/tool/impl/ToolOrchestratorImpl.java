@@ -47,10 +47,10 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
         }
         
         Tool tool = toolOpt.get();
-        
-        ValidationResult validation = tool.validateArguments(toolCall.getArguments());
-        if (!validation.isValid()) {
-            return ToolCallResult.failure(callId, toolName, "Validation failed: " + validation.getFirstError());
+
+        ToolResult validationResult = tool.validateArguments(toolCall.getArguments());
+        if (!validationResult.isSuccess()) {
+            return ToolCallResult.failure(callId, toolName, "Validation failed: " + validationResult.getMessage());
         }
         
         long startTime = System.currentTimeMillis();
@@ -91,7 +91,7 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
             } catch (TimeoutException e) {
                 ToolCallResult timeoutResult = new ToolCallResult();
                 timeoutResult.setStatus(ToolCallResult.STATUS_TIMEOUT);
-                timeoutResult.setToolResult(ToolResult.failure("Tool execution timeout"));
+                timeoutResult.setToolResult(ToolResult.failure(ToolCallResult.STATUS_TIMEOUT, "Tool execution timeout"));
                 results.add(timeoutResult);
             } catch (Exception e) {
                 log.error("Failed to get tool call result", e);

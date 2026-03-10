@@ -14,15 +14,21 @@ import java.util.*;
  */
 public class ListDocumentsTool implements Tool {
     
+    private static final String ID = "list_documents";
     private static final String NAME = "list_documents";
     private static final String DESCRIPTION = "列出知识库中的文档列表。";
-    
+
     private final KnowledgeBaseService knowledgeBaseService;
-    
+
     public ListDocumentsTool(KnowledgeBaseService knowledgeBaseService) {
         this.knowledgeBaseService = knowledgeBaseService;
     }
-    
+
+    @Override
+    public String getId() {
+        return ID;
+    }
+
     @Override
     public String getName() {
         return NAME;
@@ -34,31 +40,36 @@ public class ListDocumentsTool implements Tool {
     }
     
     @Override
+    public Map<String, Object> getParameters() {
+        return getParametersSchema();
+    }
+
+    @Override
     public Map<String, Object> getParametersSchema() {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
-        
+
         Map<String, Object> properties = new LinkedHashMap<>();
-        
+
         Map<String, Object> kbIdProp = new LinkedHashMap<>();
         kbIdProp.put("type", "string");
         kbIdProp.put("description", "知识库ID");
         properties.put("kbId", kbIdProp);
-        
+
         Map<String, Object> limitProp = new LinkedHashMap<>();
         limitProp.put("type", "integer");
         limitProp.put("description", "返回数量限制，默认10");
         limitProp.put("default", 10);
         properties.put("limit", limitProp);
-        
+
         schema.put("properties", properties);
         schema.put("required", Collections.singletonList("kbId"));
-        
+
         return schema;
     }
     
     @Override
-    public ToolResult execute(Map<String, Object> arguments, ToolExecutionContext context) {
+    public ToolResult execute(Map<String, Object> arguments, ToolContext context) {
         String kbId = (String) arguments.get("kbId");
         Integer limit = arguments.containsKey("limit") ? 
                 ((Number) arguments.get("limit")).intValue() : 10;
@@ -98,15 +109,10 @@ public class ListDocumentsTool implements Tool {
     }
     
     @Override
-    public boolean isReadOnly() {
-        return true;
-    }
-    
-    @Override
     public String getCategory() {
         return "knowledge";
     }
-    
+
     @Override
     public List<String> getTags() {
         return Arrays.asList("knowledge", "list");

@@ -1,40 +1,39 @@
 package net.ooder.scene.provider;
 
-import net.ooder.scene.core.HeartbeatResult;
-import net.ooder.scene.core.HeartbeatStatus;
-
-import java.util.concurrent.CompletableFuture;
-
 /**
  * 心跳提供者接口
- * 管理场景组心跳
  *
  * @author Ooder Team
- * @version 2.3
- * @since 2.3.0
+ * @version 2.3.1
  */
-public interface HeartbeatProvider extends BaseProvider {
+public interface HeartbeatProvider {
 
     /**
-     * 启动场景组心跳
-     * @param userId 用户ID
-     * @param groupId 场景组ID
+     * 发送心跳
+     * @param clientId 客户端ID
      * @return 心跳结果
      */
-    CompletableFuture<HeartbeatResult> startHeartbeat(String userId, String groupId);
+    boolean sendHeartbeat(String clientId);
 
     /**
-     * 停止场景组心跳
-     * @param userId 用户ID
-     * @param groupId 场景组ID
+     * 检查客户端状态
+     * @param clientId 客户端ID
+     * @return 客户端状态
      */
-    void stopHeartbeat(String userId, String groupId);
+    Object checkClientStatus(String clientId);
 
     /**
-     * 获取场景组心跳状态
-     * @param userId 用户ID
-     * @param groupId 场景组ID
-     * @return 心跳状态
+     * 注册客户端
+     * @param clientId 客户端ID
+     * @param info 客户端信息
+     * @return 注册结果
      */
-    HeartbeatStatus getHeartbeatStatus(String userId, String groupId);
+    boolean registerClient(String clientId, Object info);
+
+    /**
+     * 注销客户端
+     * @param clientId 客户端ID
+     * @return 注销结果
+     */
+    boolean unregisterClient(String clientId);
 }

@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.connection;
 
-import net.ooder.sdk.service.llm.LlmConfig;
+import net.ooder.scene.llm.config.LlmConfig;
 import net.ooder.scene.llm.proxy.common.PoolState;
 import net.ooder.sdk.drivers.llm.LlmDriver;
 
@@ -18,16 +18,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 管理物理连接，支持连接复用和引用计数
  */
 public class LlmConnectionPool {
-    
+
     private static final Logger log = LoggerFactory.getLogger(LlmConnectionPool.class);
-    
+
     private final String poolId;
     private final LlmConfig llmConfig;
     private final LlmDriver driver;
     private final int maxConnections;
     private final long connectionTimeoutMs;
     private final long idleTimeoutMs;
-    
+
     // 可用连接队列
     private final BlockingQueue<LlmConnection> availableConnections;
     // 活跃连接数
@@ -36,12 +36,12 @@ public class LlmConnectionPool {
     private final AtomicInteger referenceCount;
     // 池状态
     private volatile PoolState state;
-    
+
     public LlmConnectionPool(String poolId, LlmConfig llmConfig, LlmDriver driver) {
         this(poolId, llmConfig, driver, 10, 30000L, 300000L);
     }
-    
-    public LlmConnectionPool(String poolId, LlmConfig llmConfig, LlmDriver driver, 
+
+    public LlmConnectionPool(String poolId, LlmConfig llmConfig, LlmDriver driver,
                              int maxConnections, long connectionTimeoutMs, long idleTimeoutMs) {
         this.poolId = poolId;
         this.llmConfig = llmConfig;
@@ -49,28 +49,28 @@ public class LlmConnectionPool {
         this.maxConnections = maxConnections;
         this.connectionTimeoutMs = connectionTimeoutMs;
         this.idleTimeoutMs = idleTimeoutMs;
-        
+
         this.availableConnections = new LinkedBlockingQueue<>();
         this.activeConnections = new AtomicInteger(0);
         this.referenceCount = new AtomicInteger(0);
         this.state = PoolState.ACTIVE;
-        
+
         log.info("LlmConnectionPool created: poolId={}, maxConnections={}", poolId, maxConnections);
     }
-    
+
     /**
      * 获取连接
      */
     public LlmConnection acquireConnection() throws InterruptedException {
         checkState();
-        
+
         // 1. 尝试从队列获取可用连接
         LlmConnection connection = availableConnections.poll();
         if (connection != null && connection.acquire()) {
             log.debug("Acquired connection from pool: poolId={}, connectionId={}", poolId, connection.getConnectionId());
             return connection;
         }
-        
+
         // 2. 如果没有可用连接且未达到上限，创建新连接
         if (activeConnections.get() < maxConnections) {
             connection = createConnection();
@@ -80,17 +80,17 @@ public class LlmConnectionPool {
                 return connection;
             }
         }
-        
+
         // 3. 等待可用连接
         connection = availableConnections.poll(connectionTimeoutMs, TimeUnit.MILLISECONDS);
         if (connection != null && connection.acquire()) {
             log.debug("Acquired connection after waiting: poolId={}, connectionId={}", poolId, connection.getConnectionId());
             return connection;
         }
-        
+
         throw new RuntimeException("Failed to acquire connection from pool: " + poolId);
     }
-    
+
     /**
      * 释放连接
      */
@@ -98,14 +98,14 @@ public class LlmConnectionPool {
         if (connection == null || state == PoolState.CLOSED) {
             return;
         }
-        
+
         // 检查连接是否有效
         if (connection.isIdleTimeout(idleTimeoutMs)) {
             log.debug("Connection idle timeout, closing: connectionId={}", connection.getConnectionId());
             closeConnection(connection);
             return;
         }
-        
+
         // 归还到队列
         if (availableConnections.offer(connection)) {
             log.debug("Connection released back to pool: poolId={}, connectionId={}", poolId, connection.getConnectionId());
@@ -114,7 +114,7 @@ public class LlmConnectionPool {
             closeConnection(connection);
         }
     }
-    
+
     /**
      * 创建新连接
      */
@@ -127,7 +127,7 @@ public class LlmConnectionPool {
             return null;
         }
     }
-    
+
     /**
      * 关闭连接
      */
@@ -139,7 +139,7 @@ public class LlmConnectionPool {
             log.warn("Error closing connection: connectionId={}", connection.getConnectionId(), e);
         }
     }
-    
+
     /**
      * 检查池状态
      */
@@ -151,7 +151,7 @@ public class LlmConnectionPool {
             throw new IllegalStateException("Connection pool is in error state: " + poolId);
         }
     }
-    
+
     /**
      * 增加引用计数
      */
@@ -159,7 +159,7 @@ public class LlmConnectionPool {
         referenceCount.incrementAndGet();
         log.debug("Pool reference incremented: poolId={}, count={}", poolId, referenceCount.get());
     }
-    
+
     /**
      * 减少引用计数
      */
@@ -171,7 +171,7 @@ public class LlmConnectionPool {
             shutdown();
         }
     }
-    
+
     /**
      * 关闭连接池
      */
@@ -179,24 +179,24 @@ public class LlmConnectionPool {
         if (state == PoolState.CLOSED) {
             return;
         }
-        
+
         state = PoolState.CLOSED;
         log.info("Shutting down connection pool: poolId={}", poolId);
-        
+
         // 关闭所有可用连接
         LlmConnection connection;
         while ((connection = availableConnections.poll()) != null) {
             closeConnection(connection);
         }
-        
+
         // 关闭驱动
         if (driver != null) {
             driver.close();
         }
-        
+
         log.info("Connection pool shutdown complete: poolId={}", poolId);
     }
-    
+
     /**
      * 获取池统计信息
      */
@@ -210,31 +210,31 @@ public class LlmConnectionPool {
         stats.setReferenceCount(referenceCount.get());
         return stats;
     }
-    
+
     public String getPoolId() {
         return poolId;
     }
-    
+
     public LlmConfig getLlmConfig() {
         return llmConfig;
     }
-    
+
     public LlmDriver getDriver() {
         return driver;
     }
-    
+
     public boolean isClosed() {
         return state == PoolState.CLOSED;
     }
-    
+
     public PoolState getState() {
         return state;
     }
-    
+
     public int getReferenceCount() {
         return referenceCount.get();
     }
-    
+
     /**
      * 池统计信息
      */
@@ -245,25 +245,25 @@ public class LlmConnectionPool {
         private int activeConnections;
         private int availableConnections;
         private int referenceCount;
-        
+
         public String getPoolId() { return poolId; }
         public void setPoolId(String poolId) { this.poolId = poolId; }
-        
+
         public PoolState getState() { return state; }
         public void setState(PoolState state) { this.state = state; }
-        
+
         public int getMaxConnections() { return maxConnections; }
         public void setMaxConnections(int maxConnections) { this.maxConnections = maxConnections; }
-        
+
         public int getActiveConnections() { return activeConnections; }
         public void setActiveConnections(int activeConnections) { this.activeConnections = activeConnections; }
-        
+
         public int getAvailableConnections() { return availableConnections; }
         public void setAvailableConnections(int availableConnections) { this.availableConnections = availableConnections; }
-        
+
         public int getReferenceCount() { return referenceCount; }
         public void setReferenceCount(int referenceCount) { this.referenceCount = referenceCount; }
-        
+
         @Override
         public String toString() {
             return "PoolStats{" +

@@ -12,13 +12,15 @@ import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.ooder.sdk.drivers.llm.LlmDriver;
+
 public class LlmClient {
     
     private static final Logger log = LoggerFactory.getLogger(LlmClient.class);
     
-    private final LlmConfig config;
+    private final LlmDriver.LlmConfig config;
     
-    public LlmClient(LlmConfig config) {
+    public LlmClient(LlmDriver.LlmConfig config) {
         this.config = config;
     }
     

@@ -1,15 +1,14 @@
 package net.ooder.scene.core.init;
 
-import net.ooder.scene.core.*;
-import net.ooder.sdk.api.capability.Capability;
-import net.ooder.sdk.api.scene.SceneGroupManager;
+import net.ooder.scene.core.SceneEngine;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 初始化上下文
  *
- * <p>保存场景组初始化过程中的所有状态和数据。</p>
+ * <p>在 SceneEngine 初始化过程中传递上下文信息</p>
  *
  * @author Ooder Team
  * @version 2.3
@@ -17,121 +16,62 @@ import java.util.*;
  */
 public class InitContext {
 
-    private final String initId;
-    private final long createTime;
-    private final SceneGroupInitializer.InitRequest request;
+    private final SceneEngine sceneEngine;
+    private final Map<String, Object> attributes = new HashMap<>();
 
-    private SceneGroupInitializer.InitStatus status = SceneGroupInitializer.InitStatus.CREATED;
-    private String errorMessage;
-
-    private SceneGroupManager.SceneGroupConfig groupConfig;
-    private final List<SceneAgentCore> agents = new ArrayList<>();
-    private final List<SceneMemberInfo> members = new ArrayList<>();
-    private final List<Capability> requiredCapabilities = new ArrayList<>();
-    private final List<Capability> optionalCapabilities = new ArrayList<>();
-    private final Map<String, List<SceneGroupInitializer.SkillMatch>> skillMatches = new HashMap<>();
-    private final List<SkillBinding> skillBindings = new ArrayList<>();
-
-    public InitContext(SceneGroupInitializer.InitRequest request) {
-        this.initId = "init-" + UUID.randomUUID().toString().substring(0, 8);
-        this.createTime = System.currentTimeMillis();
-        this.request = request;
+    public InitContext(SceneEngine sceneEngine) {
+        this.sceneEngine = sceneEngine;
     }
 
-    public String getInitId() {
-        return initId;
+    /**
+     * 获取 SceneEngine 实例
+     */
+    public SceneEngine getSceneEngine() {
+        return sceneEngine;
     }
 
-    public long getCreateTime() {
-        return createTime;
+    /**
+     * 设置属性
+     */
+    public void setAttribute(String key, Object value) {
+        attributes.put(key, value);
     }
 
-    public SceneGroupInitializer.InitRequest getRequest() {
-        return request;
+    /**
+     * 获取属性
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getAttribute(String key) {
+        return (T) attributes.get(key);
     }
 
-    public SceneGroupInitializer.InitStatus getStatus() {
-        return status;
+    /**
+     * 获取属性（带默认值）
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getAttribute(String key, T defaultValue) {
+        Object value = attributes.get(key);
+        return value != null ? (T) value : defaultValue;
     }
 
-    public void setStatus(SceneGroupInitializer.InitStatus status) {
-        this.status = status;
+    /**
+     * 是否包含属性
+     */
+    public boolean hasAttribute(String key) {
+        return attributes.containsKey(key);
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    /**
+     * 移除属性
+     */
+    public Object removeAttribute(String key) {
+        return attributes.remove(key);
     }
 
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    public SceneGroupManager.SceneGroupConfig getGroupConfig() {
-        return groupConfig;
-    }
-
-    public void setGroupConfig(SceneGroupManager.SceneGroupConfig groupConfig) {
-        this.groupConfig = groupConfig;
-    }
-
-    public List<SceneAgentCore> getAgents() {
-        return agents;
-    }
-
-    public void addAgent(SceneAgentCore agent) {
-        this.agents.add(agent);
-    }
-
-    public List<SceneMemberInfo> getMembers() {
-        return members;
-    }
-
-    public void addMember(SceneMemberInfo member) {
-        this.members.add(member);
-    }
-
-    public List<Capability> getRequiredCapabilities() {
-        return requiredCapabilities;
-    }
-
-    public void addRequiredCapability(Capability capability) {
-        this.requiredCapabilities.add(capability);
-    }
-
-    public List<Capability> getOptionalCapabilities() {
-        return optionalCapabilities;
-    }
-
-    public void addOptionalCapability(Capability capability) {
-        this.optionalCapabilities.add(capability);
-    }
-
-    public Map<String, List<SceneGroupInitializer.SkillMatch>> getSkillMatches() {
-        return skillMatches;
-    }
-
-    public void addSkillMatches(String capId, List<SceneGroupInitializer.SkillMatch> matches) {
-        this.skillMatches.put(capId, matches);
-    }
-
-    public List<SkillBinding> getSkillBindings() {
-        return skillBindings;
-    }
-
-    public void addSkillBinding(SkillBinding binding) {
-        this.skillBindings.add(binding);
-    }
-
-    public SceneAgentCore getPrimaryAgent() {
-        return agents.stream()
-            .filter(SceneAgentCore::isPrimary)
-            .findFirst()
-            .orElse(null);
-    }
-
-    public List<SceneAgentCore> getBackupAgents() {
-        return agents.stream()
-            .filter(SceneAgentCore::isBackup)
-            .collect(java.util.stream.Collectors.toList());
+    /**
+     * 获取所有属性
+     */
+    public Map<String, Object> getAttributes() {
+        return new HashMap<>(attributes);
     }
 }

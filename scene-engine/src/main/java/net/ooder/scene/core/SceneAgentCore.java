@@ -73,4 +73,28 @@ public interface SceneAgentCore {
     default void setMemberRole(MemberRole role) {
         // 默认空实现
     }
+
+    /**
+     * 是否是主节点
+     * @return true 如果是主节点
+     */
+    default boolean isPrimary() {
+        return MemberRole.PRIMARY.equals(getMemberRole());
+    }
+
+    /**
+     * 是否是备份节点
+     * @return true 如果是备份节点
+     */
+    default boolean isBackup() {
+        return MemberRole.BACKUP.equals(getMemberRole());
+    }
+
+    /**
+     * 设置组ID
+     * @param groupId 组ID
+     */
+    default void setGroupId(String groupId) {
+        // 默认空实现
+    }
 }

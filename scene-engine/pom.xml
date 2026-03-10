@@ -11,14 +11,14 @@
     </parent>
 
     <artifactId>scene-engine</artifactId>
-    <version>2.3</version>
+    <version>2.3.1</version>
     <packaging>jar</packaging>
 
     <name>Scene Engine</name>
     <description>Scene Engine - Core module with security, audit and state management</description>
 
     <properties>
-        <agent-sdk.version>2.3</agent-sdk.version>
+        <agent-sdk.version>2.3.1</agent-sdk.version>
         <gpg.skip>true</gpg.skip>
     </properties>
 
