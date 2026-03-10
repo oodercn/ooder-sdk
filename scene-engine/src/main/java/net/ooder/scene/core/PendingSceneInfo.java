@@ -1,14 +1,17 @@
 package net.ooder.scene.core;
 
+import net.ooder.scene.skill.model.SkillCategory;
+import net.ooder.scene.skill.model.SkillForm;
+import net.ooder.scene.skill.model.SceneType;
 import net.ooder.sdk.common.enums.MemberRole;
 
 /**
- * 待激活场景信息
+ * 待激活场景信息 (v3.0)
  *
  * <p>表示一个等待用户激活的场景，包含场景基本信息和推送信息。</p>
  *
  * @author Ooder Team
- * @version 2.3.1
+ * @version 3.0
  * @since 2.3.1
  */
 public class PendingSceneInfo {
@@ -16,7 +19,9 @@ public class PendingSceneInfo {
     private String sceneId;
     private String sceneName;
     private String description;
-    private String category;
+    private SkillCategory category;
+    private SkillForm form;
+    private SceneType sceneType;
     private MemberRole requiredRole;
     private String pushFrom;
     private String pushFromName;
@@ -39,8 +44,14 @@ public class PendingSceneInfo {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public SkillCategory getCategory() { return category; }
+    public void setCategory(SkillCategory category) { this.category = category; }
+
+    public SkillForm getForm() { return form; }
+    public void setForm(SkillForm form) { this.form = form; }
+
+    public SceneType getSceneType() { return sceneType; }
+    public void setSceneType(SceneType sceneType) { this.sceneType = sceneType; }
 
     public MemberRole getRequiredRole() { return requiredRole; }
     public void setRequiredRole(MemberRole requiredRole) { this.requiredRole = requiredRole; }
@@ -72,6 +83,14 @@ public class PendingSceneInfo {
 
     public boolean isPushed() {
         return pushFrom != null && !pushFrom.isEmpty();
+    }
+
+    public boolean isScene() {
+        return form == SkillForm.SCENE;
+    }
+
+    public boolean canSelfDrive() {
+        return sceneType != null && sceneType.canSelfDrive();
     }
 
     /**

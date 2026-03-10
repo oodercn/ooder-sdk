@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -206,6 +207,77 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
             log.error("Failed to format tool results", e);
             return "[]";
         }
+    }
+    
+    private StringBuilder streamingBuffer = new StringBuilder();
+    
+    @Override
+    public void parseStreamingToolCalls(String chunk, Consumer<ToolCall> callback) {
+        if (chunk == null || chunk.isEmpty()) {
+            return;
+        }
+        
+        streamingBuffer.append(chunk);
+        
+        String buffer = streamingBuffer.toString();
+        int startIndex = 0;
+        
+        while (true) {
+            int toolCallStart = buffer.indexOf("\"tool_calls\"", startIndex);
+            if (toolCallStart == -1) {
+                break;
+            }
+            
+            try {
+                int bracketStart = buffer.indexOf("[", toolCallStart);
+                int bracketEnd = findMatchingBracket(buffer, bracketStart);
+                
+                if (bracketEnd > bracketStart) {
+                    String toolCallsJson = buffer.substring(bracketStart, bracketEnd + 1);
+                    List<?> toolCallsList = objectMapper.readValue(toolCallsJson, List.class);
+                    
+                    for (Object tc : toolCallsList) {
+                        if (tc instanceof Map) {
+                            ToolCall toolCall = parseToolCall((Map<?, ?>) tc);
+                            if (toolCall != null) {
+                                callback.accept(toolCall);
+                            }
+                        }
+                    }
+                    
+                    startIndex = bracketEnd + 1;
+                } else {
+                    break;
+                }
+            } catch (Exception e) {
+                break;
+            }
+        }
+        
+        if (startIndex > 0) {
+            streamingBuffer = new StringBuilder(buffer.substring(startIndex));
+        }
+    }
+    
+    @Override
+    public void resetStreamingParser() {
+        streamingBuffer = new StringBuilder();
+    }
+    
+    private int findMatchingBracket(String str, int start) {
+        int depth = 0;
+        for (int i = start; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (c == '[') {
+                depth++;
+            } else if (c == ']') {
+                depth--;
+                if (depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
     
     private void executeSequential(OrchestrationPlan plan, ToolExecutionContext context,

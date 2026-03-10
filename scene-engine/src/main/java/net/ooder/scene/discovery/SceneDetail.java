@@ -1,14 +1,25 @@
 package net.ooder.scene.discovery;
 
+import net.ooder.scene.skill.model.SkillCategory;
+import net.ooder.scene.skill.model.SkillForm;
+import net.ooder.scene.skill.model.SceneType;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 场景详情 (v3.0)
+ *
+ * <p>使用v3.0枚举类型替代String类型分类</p>
+ */
 public class SceneDetail {
     private String sceneId;
     private String name;
     private String description;
-    private String category;
+    private SkillCategory category;
+    private SkillForm form;
+    private SceneType sceneType;
     private List<String> requiredCapabilities;
     private List<String> optionalCapabilities;
     private List<DiscoveredItem> availableSkills;
@@ -40,12 +51,32 @@ public class SceneDetail {
         this.description = description;
     }
 
-    public String getCategory() {
+    public SkillCategory getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(SkillCategory category) {
         this.category = category;
+    }
+
+    public void setCategory(String category) {
+        this.category = SkillCategory.fromCode(category);
+    }
+
+    public SkillForm getForm() {
+        return form;
+    }
+
+    public void setForm(SkillForm form) {
+        this.form = form;
+    }
+
+    public SceneType getSceneType() {
+        return sceneType;
+    }
+
+    public void setSceneType(SceneType sceneType) {
+        this.sceneType = sceneType;
     }
 
     public List<String> getRequiredCapabilities() {
@@ -72,15 +103,19 @@ public class SceneDetail {
         this.availableSkills = availableSkills;
     }
 
-    public void addMetadata(String key, Object value) {
-        metadata.put(key, value);
-    }
-
-    public Object getMetadata(String key) {
-        return metadata.get(key);
-    }
-
     public Map<String, Object> getMetadata() {
         return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    public boolean isScene() {
+        return form == SkillForm.SCENE;
+    }
+
+    public boolean canSelfDrive() {
+        return sceneType != null && sceneType.canSelfDrive();
     }
 }
