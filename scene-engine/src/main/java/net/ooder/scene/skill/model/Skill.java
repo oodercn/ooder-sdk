@@ -270,6 +270,6 @@ public interface Skill {
      * 是否为根技能
      */
     default boolean isRoot() {
-        return getParentId().isEmpty();
+        return !getParentId().isPresent();
     }
 }

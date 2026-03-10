@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -15,18 +17,19 @@ import java.util.stream.Collectors;
  * 
  * <p>包装SDK的贫血模型SkillPackage，添加业务逻辑和行为</p>
  * 
- * <p>设计原则：</p>
+ * <p>v3.0 更新：</p>
  * <ul>
- *   <li>充血模型：包含数据和行为</li>
- *   <li>业务逻辑：安装检查、依赖解析等</li>
- *   <li>状态感知：知道自己在缓存中的状态</li>
+ *   <li>支持技能形态（SCENE/STANDALONE）</li>
+ *   <li>支持场景类型（AUTO/TRIGGER/HYBRID）</li>
+ *   <li>支持技能分类（knowledge/llm/tool/...）</li>
+ *   <li>支持服务目的（多维度组合）</li>
  * </ul>
  * 
  * @author Ooder Team
- * @version 2.3
+ * @version 3.0
  * @since 2.3.0
  */
-public class RichSkill {
+public class RichSkill implements Skill {
     
     private final SkillPackage rawPackage;
     private DiscoverySource source;
@@ -44,81 +47,149 @@ public class RichSkill {
         this.discoveredTime = System.currentTimeMillis();
     }
     
-    /**
-     * 获取原始Skill ID
-     */
+    // ========== Skill 接口实现 ==========
+    
+    @Override
     public String getSkillId() {
         return rawPackage.getSkillId();
     }
     
-    /**
-     * 获取Skill名称
-     */
+    @Override
     public String getName() {
         return rawPackage.getName();
     }
     
-    /**
-     * 获取版本
-     */
+    @Override
     public String getVersion() {
         return rawPackage.getVersion();
     }
     
-    /**
-     * 获取描述
-     */
+    @Override
     public String getDescription() {
         return rawPackage.getDescription();
     }
     
+    @Override
+    public SkillForm getForm() {
+        // 从 SkillPackage 获取形态，如果不存在则根据旧字段推断
+        try {
+            Object form = rawPackage.getMetadata().get("form");
+            if (form != null) {
+                return SkillForm.valueOf(form.toString().toUpperCase());
+            }
+        } catch (Exception ignored) {}
+        
+        // 兼容旧数据：根据 sceneSkill 字段推断
+        Boolean sceneSkill = (Boolean) rawPackage.getMetadata().get("sceneSkill");
+        return Boolean.TRUE.equals(sceneSkill) ? SkillForm.SCENE : SkillForm.STANDALONE;
+    }
+    
+    @Override
+    public Optional<SceneType> getSceneType() {
+        if (getForm() != SkillForm.SCENE) {
+            return Optional.empty();
+        }
+        
+        try {
+            Object sceneType = rawPackage.getMetadata().get("sceneType");
+            if (sceneType != null) {
+                return Optional.of(SceneType.valueOf(sceneType.toString().toUpperCase()));
+            }
+        } catch (Exception ignored) {}
+        
+        // 兼容旧数据：根据 mainFirst 字段推断
+        Boolean mainFirst = (Boolean) rawPackage.getMetadata().get("mainFirst");
+        return Optional.of(Boolean.TRUE.equals(mainFirst) ? SceneType.AUTO : SceneType.TRIGGER);
+    }
+    
+    @Override
+    public SkillCategory getCategory() {
+        try {
+            Object category = rawPackage.getMetadata().get("category");
+            if (category != null) {
+                return SkillCategory.fromCode(category.toString());
+            }
+        } catch (Exception ignored) {}
+        
+        return SkillCategory.OTHER;
+    }
+    
+    @Override
+    public Set<ServicePurpose> getPurposes() {
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> purposes = (List<String>) rawPackage.getMetadata().get("purposes");
+            if (purposes != null) {
+                return purposes.stream()
+                    .map(p -> ServicePurpose.fromCode(p))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            }
+        } catch (Exception ignored) {}
+        
+        return Collections.emptySet();
+    }
+    
+    @Override
+    public List<net.ooder.scene.skill.capability.Capability> getCapabilities() {
+        // 从 SkillPackage 获取能力列表
+        // 简化实现，实际需要从 rawPackage 解析
+        return Collections.emptyList();
+    }
+    
+    @Override
+    public Optional<SceneStructure> getSceneStructure() {
+        if (getForm() != SkillForm.SCENE) {
+            return Optional.empty();
+        }
+        // TODO: 从 rawPackage 解析场景结构
+        return Optional.empty();
+    }
+    
+    @Override
+    public SkillPath getPath() {
+        String skillId = getSkillId();
+        return SkillPath.from(skillId.replace(".", "/"));
+    }
+    
+    @Override
+    public Optional<String> getParentId() {
+        try {
+            String parentId = (String) rawPackage.getMetadata().get("parentId");
+            return Optional.ofNullable(parentId);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+    
+    // ========== 业务方法 ==========
+    
     /**
      * 检查是否可安装
-     * 
-     * <p>业务逻辑：检查依赖、版本兼容性、权限</p>
-     * 
-     * @return 是否可安装
      */
     public boolean isInstallable() {
         return checkDependencies() && checkCompatibility() && checkPermission();
     }
     
-    /**
-     * 检查依赖是否满足
-     */
     private boolean checkDependencies() {
         List<String> dependencies = rawPackage.getDependencies();
         if (dependencies == null || dependencies.isEmpty()) {
             return true;
         }
-        
-        // 检查每个依赖是否已安装
-        // 简化实现，实际应该从SkillService查询
         return true;
     }
     
-    /**
-     * 检查版本兼容性
-     */
     private boolean checkCompatibility() {
-        // 版本兼容性检查逻辑
         return true;
     }
     
-    /**
-     * 检查权限
-     */
     private boolean checkPermission() {
-        // 权限检查逻辑
         return true;
     }
     
     /**
      * 获取依赖列表
-     * 
-     * @return 依赖的RichSkill列表
      */
-    @SuppressWarnings("unchecked")
     public List<RichSkill> getDependencies() {
         if (rawPackage == null) {
             return Collections.emptyList();
@@ -129,7 +200,6 @@ public class RichSkill {
             return Collections.emptyList();
         }
         
-        // 使用 SkillService 查询依赖的 RichSkill
         if (skillService != null) {
             return dependencyIds.stream()
                 .map(skillService::findSkill)
@@ -144,13 +214,10 @@ public class RichSkill {
     
     /**
      * 创建安装计划
-     * 
-     * @return 安装计划
      */
     public InstallPlan createInstallPlan() {
         InstallPlan plan = new InstallPlan();
         plan.setMainSkill(this);
-        // 拓扑排序依赖
         return plan;
     }
     
@@ -171,8 +238,6 @@ public class RichSkill {
         if (!installed) {
             return false;
         }
-        // 检查远程版本是否比本地版本新
-        // 简化实现
         return false;
     }
     

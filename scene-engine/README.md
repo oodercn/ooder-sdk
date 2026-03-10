@@ -1,7 +1,7 @@
 # SceneEngine - Ooder 场景引擎服务
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Version](https://img.shields.io/badge/version-2.3-green.svg)]()
+[![Version](https://img.shields.io/badge/version-2.3.1-green.svg)]()
 [![Java](https://img.shields.io/badge/Java-8+-orange.svg)](https://openjdk.org/)
 
 ## 项目概述
@@ -10,7 +10,8 @@ SceneEngine 是 Ooder Agent 平台的场景引擎服务，提供专业技能服�
 
 ### 核心特性
 
-- **场景驱动架构**：基于 YAML 配置的场景编排
+- **技能驱动架构**：v3.0 新模型，技能是核心，场景是形态
+- **声明式分类**：开发时声明，运行时只读，消除模糊地带
 - **技能模块化**：可插拔的 Skill 能力封装
 - **CAP 能力路由**：统一的能力地址空间（00-FF）
 - **多协议发现**：UDP、mDNS、SkillCenter 发现
@@ -20,9 +21,9 @@ SceneEngine 是 Ooder Agent 平台的场景引擎服务，提供专业技能服�
 
 | 版本 | 发布日期 | SDK 版本 | 说明 |
 |------|----------|----------|------|
-| **2.3** | 2026-02-23 | agent-sdk 2.3 | 架构重构、能力发现抽象 |
+| **2.3.1** | 2026-03-10 | agent-sdk 3.0 | v3.0 模型重构、技能形态分类 |
+| 2.3 | 2026-02-23 | agent-sdk 2.3 | 架构重构、能力发现抽象 |
 | 0.7.3 | 2026-02-20 | agent-sdk 0.7.3 | 场景引擎重构 |
-| 0.7.2 | 2026-02-17 | agent-sdk 0.7.2 | Skills 架构完善 |
 
 ## 项目结构
 
