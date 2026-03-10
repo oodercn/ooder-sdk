@@ -6,8 +6,9 @@
 
     <parent>
         <groupId>net.ooder</groupId>
-        <artifactId>scene-engine-parent</artifactId>
-        <version>2.3</version>
+        <artifactId>ooder-sdk-parent</artifactId>
+        <version>2.3.1</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>scene-engine</artifactId>
@@ -19,6 +20,7 @@
 
     <properties>
         <agent-sdk.version>2.3.1</agent-sdk.version>
+        <ooder-common.version>2.3.1</ooder-common.version>
         <gpg.skip>true</gpg.skip>
     </properties>
 
