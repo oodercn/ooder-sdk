@@ -1,120 +1,37 @@
 package net.ooder.scene.llm;
 
 import net.ooder.scene.skill.llm.StreamHandler;
+import net.ooder.sdk.llm.tool.ChatResponse;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * LLM 统一服务接口
- *
- * <p>提供统一的 LLM 调用入口，支持：</p>
- * <ul>
- *   <li>多 Provider 管理</li>
- *   <li>统一聊天接口</li>
- *   <li>流式输出</li>
- *   <li>Function Calling</li>
- * </ul>
- *
- * @author ooder
- * @since 2.4
- */
 public interface LlmService {
 
-    /**
-     * 统一聊天接口
-     *
-     * @param request 聊天请求
-     * @return 聊天响应
-     */
     ChatResponse chat(ChatRequest request);
 
-    /**
-     * 流式聊天
-     *
-     * @param request 聊天请求
-     * @param handler 流式处理器
-     */
     void chatStream(ChatRequest request, StreamHandler handler);
 
-    /**
-     * 文本补全
-     *
-     * @param prompt 提示词
-     * @param maxTokens 最大 Token 数
-     * @return 补全结果
-     */
     String complete(String prompt, int maxTokens);
 
-    /**
-     * 获取可用的 Provider 列表
-     *
-     * @return Provider 信息列表
-     */
     List<ProviderInfo> getProviders();
 
-    /**
-     * 获取指定 Provider 支持的模型
-     *
-     * @param providerId Provider ID
-     * @return 模型信息列表
-     */
     List<ModelInfo> getModels(String providerId);
 
-    /**
-     * 设置当前使用的 Provider
-     *
-     * @param providerId Provider ID
-     */
     void setActiveProvider(String providerId);
 
-    /**
-     * 设置当前使用的模型
-     *
-     * @param providerId Provider ID
-     * @param modelId 模型 ID
-     */
     void setActiveModel(String providerId, String modelId);
 
-    /**
-     * 获取当前活动的 Provider
-     *
-     * @return Provider ID
-     */
     String getActiveProvider();
 
-    /**
-     * 获取当前活动的模型
-     *
-     * @return 模型 ID
-     */
     String getActiveModel();
 
-    /**
-     * 注册 Function
-     *
-     * @param functionId Function ID
-     * @param functionConfig Function 配置
-     */
     void registerFunction(String functionId, FunctionConfig functionConfig);
 
-    /**
-     * 注销 Function
-     *
-     * @param functionId Function ID
-     */
     void unregisterFunction(String functionId);
 
-    /**
-     * 获取已注册的 Functions
-     *
-     * @return Function 配置 Map
-     */
     Map<String, FunctionConfig> getRegisteredFunctions();
 
-    /**
-     * Provider 信息
-     */
     class ProviderInfo {
         private String id;
         private String name;
@@ -139,9 +56,6 @@ public interface LlmService {
         public void setModels(List<ModelInfo> models) { this.models = models; }
     }
 
-    /**
-     * 模型信息
-     */
     class ModelInfo {
         private String id;
         private String name;
@@ -168,9 +82,6 @@ public interface LlmService {
         public void setSupportsVision(boolean supportsVision) { this.supportsVision = supportsVision; }
     }
 
-    /**
-     * Function 配置
-     */
     class FunctionConfig {
         private String name;
         private String description;

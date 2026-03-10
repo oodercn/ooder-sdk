@@ -1,5 +1,10 @@
 package net.ooder.sdk.a2a;
 
+import net.ooder.sdk.a2a.capability.SkillCardV3;
+import net.ooder.skills.api.SkillCategory;
+import net.ooder.skills.api.SkillForm;
+import net.ooder.skills.api.SceneType;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -8,8 +13,8 @@ import java.util.concurrent.CompletableFuture;
  * 由 AGENT-SDK 实现，Engine 调用
  *
  * @author Agent-SDK Team
- * @version 2.3.1
- * @since 2.3.1
+ * @version 3.0
+ * @since 3.0
  */
 public interface A2AService {
 
@@ -52,6 +57,46 @@ public interface A2AService {
      * @return Agent 列表
      */
     List<AgentInfo> discoverAgents(DiscoveryCriteria criteria);
+
+    // ========== v3.0 技能发现方法 ==========
+
+    /**
+     * 发现技能（v3.0）
+     *
+     * @param form 技能形态过滤（可选）
+     * @param category 技能分类过滤（可选）
+     * @param sceneType 场景类型过滤（可选）
+     * @return 匹配的技能列表
+     */
+    List<SkillCardV3> discoverSkills(SkillForm form, SkillCategory category, SceneType sceneType);
+
+    /**
+     * 发现场景技能
+     */
+    default List<SkillCardV3> discoverSceneSkills() {
+        return discoverSkills(SkillForm.SCENE, null, null);
+    }
+
+    /**
+     * 发现自主场景
+     */
+    default List<SkillCardV3> discoverAutoScenes() {
+        return discoverSkills(SkillForm.SCENE, null, SceneType.AUTO);
+    }
+
+    /**
+     * 发现触发场景
+     */
+    default List<SkillCardV3> discoverTriggerScenes() {
+        return discoverSkills(SkillForm.SCENE, null, SceneType.TRIGGER);
+    }
+
+    /**
+     * 发现独立技能
+     */
+    default List<SkillCardV3> discoverStandaloneSkills() {
+        return discoverSkills(SkillForm.STANDALONE, null, null);
+    }
 
     /**
      * 命令回调

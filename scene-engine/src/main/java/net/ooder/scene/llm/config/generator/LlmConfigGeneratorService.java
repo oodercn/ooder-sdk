@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.llm.LlmService;
 import net.ooder.scene.llm.ChatRequest;
-import net.ooder.scene.llm.ChatResponse;
+import net.ooder.sdk.llm.tool.ChatResponse;
 import net.ooder.scene.llm.config.layered.LlmConfigProperties;
 import net.ooder.scene.llm.config.skillsmd.SkillsMdDocument;
 import net.ooder.scene.llm.config.skillsmd.CapabilityDefinition;

@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>ooder-sdk-parent</artifactId>
-    <version>2.3</version>
+    <version>2.3.1</version>
     <packaging>pom</packaging>
 
     <name>Ooder SDK Parent</name>
@@ -53,10 +53,10 @@
         <maven.compiler.target>8</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         
-        <ooder.version>2.3</ooder.version>
-        <agent-sdk.version>2.3</agent-sdk.version>
-        <scene-engine.version>2.3</scene-engine.version>
-        <llm-sdk.version>2.3</llm-sdk.version>
+        <ooder.version>2.3.1</ooder.version>
+        <agent-sdk.version>2.3.1</agent-sdk.version>
+        <scene-engine.version>2.3.1</scene-engine.version>
+        <llm-sdk.version>2.3.1</llm-sdk.version>
         <spring-boot.version>2.7.0</spring-boot.version>
         
         <!-- 打包模式配置: local(本地快速) / release(完整发布) -->
