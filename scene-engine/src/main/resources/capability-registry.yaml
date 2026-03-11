@@ -1,0 +1,332 @@
+apiVersion: capability.ooder.net/v1
+kind: CapabilityRegistry
+
+metadata:
+  version: "1.0.0"
+  description: "Ooder Capability Registry Configuration"
+
+segments:
+  - baseAddress: 0x0000
+    code: system
+    name: 系统核心
+    selectionMode: NONE
+    switchScope: NONE
+    slots: []
+
+  - baseAddress: 0x0005
+    code: system-config
+    name: 系统配置
+    selectionMode: SINGLE
+    switchScope: SYSTEM
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-system-config
+            tier: micro
+            name: 系统配置服务
+        fallback: skill-system-config
+
+  - baseAddress: 0x0100
+    code: vfs
+    name: 文件存储
+    selectionMode: SINGLE
+    switchScope: SYSTEM
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-vfs-local
+            tier: micro
+            name: 本地存储
+          - skillId: skill-vfs-database
+            tier: small
+            name: 数据库存储
+          - skillId: skill-vfs-minio
+            tier: medium
+            name: MinIO对象存储
+          - skillId: skill-vfs-oss
+            tier: large
+            name: 阿里云OSS
+          - skillId: skill-vfs-s3
+            tier: large
+            name: AWS S3
+        fallback: skill-vfs-local
+      - offset: 2
+        name: CACHE
+        providers:
+          - skillId: skill-vfs-local
+            tier: micro
+            name: 本地缓存
+        fallback: skill-vfs-local
+
+  - baseAddress: 0x0105
+    code: database
+    name: 数据库
+    selectionMode: SINGLE
+    switchScope: SYSTEM
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-db-sqlite
+            tier: micro
+            name: SQLite
+          - skillId: skill-db-mysql
+            tier: medium
+            name: MySQL
+          - skillId: skill-db-postgresql
+            tier: large
+            name: PostgreSQL
+        fallback: skill-db-sqlite
+
+  - baseAddress: 0x0110
+    code: network
+    name: 网络服务
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-network
+            tier: micro
+            name: 网络服务
+        fallback: skill-network
+
+  - baseAddress: 0x0200
+    code: llm
+    name: 大语言模型
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-llm-ollama
+            tier: micro
+            name: Ollama本地模型
+          - skillId: skill-llm-openai
+            tier: medium
+            name: OpenAI
+          - skillId: skill-llm-qianwen
+            tier: medium
+            name: 通义千问
+          - skillId: skill-llm-deepseek
+            tier: medium
+            name: DeepSeek
+          - skillId: skill-llm-volcengine
+            tier: medium
+            name: 火山引擎
+        fallback: skill-llm-ollama
+
+  - baseAddress: 0x0205
+    code: llm-embedding
+    name: 向量嵌入
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-llm-ollama
+            tier: micro
+            name: Ollama嵌入
+          - skillId: skill-vector-sqlite
+            tier: small
+            name: SQLite向量
+        fallback: skill-llm-ollama
+
+  - baseAddress: 0x0210
+    code: llm-rag
+    name: 知识检索
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-rag
+            tier: small
+            name: RAG服务
+          - skillId: skill-knowledge-base
+            tier: medium
+            name: 知识库
+        fallback: skill-rag
+
+  - baseAddress: 0x0220
+    code: agent
+    name: 智能代理
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-agent
+            tier: small
+            name: 智能代理
+        fallback: skill-agent
+
+  - baseAddress: 0x0300
+    code: org
+    name: 组织服务
+    selectionMode: SINGLE
+    switchScope: SYSTEM
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-org-base
+            tier: micro
+            name: 基础组织
+          - skillId: skill-org-dingding
+            tier: medium
+            name: 钉钉组织
+          - skillId: skill-org-feishu
+            tier: medium
+            name: 飞书组织
+          - skillId: skill-org-wecom
+            tier: medium
+            name: 企业微信
+          - skillId: skill-org-ldap
+            tier: large
+            name: LDAP
+        fallback: skill-org-base
+
+  - baseAddress: 0x0305
+    code: org-auth
+    name: 认证服务
+    selectionMode: SINGLE
+    switchScope: SYSTEM
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-user-auth
+            tier: micro
+            name: 用户认证
+        fallback: skill-user-auth
+
+  - baseAddress: 0x0320
+    code: msg
+    name: 消息服务
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-msg
+            tier: micro
+            name: 消息服务
+        fallback: skill-msg
+
+  - baseAddress: 0x0325
+    code: notify
+    name: 通知服务
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-notify
+            tier: micro
+            name: 通知服务
+        fallback: skill-notify
+
+  - baseAddress: 0x0400
+    code: payment
+    name: 支付服务
+    selectionMode: MULTI
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        description: 支付配置管理器
+        providers:
+          - skillId: skill-payment-mock
+            tier: micro
+            name: 模拟支付
+            isConfigManager: true
+          - skillId: skill-payment-alipay
+            tier: medium
+            name: 支付宝
+          - skillId: skill-payment-wechat
+            tier: medium
+            name: 微信支付
+          - skillId: skill-payment-unionpay
+            tier: large
+            name: 银联支付
+        fallback: skill-payment-mock
+
+  - baseAddress: 0x0410
+    code: media
+    name: 媒体服务
+    selectionMode: MULTI
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        description: 媒体配置管理器
+        providers:
+          - skillId: skill-media-wechat
+            tier: small
+            name: 微信公众号
+            isConfigManager: true
+          - skillId: skill-media-weibo
+            tier: small
+            name: 微博
+          - skillId: skill-media-xiaohongshu
+            tier: small
+            name: 小红书
+          - skillId: skill-media-zhihu
+            tier: small
+            name: 知乎
+          - skillId: skill-media-toutiao
+            tier: small
+            name: 今日头条
+        fallback: skill-media-wechat
+
+  - baseAddress: 0x0420
+    code: search
+    name: 搜索服务
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-search
+            tier: small
+            name: 搜索服务
+        fallback: skill-search
+
+  - baseAddress: 0x0430
+    code: report
+    name: 报表服务
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-report
+            tier: small
+            name: 报表服务
+        fallback: skill-report
+
+  - baseAddress: 0x0440
+    code: scheduler
+    name: 调度服务
+    selectionMode: SINGLE
+    switchScope: RUNTIME
+    slots:
+      - offset: 0
+        name: PRIMARY
+        providers:
+          - skillId: skill-scheduler-quartz
+            tier: small
+            name: Quartz调度
+        fallback: skill-scheduler-quartz
