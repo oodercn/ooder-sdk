@@ -3,7 +3,7 @@
 > **文档版本**: 1.0.0  
 > **创建日期**: 2026-03-11  
 > **维护团队**: Engine Team  
-> **状态**: 待确认
+> **状态**: ✅ 已实现
 
 ---
 
@@ -725,25 +725,25 @@ public enum CapabilityAddress {
 
 ## 十二、待实现任务
 
-### 12.1 P0 任务
+### 12.1 P0 任务 ✅ 已完成
 
-| 任务 | 说明 | 预计时间 |
-|------|------|:--------:|
-| CapabilityCategory 枚举 | 16 分类枚举 | 0.5 天 |
-| CapabilityAddress 枚举 | 128 地址枚举 | 1 天 |
-| CapabilityRouter 路由器 | 能力路由 | 2 天 |
-| CapabilityInstanceRegistry | 实例注册管理 | 2 天 |
+| 任务 | 说明 | 状态 |
+|------|------|:----:|
+| CapabilityCategory 枚举 | 16 分类枚举 (SDK) | ✅ |
+| CapabilityAddress 枚举 | 128 地址枚举 (SDK) | ✅ |
+| CapabilityRouter 路由器 | 能力路由 (SE) | ✅ |
+| CapabilityInstanceRegistry | 实例注册管理 (SE) | ✅ |
 
-### 12.2 P1 任务
+### 12.2 P1 任务 ✅ 已完成
 
-| 任务 | 说明 | 预计时间 |
-|------|------|:--------:|
-| CapabilityMappingService | capability → address 映射 | 0.5 天 |
-| FunctionDefinition 扩展 | 添加 capabilityAddress 字段 | 0.5 天 |
-| LlmContextRegistry 扩展 | 添加反向索引 | 0.5 天 |
-| SecurityContext 扩展 | 添加能力地址验证 | 0.5 天 |
-| CapabilityInstanceSnapshot | 持久化数据结构 | 1 天 |
-| CapabilityInstanceRestorer | 恢复逻辑 | 1 天 |
+| 任务 | 说明 | 状态 |
+|------|------|:----:|
+| CapabilityMappingService | capability → address 映射 | ✅ |
+| FunctionDefinition 扩展 | 添加 capabilityAddress 字段 | ✅ |
+| LlmContextRegistry 扩展 | 添加反向索引 | ✅ |
+| SecurityContext 扩展 | 添加能力地址验证 | ✅ |
+| CapabilityInstanceSnapshot | 持久化数据结构 | ✅ |
+| CapabilityInstanceRestorer | 恢复逻辑 | ✅ |
 
 ---
 
@@ -755,5 +755,5 @@ public enum CapabilityAddress {
 
 ---
 
-**文档状态**: 待确认  
-**下一步**: 确认文档内容后开始实现
+**文档状态**: ✅ 已实现  
+**完成日期**: 2026-03-11

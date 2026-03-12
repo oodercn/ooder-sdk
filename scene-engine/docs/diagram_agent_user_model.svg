@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 510" width="800px" height="510px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-alt { fill: #dbeafe; stroke: #1e40af; stroke-width: 2; rx: 8; }
+        .box-highlight { fill: #fef3c7; stroke: #d97706; stroke-width: 2; rx: 8; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .arrow-highlight { fill: none; stroke: #2563eb; stroke-width: 2; marker-end: url(#arrowhead-blue); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #334155; }
+        .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .text-small { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #64748b; }
+        .text-white { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #ffffff; }
+        .divider { stroke: #e2e8f0; stroke-width: 1; }
+        .loop-arrow { fill: none; stroke: #2563eb; stroke-width: 2; stroke-dasharray: 5,3; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+    <!-- 标题 -->
+    <rect class="title-box" x="20" y="15" width="760" height="35" rx="4"/>
+    <text class="text-header" x="400" y="38" text-anchor="middle">Agent 用户模型架构</text>
+    
+    <!-- 人类用户层 -->
+    <rect class="box" x="30" y="70" width="740" height="90"/>
+    <text class="text-title" x="50" y="95">人类用户层</text>
+    
+    <rect class="box-highlight" x="50" y="105" width="200" height="40" rx="6"/>
+    <text class="text" x="150" y="125" text-anchor="middle" font-weight="bold">User: alice@company.com</text>
+    <text class="text-small" x="150" y="140" text-anchor="middle">Role: HR_MANAGER</text>
+    
+    <text class="text" x="320" y="130">操作：创建 Agent、分配角色、设置配额、查看审计日志</text>
+    
+    <!-- 箭头 -->
+    <line class="arrow" x1="400" y1="160" x2="400" y2="190"/>
+    <text class="text-small" x="430" y="180">创建/管理</text>
+    
+    <!-- Agent用户层 -->
+    <rect class="box" x="30" y="190" width="740" height="140"/>
+    <text class="text-title" x="50" y="215">Agent 用户层</text>
+    
+    <!-- Agent 1 -->
+    <rect class="box-alt" x="50" y="230" width="210" height="85" rx="6"/>
+    <text class="text" x="155" y="250" text-anchor="middle" font-weight="bold">HR Agent</text>
+    <text class="text-small" x="155" y="268" text-anchor="middle">userId: agent_001</text>
+    <text class="text-small" x="155" y="283" text-anchor="middle">Role: HR</text>
+    <text class="text-small" x="155" y="298" text-anchor="middle">Quota: 1000/天</text>
+    
+    <!-- Agent 2 -->
+    <rect class="box-alt" x="295" y="230" width="210" height="85" rx="6"/>
+    <text class="text" x="400" y="250" text-anchor="middle" font-weight="bold">面试官 Agent</text>
+    <text class="text-small" x="400" y="268" text-anchor="middle">userId: agent_002</text>
+    <text class="text-small" x="400" y="283" text-anchor="middle">Role: INTERVIEWER</text>
+    <text class="text-small" x="400" y="298" text-anchor="middle">Quota: 500/天</text>
+    
+    <!-- Agent 3 -->
+    <rect class="box-alt" x="540" y="230" width="210" height="85" rx="6"/>
+    <text class="text" x="645" y="250" text-anchor="middle" font-weight="bold">助理 Agent</text>
+    <text class="text-small" x="645" y="268" text-anchor="middle">userId: agent_003</text>
+    <text class="text-small" x="645" y="283" text-anchor="middle">Role: ASSISTANT</text>
+    <text class="text-small" x="645" y="298" text-anchor="middle">Quota: 200/天</text>
+    
+    <!-- 箭头 -->
+    <line class="arrow" x1="155" y1="330" x2="155" y2="360"/>
+    <line class="arrow" x1="400" y1="330" x2="400" y2="360"/>
+    <line class="arrow" x1="645" y1="330" x2="645" y2="360"/>
+    
+    <!-- 权限与资源层 -->
+    <rect class="box" x="30" y="360" width="740" height="130"/>
+    <text class="text-title" x="50" y="385">权限与资源层</text>
+    
+    <rect class="box-alt" x="50" y="400" width="700" height="75" rx="6"/>
+    <text class="text" x="70" y="425" font-weight="bold">PermissionEngine.calculateDataScope(agentUserId, skillId)</text>
+    
+    <text class="text-small" x="70" y="450">• 知识库访问权限（基于角色和数据范围）</text>
+    <text class="text-small" x="70" y="465">• LLM 调用配额（基于 agentType 和配置）</text>
+    
+    <text class="text-small" x="400" y="450">• 对话历史存储（独立隔离，支持长期记忆）</text>
+    <text class="text-small" x="400" y="465">• 审计日志（记录所有操作，支持溯源）</text>
+</svg>

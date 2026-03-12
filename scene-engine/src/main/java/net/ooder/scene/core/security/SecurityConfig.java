@@ -26,46 +26,46 @@ public class SecurityConfig {
     }
 
     private static void configureUserPermissions(String roleId) {
-        List<Permission> permissions = new ArrayList<>();
-        
+        List<SecurityPermission> permissions = new ArrayList<>();
+
         permissions.add(createPermission("storage-read", "storage", "read", "ALLOW"));
-        
+
         Map<String, Object> conditions1 = new HashMap<>();
         conditions1.put("resourceOwner", "${userId}");
         permissions.add(createPermission("storage-write-own", "storage", "write", "ALLOW", conditions1));
-        
+
         Map<String, Object> conditions2 = new HashMap<>();
         conditions2.put("resourceOwner", "${userId}");
         permissions.add(createPermission("storage-delete-own", "storage", "delete", "ALLOW", conditions2));
-        
+
         Map<String, Object> conditions3 = new HashMap<>();
         conditions3.put("usageLimit", "1000");
         conditions3.put("timeWindow", "day");
         permissions.add(createPermission("llm-execute-limited", "llm", "execute", "ALLOW", conditions3));
-        
+
         permissions.add(createPermission("network-read", "network", "read", "ALLOW"));
-        
-        for (Permission permission : permissions) {
+
+        for (SecurityPermission permission : permissions) {
         }
     }
 
     private static void configureFamilyUserPermissions(String roleId) {
-        List<Permission> permissions = new ArrayList<>();
-        
+        List<SecurityPermission> permissions = new ArrayList<>();
+
         permissions.add(createPermission("storage-read", "storage", "read", "ALLOW"));
         permissions.add(createPermission("storage-write", "storage", "write", "ALLOW"));
         permissions.add(createPermission("storage-delete", "storage", "delete", "ALLOW"));
         permissions.add(createPermission("llm-execute", "llm", "execute", "ALLOW"));
         permissions.add(createPermission("network-read", "network", "read", "ALLOW"));
         permissions.add(createPermission("network-write", "network", "write", "ALLOW"));
-        
-        for (Permission permission : permissions) {
+
+        for (SecurityPermission permission : permissions) {
         }
     }
 
     private static void configureEnterpriseUserPermissions(String roleId) {
-        List<Permission> permissions = new ArrayList<>();
-        
+        List<SecurityPermission> permissions = new ArrayList<>();
+
         permissions.add(createPermission("storage-read", "storage", "read", "ALLOW"));
         permissions.add(createPermission("storage-write", "storage", "write", "ALLOW"));
         permissions.add(createPermission("storage-delete", "storage", "delete", "ALLOW"));
@@ -73,14 +73,14 @@ public class SecurityConfig {
         permissions.add(createPermission("llm-config", "llm", "config", "ALLOW"));
         permissions.add(createPermission("network-read", "network", "read", "ALLOW"));
         permissions.add(createPermission("network-write", "network", "write", "ALLOW"));
-        
-        for (Permission permission : permissions) {
+
+        for (SecurityPermission permission : permissions) {
         }
     }
 
     private static void configureAdminPermissions(String roleId) {
-        List<Permission> permissions = new ArrayList<>();
-        
+        List<SecurityPermission> permissions = new ArrayList<>();
+
         permissions.add(createPermission("storage-read", "storage", "read", "ALLOW"));
         permissions.add(createPermission("storage-write", "storage", "write", "ALLOW"));
         permissions.add(createPermission("storage-delete", "storage", "delete", "ALLOW"));
@@ -91,8 +91,8 @@ public class SecurityConfig {
         permissions.add(createPermission("security-read", "security", "read", "ALLOW"));
         permissions.add(createPermission("security-write", "security", "write", "ALLOW"));
         permissions.add(createPermission("audit-read", "audit", "read", "ALLOW"));
-        
-        for (Permission permission : permissions) {
+
+        for (SecurityPermission permission : permissions) {
         }
     }
 
@@ -127,13 +127,13 @@ public class SecurityConfig {
         interceptors.add(new RateLimitInterceptor());
     }
 
-    private static Permission createPermission(String permissionId, String resource, String action, String effect) {
+    private static SecurityPermission createPermission(String permissionId, String resource, String action, String effect) {
         return createPermission(permissionId, resource, action, effect, null);
     }
 
-    private static Permission createPermission(String permissionId, String resource, String action, String effect, 
+    private static SecurityPermission createPermission(String permissionId, String resource, String action, String effect,
                                               Map<String, Object> conditions) {
-        Permission permission = new Permission();
+        SecurityPermission permission = new SecurityPermission();
         permission.setPermissionId(permissionId);
         permission.setResource(resource);
         permission.setAction(action);

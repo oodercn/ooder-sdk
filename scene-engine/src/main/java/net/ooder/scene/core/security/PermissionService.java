@@ -32,17 +32,17 @@ public interface PermissionService {
     /**
      * 获取用户权限列表
      */
-    CompletableFuture<List<Permission>> getUserPermissions(String userId);
+    CompletableFuture<List<SecurityPermission>> getUserPermissions(String userId);
 
     /**
      * 获取角色权限列表
      */
-    CompletableFuture<List<Permission>> getRolePermissions(String roleId);
+    CompletableFuture<List<SecurityPermission>> getRolePermissions(String roleId);
 
     /**
      * 授予权限
      */
-    CompletableFuture<Void> grantPermission(String roleId, Permission permission);
+    CompletableFuture<Void> grantPermission(String roleId, SecurityPermission permission);
 
     /**
      * 撤销权限
@@ -81,6 +81,6 @@ class PermissionCheckResult {
  * 权限变更监听器
  */
 interface PermissionChangeListener {
-    void onPermissionChanged(String roleId, Permission permission, boolean granted);
+    void onPermissionChanged(String roleId, SecurityPermission permission, boolean granted);
     void onRolePermissionsChanged(String roleId);
 }

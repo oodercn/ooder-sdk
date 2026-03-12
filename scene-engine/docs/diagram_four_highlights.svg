@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 580" width="800px" height="580px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-alt { fill: #dbeafe; stroke: #1e40af; stroke-width: 2; rx: 8; }
+        .box-highlight { fill: #fef3c7; stroke: #d97706; stroke-width: 2; rx: 8; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .arrow-highlight { fill: none; stroke: #2563eb; stroke-width: 2; marker-end: url(#arrowhead-blue); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #334155; }
+        .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .text-small { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #64748b; }
+        .text-white { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #ffffff; }
+        .divider { stroke: #e2e8f0; stroke-width: 1; }
+        .loop-arrow { fill: none; stroke: #2563eb; stroke-width: 2; stroke-dasharray: 5,3; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+    <!-- 标题 -->
+    <rect class="title-box" x="20" y="15" width="760" height="35" rx="4"/>
+    <text class="text-header" x="400" y="38" text-anchor="middle">四大亮点的逻辑演进</text>
+    
+    <!-- 第一层：基础架构层 -->
+    <rect class="box" x="30" y="70" width="740" height="90"/>
+    <text class="text-title" x="50" y="95">第一层：基础架构层</text>
+    
+    <rect class="box-alt" x="50" y="110" width="700" height="40" rx="6"/>
+    <text class="text" x="70" y="125" font-weight="bold">Skill-Centric Architecture（技能中心架构）</text>
+    <text class="text-small" x="70" y="142">统一抽象：所有 AI 能力都是 Skill · 三维分类：形态/分类/目的 · 能力暴露：通过 Capability 接口</text>
+    
+    <!-- 箭头 -->
+    <line class="arrow" x1="400" y1="160" x2="400" y2="185"/>
+    
+    <!-- 第二层：用户参与层 -->
+    <rect class="box" x="30" y="185" width="740" height="130"/>
+    <text class="text-title" x="50" y="210">第二层：用户参与层</text>
+    
+    <!-- 亮点一 -->
+    <rect class="box-alt" x="50" y="225" width="340" height="80" rx="6"/>
+    <text class="text" x="70" y="245" font-weight="bold">亮点一：多方参与、自主维护</text>
+    <text class="text-small" x="70" y="265">开发者定义 Skill 接口</text>
+    <text class="text-small" x="70" y="280">终端用户贡献知识</text>
+    <text class="text-small" x="70" y="295">运维人员配置权限</text>
+    
+    <!-- 亮点二 -->
+    <rect class="box-alt" x="410" y="225" width="340" height="80" rx="6"/>
+    <text class="text" x="430" y="245" font-weight="bold">亮点二：Agent 作为独立账号用户</text>
+    <text class="text-small" x="430" y="265">Agent 拥有独立 userId</text>
+    <text class="text-small" x="430" y="280">多角色协作（RoleConfig）</text>
+    <text class="text-small" x="430" y="295">精细化权限控制（DataScope）</text>
+    
+    <!-- 箭头 -->
+    <line class="arrow" x1="400" y1="315" x2="400" y2="340"/>
+    
+    <!-- 第三层：知识增强层 -->
+    <rect class="box" x="30" y="340" width="740" height="90"/>
+    <text class="text-title" x="50" y="365">第三层：知识增强层</text>
+    
+    <rect class="box-alt" x="50" y="380" width="700" height="40" rx="6"/>
+    <text class="text" x="70" y="395" font-weight="bold">亮点三：每个 Skill 独立的知识资料库</text>
+    <text class="text-small" x="70" y="412">KnowledgeBinding：Skill 与知识库绑定 · 完整 RAG 支持：分块/向量化/索引/检索 · AdaptiveRag：自适应检索策略</text>
+    
+    <!-- 箭头 -->
+    <line class="arrow" x1="400" y1="430" x2="400" y2="455"/>
+    
+    <!-- 第四层：数据驱动层 -->
+    <rect class="box" x="30" y="455" width="740" height="110"/>
+    <text class="text-title" x="50" y="480">第四层：数据驱动层</text>
+    
+    <rect class="box-alt" x="50" y="495" width="340" height="60" rx="6"/>
+    <text class="text" x="70" y="515" font-weight="bold">亮点四：用户数据深度挖掘的数据飞轮</text>
+    <text class="text-small" x="70" y="535">AuditLogger · 数据挖掘 · PushFeedback</text>
+    
+    <line class="arrow-highlight" x1="390" y1="525" x2="450" y2="525"/>
+    <text class="text" x="520" y="520" text-anchor="middle" font-weight="bold" fill="#2563eb">数据飞轮输出</text>
+    
+    <line class="arrow-highlight" x1="590" y1="525" x2="650" y2="525"/>
+    
+    <rect class="box-highlight" x="650" y="505" width="100" height="40" rx="6"/>
+    <text class="text" x="700" y="525" text-anchor="middle" font-weight="bold" font-size="12">优化 Skill</text>
+    <text class="text" x="700" y="538" text-anchor="middle" font-size="11">和知识库</text>
+    
+    <line class="arrow-highlight" x1="700" y1="505" x2="700" y2="470"/>
+    <line class="arrow-highlight" x1="700" y1="470" x2="400" y2="470"/>
+    <line class="arrow-highlight" x1="400" y1="470" x2="400" y2="455"/>
+    
+    <text class="text-small" x="550" y="465" fill="#2563eb" font-style="italic">更好的用户体验</text>
+</svg>

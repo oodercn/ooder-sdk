@@ -16,7 +16,7 @@ public interface DiscoveryProtocolAdapter {
      * @param request 发现请求
      * @return 发现结果
      */
-    CompletableFuture<DiscoveryResult> discoverPeers(DiscoveryRequest request);
+    CompletableFuture<PeerDiscoveryResult> discoverPeers(PeerDiscoveryRequest request);
 
     /**
      * 列出已发现的节点

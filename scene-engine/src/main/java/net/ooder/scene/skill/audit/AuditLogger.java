@@ -1,5 +1,7 @@
 package net.ooder.scene.skill.audit;
 
+import net.ooder.scene.audit.AuditStats;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 

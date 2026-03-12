@@ -28,7 +28,7 @@ public interface SceneSkillLifecycle {
      * @param config 安装配置
      * @return 安装结果
      */
-    CompletableFuture<InstallResult> installSceneSkill(String sceneId, String skillId, Map<String, Object> config);
+    CompletableFuture<LifecycleInstallResult> installSceneSkill(String sceneId, String skillId, Map<String, Object> config);
 
     /**
      * 激活场景技能

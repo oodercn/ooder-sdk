@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" width="800px" height="340px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-alt { fill: #dbeafe; stroke: #1e40af; stroke-width: 2; rx: 8; }
+        .box-highlight { fill: #fef3c7; stroke: #d97706; stroke-width: 2; rx: 8; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .arrow-highlight { fill: none; stroke: #2563eb; stroke-width: 2; marker-end: url(#arrowhead-blue); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #334155; }
+        .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .text-small { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #64748b; }
+        .text-white { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #ffffff; }
+        .divider { stroke: #e2e8f0; stroke-width: 1; }
+        .loop-arrow { fill: none; stroke: #2563eb; stroke-width: 2; stroke-dasharray: 5,3; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+    <!-- 标题 -->
+    <rect class="title-box" x="20" y="15" width="760" height="35" rx="4"/>
+    <text class="text-header" x="400" y="38" text-anchor="middle">数据飞轮模型</text>
+    
+    <!-- 用户使用 Skill -->
+    <rect class="box" x="50" y="70" width="140" height="100" rx="8"/>
+    <text class="text" x="120" y="95" text-anchor="middle" font-weight="bold">用户使用</text>
+    <text class="text" x="120" y="115" text-anchor="middle" font-weight="bold">Skill</text>
+    <text class="text-small" x="120" y="140" text-anchor="middle">触发点：</text>
+    <text class="text-small" x="120" y="155" text-anchor="middle">提问 · 调用能力</text>
+    
+    <line class="arrow" x1="190" y1="120" x2="240" y2="120"/>
+    
+    <!-- 数据收集 -->
+    <rect class="box" x="240" y="70" width="140" height="100" rx="8"/>
+    <text class="text" x="310" y="95" text-anchor="middle" font-weight="bold">数据收集</text>
+    <text class="text" x="310" y="115" text-anchor="middle" font-weight="bold">AuditLog</text>
+    <text class="text-small" x="310" y="140" text-anchor="middle">查询内容 · 响应结果</text>
+    <text class="text-small" x="310" y="155" text-anchor="middle">执行时长</text>
+    
+    <line class="arrow" x1="380" y1="120" x2="430" y2="120"/>
+    
+    <!-- 知识贡献 -->
+    <rect class="box" x="430" y="70" width="140" height="100" rx="8"/>
+    <text class="text" x="500" y="95" text-anchor="middle" font-weight="bold">知识贡献</text>
+    <text class="text" x="500" y="115" text-anchor="middle" font-weight="bold">Contribution</text>
+    <text class="text-small" x="500" y="140" text-anchor="middle">上传文档 · 输入文本</text>
+    <text class="text-small" x="500" y="155" text-anchor="middle">URL导入</text>
+    
+    <line class="arrow" x1="570" y1="120" x2="620" y2="120"/>
+    
+    <!-- 知识库更新 -->
+    <rect class="box-alt" x="620" y="70" width="140" height="100" rx="8"/>
+    <text class="text" x="690" y="95" text-anchor="middle" font-weight="bold">知识库更新</text>
+    <text class="text-small" x="690" y="120" text-anchor="middle">新增文档</text>
+    <text class="text-small" x="690" y="140" text-anchor="middle">更新索引</text>
+    <text class="text-small" x="690" y="160" text-anchor="middle">版本管理</text>
+    
+    <!-- 向下箭头 -->
+    <line class="arrow" x1="690" y1="170" x2="690" y2="210"/>
+    
+    <!-- 数据分析 -->
+    <rect class="box" x="580" y="210" width="140" height="100" rx="8"/>
+    <text class="text" x="650" y="235" text-anchor="middle" font-weight="bold">数据分析</text>
+    <text class="text" x="650" y="255" text-anchor="middle" font-weight="bold">Analytics</text>
+    <text class="text-small" x="650" y="280" text-anchor="middle">使用模式 · 知识缺口</text>
+    <text class="text-small" x="650" y="295" text-anchor="middle">Agent性能</text>
+    
+    <line class="arrow" x1="580" y1="260" x2="530" y2="260"/>
+    
+    <!-- Skill改进 -->
+    <rect class="box" x="390" y="210" width="140" height="100" rx="8"/>
+    <text class="text" x="460" y="235" text-anchor="middle" font-weight="bold">Skill改进</text>
+    <text class="text" x="460" y="255" text-anchor="middle" font-weight="bold">Optimize</text>
+    <text class="text-small" x="460" y="280" text-anchor="middle">策略调优 · 知识补充</text>
+    <text class="text-small" x="460" y="295" text-anchor="middle">权限优化</text>
+    
+    <line class="arrow" x1="390" y1="260" x2="340" y2="260"/>
+    
+    <!-- 体验提升 -->
+    <rect class="box-highlight" x="200" y="210" width="140" height="100" rx="8"/>
+    <text class="text" x="270" y="235" text-anchor="middle" font-weight="bold">体验提升</text>
+    <text class="text" x="270" y="255" text-anchor="middle" font-weight="bold">Better UX</text>
+    <text class="text-small" x="270" y="280" text-anchor="middle">响应更快 · 答案更准</text>
+    <text class="text-small" x="270" y="295" text-anchor="middle">功能更强</text>
+    
+    <!-- 循环箭头 -->
+    <path class="loop-arrow" d="M 200 280 Q 120 280 120 170 Q 120 120 50 120" fill="none"/>
+    <text class="text-small" x="100" y="240" fill="#2563eb" font-style="italic">正反馈循环</text>
+</svg>

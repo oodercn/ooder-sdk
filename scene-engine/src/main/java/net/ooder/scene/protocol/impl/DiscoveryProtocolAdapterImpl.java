@@ -57,9 +57,9 @@ public class DiscoveryProtocolAdapterImpl implements DiscoveryProtocolAdapter {
     }
 
     @Override
-    public CompletableFuture<DiscoveryResult> discoverPeers(DiscoveryRequest request) {
+    public CompletableFuture<PeerDiscoveryResult> discoverPeers(PeerDiscoveryRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DiscoveryResult result = new DiscoveryResult();
+            PeerDiscoveryResult result = new PeerDiscoveryResult();
             long startTime = System.currentTimeMillis();
             
             try {

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 490" width="800px" height="490px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-alt { fill: #dbeafe; stroke: #1e40af; stroke-width: 2; rx: 8; }
+        .box-highlight { fill: #fef3c7; stroke: #d97706; stroke-width: 2; rx: 8; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .arrow-highlight { fill: none; stroke: #2563eb; stroke-width: 2; marker-end: url(#arrowhead-blue); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #334155; }
+        .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .text-small { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #64748b; }
+        .text-white { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #ffffff; }
+        .divider { stroke: #e2e8f0; stroke-width: 1; }
+        .loop-arrow { fill: none; stroke: #2563eb; stroke-width: 2; stroke-dasharray: 5,3; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+    <!-- 标题 -->
+    <rect class="title-box" x="20" y="15" width="760" height="35" rx="4"/>
+    <text class="text-header" x="400" y="38" text-anchor="middle">Ooder-Skills 技术架构全景</text>
+    
+    <!-- 应用层 -->
+    <rect class="box" x="30" y="70" width="740" height="80"/>
+    <text class="text-title" x="50" y="95">应用层 (Application)</text>
+    
+    <rect class="box-alt" x="50" y="110" width="150" height="30" rx="6"/>
+    <text class="text-small" x="125" y="130" text-anchor="middle">UserContributionService</text>
+    
+    <rect class="box-alt" x="230" y="110" width="120" height="30" rx="6"/>
+    <text class="text-small" x="290" y="130" text-anchor="middle">BatchImportService</text>
+    
+    <rect class="box-alt" x="380" y="110" width="120" height="30" rx="6"/>
+    <text class="text-small" x="440" y="130" text-anchor="middle">PushService</text>
+    
+    <rect class="box-alt" x="530" y="110" width="120" height="30" rx="6"/>
+    <text class="text-small" x="590" y="130" text-anchor="middle">AuditLogger</text>
+    
+    <!-- 连接线 -->
+    <line class="arrow" x1="400" y1="150" x2="400" y2="170"/>
+    
+    <!-- 技能层 -->
+    <rect class="box" x="30" y="170" width="740" height="80"/>
+    <text class="text-title" x="50" y="195">技能层 (Skill Layer)</text>
+    
+    <rect class="box-alt" x="50" y="210" width="700" height="30" rx="6"/>
+    <text class="text-small" x="70" y="230">Skill (核心实体) · SkillForm: SCENE/STANDALONE · SkillCategory: knowledge/llm/tool/workflow · getCapabilities()</text>
+    
+    <!-- 连接线 -->
+    <line class="arrow" x1="400" y1="250" x2="400" y2="270"/>
+    
+    <!-- 知识增强层 -->
+    <rect class="box" x="30" y="270" width="740" height="80"/>
+    <text class="text-title" x="50" y="295">知识增强层 (Knowledge Layer)</text>
+    
+    <rect class="box-alt" x="50" y="310" width="150" height="30" rx="6"/>
+    <text class="text-small" x="125" y="330" text-anchor="middle">KnowledgeBaseService</text>
+    
+    <rect class="box-alt" x="230" y="310" width="120" height="30" rx="6"/>
+    <text class="text-small" x="290" y="330" text-anchor="middle">RagPipeline</text>
+    
+    <rect class="box-alt" x="380" y="310" width="120" height="30" rx="6"/>
+    <text class="text-small" x="440" y="330" text-anchor="middle">AdaptiveRag</text>
+    
+    <rect class="box-alt" x="530" y="310" width="150" height="30" rx="6"/>
+    <text class="text-small" x="605" y="330" text-anchor="middle">PermissionEngine</text>
+    
+    <!-- 连接线 -->
+    <line class="arrow" x1="400" y1="350" x2="400" y2="370"/>
+    
+    <!-- Agent层 -->
+    <rect class="box" x="30" y="370" width="740" height="100"/>
+    <text class="text-title" x="50" y="395">Agent 层 (Agent Layer)</text>
+    
+    <rect class="box-alt" x="50" y="410" width="700" height="50" rx="6"/>
+    <text class="text-small" x="70" y="430">AgentLlmSessionContext (Agent 用户会话上下文)</text>
+    <text class="text-small" x="70" y="450">agentId / userId / agentType · llmConfig / connectionPool / conversationHistory · quota / state · RoleContext / RoleConfig</text>
+</svg>

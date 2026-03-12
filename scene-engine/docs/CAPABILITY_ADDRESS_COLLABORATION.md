@@ -4,7 +4,7 @@
 > **创建日期**: 2026-03-11  
 > **发起团队**: Engine Team (scene-engine)  
 > **目标团队**: Skills Team, Agent-SDK Team  
-> **状态**: 待确认
+> **状态**: ✅ 已实现
 
 ---
 
@@ -280,31 +280,33 @@
 
 | 任务 | 优先级 | 预计时间 | 状态 |
 |------|:------:|:--------:|:----:|
-| CapabilityCategory 枚举 (16分类) | P0 | 0.5天 | 待开发 |
-| CapabilityAddress 枚举 (128地址) | P0 | 1天 | 待开发 |
-| CapabilityRouter 路由器 | P0 | 2天 | 待开发 |
-| CapabilityInstanceRegistry 实例注册 | P0 | 2天 | 待开发 |
-| CapabilityMappingService 映射服务 | P1 | 0.5天 | 待开发 |
-| LlmContextRegistry 扩展 | P1 | 0.5天 | 待开发 |
-| SecurityContext 扩展 | P1 | 0.5天 | 待开发 |
-| CapabilityInstanceSnapshot 持久化 | P1 | 1天 | 待开发 |
-| CapabilityInstanceRestorer 恢复 | P1 | 1天 | 待开发 |
+| CapabilityCategory 枚举 (16分类) | P0 | 0.5天 | ✅ 已完成 |
+| CapabilityAddress 枚举 (128地址) | P0 | 1天 | ✅ 已完成 |
+| CapabilityRouter 路由器 | P0 | 2天 | ✅ 已完成 |
+| CapabilityInstanceRegistry 实例注册 | P0 | 2天 | ✅ 已完成 |
+| CapabilityMappingService 映射服务 | P1 | 0.5天 | ✅ 已完成 |
+| LlmContextRegistry 扩展 | P1 | 0.5天 | ✅ 已完成 |
+| SecurityContext 扩展 | P1 | 0.5天 | ✅ 已完成 |
+| CapabilityInstanceSnapshot 持久化 | P1 | 1天 | ✅ 已完成 |
+| CapabilityInstanceRestorer 恢复 | P1 | 1天 | ✅ 已完成 |
 
 ### 3.2 Skills Team 职责
 
-| 任务 | 优先级 | 预计时间 | 依赖 |
-|------|:------:|:--------:|:----:|
-| 驱动实现 (skill-vfs-*, skill-llm-*, etc.) | P0 | 按技能规划 | Engine P0 |
-| 驱动注册到 CapabilityAddress | P0 | 0.5天 | Engine P0 |
-| skill.yaml 扩展 (能力地址声明) | P1 | 1天 | Engine P1 |
-| 驱动配置适配 | P1 | 1天 | Engine P1 |
+| 任务 | 优先级 | 预计时间 | 依赖 | 状态 |
+|------|:------:|:--------:|:----:|:----:|
+| 驱动实现 (skill-vfs-*, skill-llm-*, etc.) | P0 | 按技能规划 | Engine P0 | ⬜ 待开始 |
+| 驱动注册到 CapabilityAddress | P0 | 0.5天 | Engine P0 | ⬜ 待开始 |
+| skill.yaml 扩展 (能力地址声明) | P1 | 1天 | Engine P1 | ⬜ 待开始 |
+| 驱动配置适配 | P1 | 1天 | Engine P1 | ⬜ 待开始 |
 
 ### 3.3 Agent-SDK Team 职责
 
-| 任务 | 优先级 | 预计时间 | 依赖 |
-|------|:------:|:--------:|:----:|
-| FunctionDefinition 扩展 (capabilityAddress字段) | P1 | 0.5天 | Engine P0 |
-| 驱动注册接口适配 | P1 | 0.5天 | Engine P0 |
+| 任务 | 优先级 | 预计时间 | 依赖 | 状态 |
+|------|:------:|:--------:|:----:|:----:|
+| FunctionDefinition 扩展 (capabilityAddress字段) | P1 | 0.5天 | Engine P0 | ✅ 已完成 |
+| 驱动注册接口适配 | P1 | 0.5天 | Engine P0 | ✅ 已完成 |
+| AtomicCapability 接口 | P1 | 0.5天 | Engine P0 | ✅ 已完成 |
+| DriverRegistry 接口 | P1 | 0.5天 | Engine P0 | ✅ 已完成 |
 
 ---
 
@@ -451,6 +453,6 @@ driver:
 
 ---
 
-**文档状态**: 待 Skills Team 和 Agent-SDK Team 确认  
+**文档状态**: ✅ Engine Team 和 Agent-SDK Team 任务已完成，Skills Team 待开始  
 **创建日期**: 2026-03-11  
 **维护团队**: Engine Team

@@ -6,7 +6,7 @@ import net.ooder.scene.core.PageResult;
 import net.ooder.scene.core.Result;
 import net.ooder.scene.core.SceneEngine;
 import net.ooder.scene.provider.UserProvider;
-import net.ooder.scene.provider.model.user.Permission;
+import net.ooder.scene.provider.model.user.UserPermission;
 import net.ooder.scene.provider.model.user.SecurityLog;
 import net.ooder.scene.provider.model.user.UserInfo;
 import net.ooder.scene.provider.model.user.UserStatus;
@@ -25,7 +25,7 @@ public class UserProviderImpl implements UserProvider {
     private SceneEventPublisher eventPublisher;
 
     private final Map<String, UserInfo> userRegistry = new ConcurrentHashMap<>();
-    private final Map<String, Permission> permissionRegistry = new ConcurrentHashMap<>();
+    private final Map<String, UserPermission> permissionRegistry = new ConcurrentHashMap<>();
     private final Map<String, List<String>> userPermissions = new ConcurrentHashMap<>();
     private final List<SecurityLog> securityLogs = new ArrayList<>();
     private final int maxLogsSize = 1000;
@@ -90,7 +90,7 @@ public class UserProviderImpl implements UserProvider {
     }
 
     private void addPermission(String name, String resource, String action, String description) {
-        Permission permission = new Permission();
+        UserPermission permission = new UserPermission();
         permission.setPermissionId(UUID.randomUUID().toString());
         permission.setName(name);
         permission.setResource(resource);
@@ -330,21 +330,21 @@ public class UserProviderImpl implements UserProvider {
     }
 
     @Override
-    public Result<PageResult<Permission>> listPermissions(int page, int size) {
-        List<Permission> allPermissions = new ArrayList<>(permissionRegistry.values());
-        
+    public Result<PageResult<UserPermission>> listPermissions(int page, int size) {
+        List<UserPermission> allPermissions = new ArrayList<>(permissionRegistry.values());
+
         int total = allPermissions.size();
         int start = (page - 1) * size;
         int end = Math.min(start + size, total);
-        
-        List<Permission> pagedPermissions = start < total ? allPermissions.subList(start, end) : new ArrayList<>();
-        
-        PageResult<Permission> result = new PageResult<>();
+
+        List<UserPermission> pagedPermissions = start < total ? allPermissions.subList(start, end) : new ArrayList<>();
+
+        PageResult<UserPermission> result = new PageResult<>();
         result.setItems(pagedPermissions);
         result.setTotal(total);
         result.setPageNum(page);
         result.setPageSize(size);
-        
+
         return Result.success(result);
     }
 

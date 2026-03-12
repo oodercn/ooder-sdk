@@ -2,7 +2,7 @@ package net.ooder.scene.provider;
 
 import net.ooder.scene.core.PageResult;
 import net.ooder.scene.core.Result;
-import net.ooder.scene.provider.model.user.Permission;
+import net.ooder.scene.provider.model.user.UserPermission;
 import net.ooder.scene.provider.model.user.SecurityLog;
 import net.ooder.scene.provider.model.user.UserInfo;
 import net.ooder.scene.provider.model.user.UserStatus;
@@ -28,7 +28,7 @@ public interface UserProvider extends BaseProvider {
     
     Result<UserInfo> disableUser(String userId);
     
-    Result<PageResult<Permission>> listPermissions(int page, int size);
+    Result<PageResult<UserPermission>> listPermissions(int page, int size);
     
     Result<Boolean> savePermissions(String userId, List<String> permissions);
     

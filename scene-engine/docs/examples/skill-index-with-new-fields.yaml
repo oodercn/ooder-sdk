@@ -1,0 +1,174 @@
+# ============================================
+# SE标准扩展示例 - 包含 participants 和 driverConditions
+# 版本: SE v1.2.0 / Schema v2.4.0
+# ============================================
+
+apiVersion: skill.ooder.net/v1
+kind: SkillIndex
+
+metadata:
+  id: skill-recruitment-assistant
+  name: 智能招聘助手
+  version: 1.0.0
+  description: 基于AI的招聘流程自动化场景，支持简历筛选、面试安排和评估反馈
+
+spec:
+  skillForm: SCENE
+  sceneType: AUTO
+  visibility: public
+  businessCategory: HR
+  subCategory: 招聘管理
+  category: AI_APPLICATION
+  capabilityCategory: LLM_SERVICE
+
+  tags:
+    - AI
+    - 招聘
+    - 自动化
+    - HR
+
+  # 能力地址配置
+  capabilityAddresses:
+    required:
+      - name: llm-service
+        address: cap://llm/gpt-4
+        description: LLM服务
+      - name: email-service
+        address: cap://notification/email
+        description: 邮件通知服务
+    optional:
+      - name: calendar-service
+        address: cap://calendar/google
+        description: 日历服务
+
+  # 场景角色配置
+  roles:
+    - name: recruiter
+      displayName: 招聘专员
+      minCount: 1
+      maxCount: 3
+      permissions: [VIEW_CANDIDATES, SCHEDULE_INTERVIEW, SEND_OFFER]
+    - name: interviewer
+      displayName: 面试官
+      minCount: 1
+      maxCount: 5
+      permissions: [VIEW_CANDIDATES, SUBMIT_EVALUATION]
+    - name: hiring_manager
+      displayName: 招聘经理
+      minCount: 1
+      maxCount: 1
+      permissions: [VIEW_CANDIDATES, APPROVE_HIRE, CONFIGURE_WORKFLOW]
+
+  # ============================================
+  # 新增: 参与者配置 (participants)
+  # ============================================
+  participants:
+    # 主导者配置
+    leader:
+      required: true
+      defaultToCurrentUser: true
+      permissions: [ACTIVATE, CONFIGURE, INVITE, DELEGATE, DELETE]
+
+    # 协作者配置
+    collaborators:
+      minCount: 0
+      maxCount: 10
+      selectionType: USER
+
+    # 推送类型
+    pushType: INVITE
+
+  # ============================================
+  # 新增: 驱动条件配置 (driverConditions)
+  # ============================================
+  driverConditions:
+    # 支持的触发类型
+    supportedTypes: [MANUAL, SCHEDULE, EVENT]
+
+    # 默认触发类型
+    defaultType: MANUAL
+
+    # 定时触发配置
+    scheduleConfig:
+      cronExpression: "0 9 * * MON"
+      timezone: "Asia/Shanghai"
+
+    # 事件触发配置
+    eventConfig:
+      eventTypes: [NEW_CANDIDATE_APPLIED, INTERVIEW_COMPLETED]
+      eventSource: "ats-system"
+
+---
+
+# ============================================
+# DRIVER 形态技能示例
+# ============================================
+
+apiVersion: skill.ooder.net/v1
+kind: SkillIndex
+
+metadata:
+  id: skill-data-sync-driver
+  name: 数据同步驱动器
+  version: 2.1.0
+  description: 定时同步多个数据源的数据驱动器
+
+spec:
+  skillForm: DRIVER
+  visibility: developer
+  businessCategory: DATA
+  category: DATA_INTEGRATION
+  capabilityCategory: DATABASE_SERVICE
+
+  tags:
+    - 数据同步
+    - ETL
+    - 自动化
+
+  capabilityAddresses:
+    required:
+      - name: source-db
+        address: cap://database/source
+      - name: target-db
+        address: cap://database/target
+
+  # ============================================
+  # DRIVER形态也可以使用 driverConditions
+  # ============================================
+  driverConditions:
+    supportedTypes: [SCHEDULE, WEBHOOK]
+    defaultType: SCHEDULE
+    scheduleConfig:
+      cronExpression: "0 */6 * * *"
+      timezone: "UTC"
+
+---
+
+# ============================================
+# 最小化配置示例（仅必需字段）
+# ============================================
+
+apiVersion: skill.ooder.net/v1
+kind: SkillIndex
+
+metadata:
+  id: skill-simple-task
+  name: 简单任务场景
+  version: 1.0.0
+  description: 最小化配置的场景示例
+
+spec:
+  skillForm: SCENE
+  sceneType: TRIGGER
+  visibility: internal
+  businessCategory: PRODUCTIVITY
+  category: TASK_MANAGEMENT
+  capabilityCategory: BASIC_SERVICE
+
+  capabilityAddresses:
+    required:
+      - name: task-service
+        address: cap://task/manager
+
+  # participants 和 driverConditions 都是可选字段
+  # 如果不配置，安装向导将使用默认值
