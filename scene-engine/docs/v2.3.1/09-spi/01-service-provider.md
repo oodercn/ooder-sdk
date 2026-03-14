@@ -8,6 +8,7 @@
 
 | 服务 | 接口 | 说明 |
 |------|------|------|
+| 对话存储服务 | `ConversationStorageService` | 对话历史存储 |
 | 对话服务 | `ConversationService` | 多轮对话管理 |
 | 知识库服务 | `KnowledgeBaseService` | 知识库管理 |
 | 术语服务 | `TerminologyService` | 术语解析与管理 |
@@ -27,6 +28,7 @@ SceneEngineServiceProvider provider = ServiceLoader
     .orElseThrow(() -> new IllegalStateException("Provider not found"));
 
 // 获取服务
+ConversationStorageService storageService = provider.getStorageService();
 ConversationService conversationService = provider.getConversationService();
 KnowledgeBaseService knowledgeBaseService = provider.getKnowledgeBaseService();
 TerminologyService terminologyService = provider.getTerminologyService();
@@ -91,6 +93,7 @@ public class SceneEngineConfig {
     
     @Bean
     public SceneEngineServiceProvider sceneEngineServiceProvider(
+            ConversationStorageService storageService,
             ConversationService conversationService,
             KnowledgeBaseService knowledgeBaseService,
             TerminologyService terminologyService,
@@ -99,6 +102,7 @@ public class SceneEngineConfig {
             ToolOrchestrator toolOrchestrator) {
         
         return new DefaultSceneEngineServiceProvider(
+            storageService,
             conversationService,
             knowledgeBaseService,
             terminologyService,
