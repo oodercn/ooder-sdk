@@ -27,6 +27,11 @@ public class SceneEngineProperties {
      */
     private KnowledgeProperties knowledge = new KnowledgeProperties();
 
+    /**
+     * Skill 配置
+     */
+    private SkillProperties skill = new SkillProperties();
+
     // Getters and Setters
     public ConversationProperties getConversation() {
         return conversation;
@@ -50,6 +55,14 @@ public class SceneEngineProperties {
 
     public void setKnowledge(KnowledgeProperties knowledge) {
         this.knowledge = knowledge;
+    }
+
+    public SkillProperties getSkill() {
+        return skill;
+    }
+
+    public void setSkill(SkillProperties skill) {
+        this.skill = skill;
     }
 
     /**
@@ -191,5 +204,19 @@ public class SceneEngineProperties {
 
         public int getOverlap() { return overlap; }
         public void setOverlap(int overlap) { this.overlap = overlap; }
+    }
+
+    /**
+     * Skill 配置
+     */
+    public static class SkillProperties {
+        private boolean enabled = true;
+        private boolean autoRegister = true;
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public boolean isAutoRegister() { return autoRegister; }
+        public void setAutoRegister(boolean autoRegister) { this.autoRegister = autoRegister; }
     }
 }

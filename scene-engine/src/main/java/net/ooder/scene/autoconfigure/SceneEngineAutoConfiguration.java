@@ -12,10 +12,12 @@ import net.ooder.scene.skill.tool.ToolOrchestrator;
 import net.ooder.scene.skill.tool.ToolRegistry;
 import net.ooder.scene.skill.tool.impl.ToolOrchestratorImpl;
 import net.ooder.scene.skill.tool.impl.ToolRegistryImpl;
+import net.ooder.scene.skill.SkillControllerFactory;
 import net.ooder.scene.spi.SceneServices;
 import net.ooder.scene.spi.SceneServiceFactory;
 import net.ooder.scene.spi.impl.DefaultSceneServiceFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -137,5 +139,9 @@ public class SceneEngineAutoConfiguration {
         );
 
         SceneServices.setFactory(factory);
+
+        // 初始化 SkillControllerFactory
+        SkillControllerFactory.initialize();
     }
+
 }
