@@ -1,7 +1,6 @@
 package net.ooder.scene.autoconfigure;
 
 import net.ooder.scene.llm.LlmService;
-import net.ooder.scene.llm.impl.DefaultLlmService;
 import net.ooder.scene.skill.conversation.ConversationService;
 import net.ooder.scene.skill.conversation.impl.ConversationServiceImpl;
 import net.ooder.scene.skill.conversation.storage.ConversationStorageService;
@@ -18,8 +17,8 @@ import net.ooder.scene.spi.SceneServices;
 import net.ooder.scene.spi.SceneServiceFactory;
 import net.ooder.scene.spi.impl.DefaultSceneServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +28,7 @@ import javax.annotation.PostConstruct;
 /**
  * Scene Engine 自动配置类
  * <p>将 SE 核心服务暴露为 Spring Bean，供 Skill 插件使用</p>
+ * <p>SE 只提供接口和扩展点，具体实现由 Skill 插件提供</p>
  *
  * @author ooder Team
  * @since 2.3.1
@@ -48,6 +48,7 @@ public class SceneEngineAutoConfiguration {
 
     /**
      * 对话存储服务
+     * <p>SE 提供默认的文件存储实现</p>
      */
     @Bean
     @ConditionalOnMissingBean(ConversationStorageService.class)
@@ -57,18 +58,8 @@ public class SceneEngineAutoConfiguration {
     }
 
     /**
-     * LLM 服务（默认实现）
-     * <p>提供默认占位实现，允许 SE 在没有 LLM 插件的情况下启动</p>
-     * <p>skill-llm 插件可以提供更完整的实现</p>
-     */
-    @Bean
-    @ConditionalOnMissingBean(LlmService.class)
-    public LlmService llmService() {
-        return new DefaultLlmService();
-    }
-
-    /**
      * 工具注册表
+     * <p>SE 提供默认实现</p>
      */
     @Bean
     @ConditionalOnMissingBean(ToolRegistry.class)
@@ -79,6 +70,7 @@ public class SceneEngineAutoConfiguration {
 
     /**
      * 工具编排器
+     * <p>SE 提供默认实现</p>
      */
     @Bean
     @ConditionalOnMissingBean(ToolOrchestrator.class)
@@ -89,6 +81,7 @@ public class SceneEngineAutoConfiguration {
 
     /**
      * 术语服务
+     * <p>SE 提供默认实现</p>
      */
     @Bean
     @ConditionalOnMissingBean(TerminologyService.class)
@@ -98,10 +91,39 @@ public class SceneEngineAutoConfiguration {
     }
 
     /**
-     * 交互反馈服务
-     * <p>KnowledgeBaseService 为可选依赖</p>
+     * 对话服务
+     * <p>只有在 LlmService Bean 存在时才创建</p>
+     * <p>LlmService 由 skill-llm 插件提供</p>
      */
     @Bean
+    @ConditionalOnBean(LlmService.class)
+    @ConditionalOnMissingBean(ConversationService.class)
+    public ConversationService conversationService(
+            LlmService llmService,
+            ConversationStorageService storageService,
+            ToolRegistry toolRegistry,
+            ToolOrchestrator toolOrchestrator) {
+
+        ConversationServiceImpl service = new ConversationServiceImpl(
+                null,  // knowledgeBaseService - 可选
+                null,  // ragPipeline - 可选
+                toolRegistry,
+                toolOrchestrator,
+                llmService,
+                null,  // auditService - 可选
+                storageService,
+                null   // feedbackService - 可选
+        );
+        this.conversationService = service;
+        return service;
+    }
+
+    /**
+     * 交互反馈服务
+     * <p>只有在 ConversationService Bean 存在时才创建</p>
+     */
+    @Bean
+    @ConditionalOnBean(ConversationService.class)
     @ConditionalOnMissingBean(InteractionFeedbackService.class)
     public InteractionFeedbackService interactionFeedbackService(
             TerminologyService terminologyService,
@@ -112,33 +134,6 @@ public class SceneEngineAutoConfiguration {
                 conversationService
         );
         return this.interactionFeedbackService;
-    }
-
-    /**
-     * 对话服务
-     * <p>注意：此 Bean 依赖于其他服务，需要最后初始化</p>
-     */
-    @Bean
-    @ConditionalOnMissingBean(ConversationService.class)
-    public ConversationService conversationService(
-            LlmService llmService,
-            ConversationStorageService storageService,
-            ToolRegistry toolRegistry,
-            ToolOrchestrator toolOrchestrator,
-            InteractionFeedbackService feedbackService) {
-
-        ConversationServiceImpl service = new ConversationServiceImpl(
-                null,  // knowledgeBaseService - 可选
-                null,  // ragPipeline - 可选
-                toolRegistry,
-                toolOrchestrator,
-                llmService,
-                null,  // auditService - 可选
-                storageService,
-                feedbackService
-        );
-        this.conversationService = service;
-        return service;
     }
 
     /**
