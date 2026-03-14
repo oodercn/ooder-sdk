@@ -3,7 +3,7 @@ package net.ooder.scene.skill.knowledge.impl;
 import net.ooder.scene.skill.knowledge.KnowledgeBaseService;
 import net.ooder.scene.skill.knowledge.KnowledgeCapability;
 import net.ooder.scene.skill.rag.KnowledgeBaseConfig;
-import net.ooder.scene.skill.vector.EmbeddingService;
+import net.ooder.scene.skill.vector.SceneEmbeddingService;
 import net.ooder.scene.skill.vector.SearchResult;
 import net.ooder.scene.skill.vector.VectorStore;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class KnowledgeCapabilityImpl implements KnowledgeCapability {
     private static final String VERSION = "2.3.1";
 
     private final KnowledgeBaseService kbService;
-    private final EmbeddingService embeddingService;
+    private final SceneEmbeddingService embeddingService;
     private final VectorStore vectorStore;
     
     private final Map<String, KnowledgeBaseConfig> kbConfigs = new ConcurrentHashMap<>();
@@ -35,7 +35,7 @@ public class KnowledgeCapabilityImpl implements KnowledgeCapability {
     private final Map<String, List<RetrievedItem>> cache = new ConcurrentHashMap<>();
 
     public KnowledgeCapabilityImpl(KnowledgeBaseService kbService,
-                                   EmbeddingService embeddingService,
+                                   SceneEmbeddingService embeddingService,
                                    VectorStore vectorStore) {
         this.kbService = kbService;
         this.embeddingService = embeddingService;

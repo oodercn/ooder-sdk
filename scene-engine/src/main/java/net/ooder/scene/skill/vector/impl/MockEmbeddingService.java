@@ -1,6 +1,6 @@
 package net.ooder.scene.skill.vector.impl;
 
-import net.ooder.scene.skill.vector.EmbeddingService;
+import net.ooder.scene.skill.vector.SceneEmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,7 @@ import java.util.Random;
  * @author ooder
  * @since 2.3
  */
-public class MockEmbeddingService implements EmbeddingService {
+public class MockEmbeddingService implements SceneEmbeddingService {
     
     private static final Logger log = LoggerFactory.getLogger(MockEmbeddingService.class);
     

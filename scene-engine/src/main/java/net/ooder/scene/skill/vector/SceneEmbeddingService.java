@@ -4,14 +4,14 @@ import java.util.List;
 
 /**
  * 嵌入服务接口
- * 提供文本嵌入能力
+ * <p>SE 业务层嵌入服务，区别于 SDK 的 EmbeddingService</p>
  *
  * <p>实现类需要提供文本到向量的转换能力</p>
  *
  * @author ooder
  * @since 2.3
  */
-public interface EmbeddingService {
+public interface SceneEmbeddingService {
     
     /**
      * 嵌入单个文本

@@ -1,7 +1,7 @@
 package net.ooder.scene.skill.knowledge.impl;
 
 import net.ooder.scene.skill.knowledge.*;
-import net.ooder.scene.skill.vector.EmbeddingService;
+import net.ooder.scene.skill.vector.SceneEmbeddingService;
 import net.ooder.scene.skill.vector.SearchResult;
 import net.ooder.scene.skill.vector.VectorStore;
 import org.slf4j.Logger;
@@ -30,11 +30,11 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private final Map<String, Map<String, String>> permissions = new ConcurrentHashMap<>();
     
     private final DocumentChunker chunker;
-    private final EmbeddingService embeddingService;
+    private final SceneEmbeddingService embeddingService;
     private final VectorStore vectorStore;
     
     public KnowledgeBaseServiceImpl(DocumentChunker chunker, 
-                                     EmbeddingService embeddingService,
+                                     SceneEmbeddingService embeddingService,
                                      VectorStore vectorStore) {
         this.chunker = chunker;
         this.embeddingService = embeddingService;

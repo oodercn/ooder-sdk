@@ -2,7 +2,7 @@ package net.ooder.scene.skill.knowledge;
 
 import net.ooder.scene.skill.knowledge.impl.KnowledgeCapabilityImpl;
 import net.ooder.scene.skill.rag.KnowledgeBaseConfig;
-import net.ooder.scene.skill.vector.EmbeddingService;
+import net.ooder.scene.skill.vector.SceneEmbeddingService;
 import net.ooder.scene.skill.vector.SearchResult;
 import net.ooder.scene.skill.vector.VectorData;
 import net.ooder.scene.skill.vector.VectorStore;

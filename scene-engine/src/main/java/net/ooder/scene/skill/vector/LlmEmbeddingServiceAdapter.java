@@ -18,14 +18,14 @@ import java.util.concurrent.Executors;
  * <p>架构说明：</p>
  * <ul>
  *   <li>向量化能力由 LLM-SDK 提供（EmbeddingService）</li>
- *   <li>本类作为适配器，将 LLM-SDK 的嵌入能力适配到 SceneEngine 的 EmbeddingService 接口</li>
+ *   <li>本类作为适配器，将 LLM-SDK 的嵌入能力适配到 SceneEngine 的 SceneEmbeddingService 接口</li>
  *   <li>遵循分层架构原则，知识层不直接依赖 LLM 实现</li>
  * </ul>
  *
  * @author ooder
  * @since 2.3
  */
-public class LlmEmbeddingServiceAdapter implements net.ooder.scene.skill.vector.EmbeddingService {
+public class LlmEmbeddingServiceAdapter implements SceneEmbeddingService {
     
     private static final Logger log = LoggerFactory.getLogger(LlmEmbeddingServiceAdapter.class);
     

@@ -1,6 +1,6 @@
 package net.ooder.scene.skill.config;
 
-import net.ooder.scene.skill.vector.EmbeddingService;
+import net.ooder.scene.skill.vector.SceneEmbeddingService;
 import net.ooder.scene.skill.vector.VectorStore;
 import net.ooder.scene.skill.vector.impl.InMemoryVectorStore;
 import net.ooder.scene.skill.vector.impl.MockEmbeddingService;
@@ -47,12 +47,12 @@ public class VectorStoreAutoConfiguration {
     /**
      * 嵌入服务 - 默认使用 Mock 实现（微层/降级方案）
      *
-     * <p>当容器中没有其他 EmbeddingService 实现时，自动创建 MockEmbeddingService。</p>
+     * <p>当容器中没有其他 SceneEmbeddingService 实现时，自动创建 MockEmbeddingService。</p>
      * <p>适用于开发测试环境，生产环境建议使用 LlmEmbeddingServiceAdapter 或外部实现。</p>
      */
     @Bean
-    @ConditionalOnMissingBean(EmbeddingService.class)
-    public EmbeddingService embeddingService() {
+    @ConditionalOnMissingBean(SceneEmbeddingService.class)
+    public SceneEmbeddingService embeddingService() {
         log.warn("============================================================");
         log.warn("使用默认嵌入服务: MockEmbeddingService (随机向量)");
         log.warn("注意: 此实现仅适用于开发测试，向量是随机生成的");

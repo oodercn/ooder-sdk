@@ -1,7 +1,7 @@
 package net.ooder.scene.skill.rag;
 
 import net.ooder.scene.skill.knowledge.*;
-import net.ooder.scene.skill.vector.EmbeddingService;
+import net.ooder.scene.skill.vector.SceneEmbeddingService;
 import net.ooder.scene.skill.vector.SearchResult;
 import net.ooder.scene.skill.vector.VectorStore;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class RagPipeline implements RagApi {
     private static final Logger log = LoggerFactory.getLogger(RagPipeline.class);
 
     private final KnowledgeBaseService kbService;
-    private final EmbeddingService embeddingService;
+    private final SceneEmbeddingService embeddingService;
     private final VectorStore vectorStore;
     private final LlmGenerator generator;
 
@@ -41,7 +41,7 @@ public class RagPipeline implements RagApi {
     private final Map<String, KnowledgeBaseConfig> knowledgeBaseConfigs = new HashMap<>();
 
     public RagPipeline(KnowledgeBaseService kbService,
-                       EmbeddingService embeddingService,
+                       SceneEmbeddingService embeddingService,
                        VectorStore vectorStore,
                        LlmGenerator generator) {
         this.kbService = kbService;
