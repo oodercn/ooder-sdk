@@ -12,10 +12,15 @@ import net.ooder.scene.skill.tool.ToolOrchestrator;
 import net.ooder.scene.skill.tool.ToolRegistry;
 import net.ooder.scene.skill.tool.impl.ToolOrchestratorImpl;
 import net.ooder.scene.skill.tool.impl.ToolRegistryImpl;
+import net.ooder.scene.spi.SceneServices;
+import net.ooder.scene.spi.SceneServiceFactory;
+import net.ooder.scene.spi.impl.DefaultSceneServiceFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Scene Engine 自动配置类
@@ -105,5 +110,32 @@ public class SceneEngineAutoConfiguration {
         );
 
         return service;
+    }
+
+    /**
+     * 初始化 SceneServices 静态入口
+     * <p>在 SE 启动时初始化，供 Skill 插件使用</p>
+     */
+    @PostConstruct
+    public void initSceneServices(
+            ConversationStorageService storageService,
+            ConversationService conversationService,
+            KnowledgeBaseService knowledgeService,
+            TerminologyService terminologyService,
+            InteractionFeedbackService interactionFeedbackService,
+            ToolRegistry toolRegistry,
+            ToolOrchestrator toolOrchestrator) {
+
+        SceneServiceFactory factory = new DefaultSceneServiceFactory(
+                storageService,
+                conversationService,
+                knowledgeService,
+                terminologyService,
+                interactionFeedbackService,
+                toolRegistry,
+                toolOrchestrator
+        );
+
+        SceneServices.setFactory(factory);
     }
 }
