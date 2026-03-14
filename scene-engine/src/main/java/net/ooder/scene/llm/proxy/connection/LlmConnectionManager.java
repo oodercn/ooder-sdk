@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.connection;
 
-import net.ooder.scene.llm.config.LlmConfig;
+import net.ooder.scene.llm.config.SceneLlmConfig;
 import net.ooder.scene.llm.proxy.LlmConfigAdapter;
 import net.ooder.sdk.drivers.llm.LlmDriver;
 
@@ -34,7 +34,7 @@ public class LlmConnectionManager {
      * @param config LLM配置
      * @return 连接池
      */
-    public LlmConnectionPool getOrCreatePool(LlmConfig config) {
+    public LlmConnectionPool getOrCreatePool(SceneLlmConfig config) {
         LlmConnectionPoolKey key = LlmConnectionPoolKey.fromConfig(config);
 
         return pools.computeIfAbsent(key, k -> {
@@ -57,7 +57,7 @@ public class LlmConnectionManager {
     /**
      * 根据配置获取连接池
      */
-    public LlmConnectionPool getPool(LlmConfig config) {
+    public LlmConnectionPool getPool(SceneLlmConfig config) {
         LlmConnectionPoolKey key = LlmConnectionPoolKey.fromConfig(config);
         return pools.get(key);
     }
@@ -76,7 +76,7 @@ public class LlmConnectionManager {
     /**
      * 创建LLM驱动
      */
-    private LlmDriver createDriver(LlmConfig config) {
+    private LlmDriver createDriver(SceneLlmConfig config) {
         try {
             // 从 endpoint 提取 provider
             String endpoint = config.getEndpoint();
@@ -161,15 +161,15 @@ public class LlmConnectionManager {
      * 内部代理驱动类
      */
     private static class SceneEngineLlmProxyDriver implements LlmDriver {
-        private final net.ooder.scene.llm.config.LlmConfig sceneConfig;
+        private final net.ooder.scene.llm.config.SceneLlmConfig sceneConfig;
         private LlmDriver.LlmConfig driverConfig;
 
-        public SceneEngineLlmProxyDriver(net.ooder.scene.llm.config.LlmConfig config) {
+        public SceneEngineLlmProxyDriver(net.ooder.scene.llm.config.SceneLlmConfig config) {
             this.sceneConfig = config;
             this.driverConfig = convertToDriverConfig(config);
         }
 
-        private LlmDriver.LlmConfig convertToDriverConfig(net.ooder.scene.llm.config.LlmConfig sceneConfig) {
+        private LlmDriver.LlmConfig convertToDriverConfig(net.ooder.scene.llm.config.SceneLlmConfig sceneConfig) {
             return LlmConfigAdapter.fromSceneConfig(sceneConfig).toDriverConfig();
         }
 

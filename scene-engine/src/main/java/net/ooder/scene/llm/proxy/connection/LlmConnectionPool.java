@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.connection;
 
-import net.ooder.scene.llm.config.LlmConfig;
+import net.ooder.scene.llm.config.SceneLlmConfig;
 import net.ooder.scene.llm.proxy.common.PoolState;
 import net.ooder.sdk.drivers.llm.LlmDriver;
 
@@ -22,7 +22,7 @@ public class LlmConnectionPool {
     private static final Logger log = LoggerFactory.getLogger(LlmConnectionPool.class);
 
     private final String poolId;
-    private final LlmConfig llmConfig;
+    private final SceneLlmConfig llmConfig;
     private final LlmDriver driver;
     private final int maxConnections;
     private final long connectionTimeoutMs;
@@ -37,11 +37,11 @@ public class LlmConnectionPool {
     // 池状态
     private volatile PoolState state;
 
-    public LlmConnectionPool(String poolId, LlmConfig llmConfig, LlmDriver driver) {
+    public LlmConnectionPool(String poolId, SceneLlmConfig llmConfig, LlmDriver driver) {
         this(poolId, llmConfig, driver, 10, 30000L, 300000L);
     }
 
-    public LlmConnectionPool(String poolId, LlmConfig llmConfig, LlmDriver driver,
+    public LlmConnectionPool(String poolId, SceneLlmConfig llmConfig, LlmDriver driver,
                              int maxConnections, long connectionTimeoutMs, long idleTimeoutMs) {
         this.poolId = poolId;
         this.llmConfig = llmConfig;
@@ -215,7 +215,7 @@ public class LlmConnectionPool {
         return poolId;
     }
 
-    public LlmConfig getLlmConfig() {
+    public SceneLlmConfig getLlmConfig() {
         return llmConfig;
     }
 

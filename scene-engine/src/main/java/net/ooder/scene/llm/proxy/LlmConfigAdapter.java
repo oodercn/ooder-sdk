@@ -4,7 +4,7 @@ import net.ooder.sdk.drivers.llm.LlmDriver;
 
 /**
  * LlmConfig 适配器
- * 将 scene-engine 的 LlmConfig 适配到 net.ooder.sdk.drivers.llm.LlmDriver.LlmConfig
+ * 将 scene-engine 的 SceneLlmConfig 适配到 net.ooder.sdk.drivers.llm.LlmDriver.LlmConfig
  *
  * @author Ooder Team
  * @version 2.3.1
@@ -31,7 +31,7 @@ public class LlmConfigAdapter {
         return adapter;
     }
 
-    public static LlmConfigAdapter fromSceneConfig(net.ooder.scene.llm.config.LlmConfig sceneConfig) {
+    public static LlmConfigAdapter fromSceneConfig(net.ooder.scene.llm.config.SceneLlmConfig sceneConfig) {
         LlmConfigAdapter adapter = new LlmConfigAdapter();
         if (sceneConfig != null) {
             adapter.endpoint = sceneConfig.getEndpoint();

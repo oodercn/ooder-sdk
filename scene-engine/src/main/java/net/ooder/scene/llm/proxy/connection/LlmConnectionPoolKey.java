@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.connection;
 
-import net.ooder.scene.llm.config.LlmConfig;
+import net.ooder.scene.llm.config.SceneLlmConfig;
 
 import java.util.Objects;
 
@@ -23,9 +23,9 @@ public class LlmConnectionPoolKey {
     }
 
     /**
-     * 从LlmConfig创建池标识符
+     * 从SceneLlmConfig创建池标识符
      */
-    public static LlmConnectionPoolKey fromConfig(LlmConfig config) {
+    public static LlmConnectionPoolKey fromConfig(SceneLlmConfig config) {
         // 从 endpoint 提取 provider 和 baseUrl
         String endpoint = config.getEndpoint();
         String provider = extractProvider(endpoint);

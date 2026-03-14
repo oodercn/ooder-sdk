@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.user;
 
-import net.ooder.scene.llm.config.LlmConfig;
+import net.ooder.scene.llm.config.SceneLlmConfig;
 import net.ooder.scene.llm.proxy.agent.AgentCreationOptions;
 import net.ooder.scene.llm.proxy.agent.AgentLlmSessionContext;
 import net.ooder.scene.llm.proxy.agent.AgentLlmSessionHandle;
@@ -71,7 +71,7 @@ public class UserLlmSessionManager {
     public AgentLlmSessionHandle createAgentForUser(
             String userId,
             String agentType,
-            LlmConfig llmConfig,
+            SceneLlmConfig llmConfig,
             AgentCreationOptions options) throws LlmProxyException {
 
         // 1. 获取或创建用户上下文

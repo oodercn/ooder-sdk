@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.agent;
 
-import net.ooder.scene.llm.config.LlmConfig;
+import net.ooder.scene.llm.config.SceneLlmConfig;
 import net.ooder.scene.llm.proxy.common.AgentState;
 import net.ooder.scene.llm.proxy.common.LlmProxyException;
 import net.ooder.scene.llm.proxy.connection.LlmConnectionManager;
@@ -53,7 +53,7 @@ public class AgentSessionManager {
     public AgentLlmSessionHandle createAgentSession(
             String userId,
             String agentType,
-            LlmConfig llmConfig,
+            SceneLlmConfig llmConfig,
             AgentCreationOptions options) throws LlmProxyException {
 
         if (userId == null || agentType == null || llmConfig == null) {

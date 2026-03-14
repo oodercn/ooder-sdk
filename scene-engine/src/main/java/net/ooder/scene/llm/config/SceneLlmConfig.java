@@ -2,12 +2,12 @@ package net.ooder.scene.llm.config;
 
 /**
  * LLM 配置类
- * 兼容 agent-sdk 2.3.1 的 LlmDriver.LlmConfig
+ * <p>SE 业务层配置类，区别于 SDK 的 LlmDriver.LlmConfig</p>
  *
  * @author Ooder Team
  * @version 2.3.1
  */
-public class LlmConfig {
+public class SceneLlmConfig {
 
     private String endpoint = "https://api.openai.com/v1";
     private String apiKey;

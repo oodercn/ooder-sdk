@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.proxy.agent;
 
-import net.ooder.scene.llm.config.LlmConfig;
+import net.ooder.scene.llm.config.SceneLlmConfig;
 import net.ooder.scene.llm.proxy.common.AgentState;
 import net.ooder.scene.llm.proxy.connection.LlmConnectionPool;
 
@@ -21,7 +21,7 @@ public class AgentLlmSessionContext {
 
     // LLM配置引用
     private final String llmConfigId;
-    private final LlmConfig llmConfig;
+    private final SceneLlmConfig llmConfig;
 
     // 连接池引用（关键：多个Agent可共享同一连接池）
     private final String connectionPoolId;
@@ -43,7 +43,7 @@ public class AgentLlmSessionContext {
     private final long idleTimeout;
 
     public AgentLlmSessionContext(String agentId, String userId, String agentType,
-                                   String llmConfigId, LlmConfig llmConfig,
+                                   String llmConfigId, SceneLlmConfig llmConfig,
                                    String connectionPoolId, LlmConnectionPool connectionPool,
                                    String conversationMemoryId,
                                    AgentLlmQuota quota, long idleTimeout) {
@@ -123,7 +123,7 @@ public class AgentLlmSessionContext {
         return llmConfigId;
     }
 
-    public LlmConfig getLlmConfig() {
+    public SceneLlmConfig getLlmConfig() {
         return llmConfig;
     }
 
