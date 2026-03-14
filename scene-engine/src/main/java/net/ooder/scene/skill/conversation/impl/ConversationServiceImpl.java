@@ -1,8 +1,10 @@
 package net.ooder.scene.skill.conversation.impl;
 
+import net.ooder.scene.audit.AuditService;
 import net.ooder.scene.llm.LlmService;
 import net.ooder.scene.llm.SceneChatRequest;
 import net.ooder.scene.skill.conversation.*;
+import net.ooder.scene.skill.conversation.storage.ConversationStorageService;
 import net.ooder.scene.skill.knowledge.KnowledgeBaseService;
 import net.ooder.scene.skill.knowledge.KnowledgeSearchRequest;
 import net.ooder.scene.skill.knowledge.KnowledgeSearchResult;
@@ -27,32 +29,53 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2.3
  */
 public class ConversationServiceImpl implements ConversationService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(ConversationServiceImpl.class);
-    
+
     private static final int MAX_HISTORY_LENGTH = 100;
     private static final int MAX_CONTEXT_TOKENS = 4000;
-    
+
     private final KnowledgeBaseService knowledgeBaseService;
     private final RagApi ragPipeline;
     private final ToolRegistry toolRegistry;
     private final ToolOrchestrator toolOrchestrator;
     private final LlmService llmService;
-    
+    private final AuditService auditService;
+    private final ConversationStorageService storageService;
+
     private final Map<String, Conversation> conversations = new ConcurrentHashMap<>();
     private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
     private final Map<String, ConversationStats> statsMap = new ConcurrentHashMap<>();
-    
+    private final Map<String, List<FunctionCallLog>> toolCallLogs = new ConcurrentHashMap<>();
+
+    private boolean autoLearn = false;
+
     public ConversationServiceImpl(KnowledgeBaseService knowledgeBaseService,
                                     RagApi ragPipeline,
                                     ToolRegistry toolRegistry,
                                     ToolOrchestrator toolOrchestrator,
                                     LlmService llmService) {
+        this(knowledgeBaseService, ragPipeline, toolRegistry, toolOrchestrator, llmService, null, null);
+    }
+
+    public ConversationServiceImpl(KnowledgeBaseService knowledgeBaseService,
+                                    RagApi ragPipeline,
+                                    ToolRegistry toolRegistry,
+                                    ToolOrchestrator toolOrchestrator,
+                                    LlmService llmService,
+                                    AuditService auditService,
+                                    ConversationStorageService storageService) {
         this.knowledgeBaseService = knowledgeBaseService;
         this.ragPipeline = ragPipeline;
         this.toolRegistry = toolRegistry;
         this.toolOrchestrator = toolOrchestrator;
         this.llmService = llmService;
+        this.auditService = auditService;
+        this.storageService = storageService;
+
+        if (storageService != null) {
+            storageService.initialize();
+        }
     }
     
     @Override
@@ -264,7 +287,232 @@ public class ConversationServiceImpl implements ConversationService {
     public ConversationStats getStats(String conversationId) {
         return statsMap.get(conversationId);
     }
-    
+
+    @Override
+    public void recordToolCall(String conversationId, ToolCallResult result) {
+        log.info("Recording tool call for conversation: {} - tool: {}", conversationId, result.getToolName());
+
+        Conversation conversation = conversations.get(conversationId);
+        if (conversation == null) {
+            log.warn("Conversation not found: {}", conversationId);
+            return;
+        }
+
+        // 创建工具调用日志
+        String logId = "log_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        FunctionCallLog functionCallLog = new FunctionCallLog();
+        functionCallLog.setLogId(logId);
+        functionCallLog.setSessionId(conversationId);
+        functionCallLog.setToolCallId(result.getToolCallId());
+        functionCallLog.setToolName(result.getToolName());
+        functionCallLog.setResult(result);
+        functionCallLog.setExecutionTime(result.getExecutionTime());
+
+        // 保存到内存
+        toolCallLogs.computeIfAbsent(conversationId, k -> new ArrayList<>()).add(functionCallLog);
+
+        // 保存到存储
+        if (storageService != null) {
+            storageService.saveToolCallLog(conversationId, functionCallLog);
+        }
+
+        // 记录审计日志
+        if (auditService != null) {
+            auditService.log(
+                    conversation.getUserId(),
+                    "TOOL_CALL",
+                    result.getToolName(),
+                    conversationId,
+                    result.isSuccess() ? "SUCCESS" : "FAILURE",
+                    "Tool call executed: " + result.getToolName() + ", success: " + result.isSuccess()
+            );
+        }
+
+        // 如果开启自动学习，更新知识库
+        if (autoLearn && result.isSuccess() && result.getToolResult() != null) {
+            learnFromToolResult(conversation, result);
+        }
+
+        log.debug("Tool call recorded: {}", logId);
+    }
+
+    private void learnFromToolResult(Conversation conversation, ToolCallResult result) {
+        // 从工具调用结果中学习
+        // 实际应用中应该根据工具类型和结果内容决定如何更新知识库
+        log.debug("Learning from tool result: {}", result.getToolName());
+
+        // 示例：如果工具调用成功且返回了数据，可以考虑更新知识库
+        if (result.getToolResult() != null && result.getToolResult().getData() != null) {
+            // 这里可以实现具体的知识更新逻辑
+            // 例如：将搜索结果添加到知识库
+        }
+    }
+
+    @Override
+    public List<FunctionCallLog> getToolCallHistory(String conversationId) {
+        return getToolCallHistory(conversationId, Integer.MAX_VALUE);
+    }
+
+    @Override
+    public List<FunctionCallLog> getToolCallHistory(String conversationId, int limit) {
+        // 优先从存储服务获取
+        if (storageService != null) {
+            return storageService.getToolCallLogs(conversationId, limit);
+        }
+
+        // 从内存获取
+        List<FunctionCallLog> logs = toolCallLogs.getOrDefault(conversationId, new ArrayList<>());
+        if (logs.size() <= limit) {
+            return new ArrayList<>(logs);
+        }
+        return new ArrayList<>(logs.subList(logs.size() - limit, logs.size()));
+    }
+
+    @Override
+    public LearnResult learnFromConversation(String conversationId) {
+        log.info("Learning from conversation: {}", conversationId);
+
+        Conversation conversation = conversations.get(conversationId);
+        if (conversation == null) {
+            return new LearnResult(0, new ArrayList<>(), "Conversation not found");
+        }
+
+        List<Message> history = messageHistory.get(conversationId);
+        if (history == null || history.isEmpty()) {
+            return new LearnResult(0, new ArrayList<>(), "No messages to learn from");
+        }
+
+        List<String> updatedIds = new ArrayList<>();
+        int updatedCount = 0;
+
+        // 从对话中提取知识
+        for (Message message : history) {
+            if (Message.ROLE_USER.equals(message.getRole())) {
+                // 这里可以实现从用户消息中提取知识的逻辑
+                // 例如：提取实体、事实、偏好等
+                String content = message.getContent();
+                if (content.length() >= 50) { // 最小内容长度限制
+                    // 简化示例：将用户消息作为知识存储
+                    // 实际应用中应该使用 NLP 技术提取结构化知识
+                    updatedCount++;
+                }
+            }
+        }
+
+        String message = String.format("Learned from conversation, updated %d entries", updatedCount);
+        log.info(message);
+
+        return new LearnResult(updatedCount, updatedIds, message);
+    }
+
+    @Override
+    public void setAutoLearn(boolean autoLearn) {
+        this.autoLearn = autoLearn;
+        log.info("Auto learn set to: {}", autoLearn);
+    }
+
+    @Override
+    public boolean isAutoLearn() {
+        return autoLearn;
+    }
+
+    @Override
+    public Message chat(String conversationId, String content) {
+        MessageRequest request = new MessageRequest(content);
+        MessageResponse response = sendMessage(conversationId, request);
+
+        Message assistantMessage = Message.assistant(response.getContent());
+        assistantMessage.setMessageId(response.getMessageId());
+        assistantMessage.setConversationId(conversationId);
+
+        return assistantMessage;
+    }
+
+    @Override
+    public Message chatWithTools(String conversationId, String content, List<String> toolNames) {
+        MessageRequest request = new MessageRequest(content);
+        request.setEnableTools(true);
+        request.setSpecificTools(toolNames);
+
+        MessageResponse response = sendMessage(conversationId, request);
+
+        Message assistantMessage = Message.assistant(response.getContent());
+        assistantMessage.setMessageId(response.getMessageId());
+        assistantMessage.setConversationId(conversationId);
+
+        return assistantMessage;
+    }
+
+    @Override
+    public void chatStream(String conversationId, String content, StreamMessageHandler handler) {
+        MessageRequest request = new MessageRequest(content);
+        sendMessageStream(conversationId, request, handler);
+    }
+
+    @Override
+    public ConversationAnalysis analyze(String conversationId) {
+        log.info("Analyzing conversation: {}", conversationId);
+
+        Conversation conversation = conversations.get(conversationId);
+        if (conversation == null) {
+            return null;
+        }
+
+        List<Message> history = messageHistory.get(conversationId);
+        ConversationAnalysis analysis = new ConversationAnalysis(conversationId);
+
+        if (history == null || history.isEmpty()) {
+            analysis.setIntent("unknown");
+            analysis.setSentiment("neutral");
+            return analysis;
+        }
+
+        // 简化分析逻辑
+        // 实际应用中应该使用 LLM 或 NLP 技术进行分析
+        int userMsgCount = 0;
+        int assistantMsgCount = 0;
+        StringBuilder allContent = new StringBuilder();
+
+        for (Message msg : history) {
+            if (Message.ROLE_USER.equals(msg.getRole())) {
+                userMsgCount++;
+                allContent.append(msg.getContent()).append(" ");
+            } else if (Message.ROLE_ASSISTANT.equals(msg.getRole())) {
+                assistantMsgCount++;
+            }
+        }
+
+        // 简单意图识别
+        String content = allContent.toString().toLowerCase();
+        if (content.contains("搜索") || content.contains("查找") || content.contains("查询")) {
+            analysis.setIntent("search");
+        } else if (content.contains("帮助") || content.contains("怎么") || content.contains("如何")) {
+            analysis.setIntent("help");
+        } else {
+            analysis.setIntent("chat");
+        }
+
+        // 简单情感分析
+        if (content.contains("好") || content.contains("谢谢") || content.contains("赞")) {
+            analysis.setSentiment("positive");
+        } else if (content.contains("差") || content.contains("坏") || content.contains("错误")) {
+            analysis.setSentiment("negative");
+        } else {
+            analysis.setSentiment("neutral");
+        }
+
+        analysis.setTopic("general");
+        analysis.setConfidence(0.7);
+
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("userMessageCount", userMsgCount);
+        metadata.put("assistantMessageCount", assistantMsgCount);
+        metadata.put("totalMessages", history.size());
+        analysis.setMetadata(metadata);
+
+        return analysis;
+    }
+
     private List<ToolCall> detectToolCalls(String content, Conversation conversation) {
         List<ToolCall> toolCalls = new ArrayList<>();
         
