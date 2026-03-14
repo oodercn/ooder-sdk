@@ -1,6 +1,7 @@
 package net.ooder.scene.autoconfigure;
 
 import net.ooder.scene.llm.LlmService;
+import net.ooder.scene.llm.impl.DefaultLlmService;
 import net.ooder.scene.skill.conversation.ConversationService;
 import net.ooder.scene.skill.conversation.impl.ConversationServiceImpl;
 import net.ooder.scene.skill.conversation.storage.ConversationStorageService;
@@ -53,6 +54,17 @@ public class SceneEngineAutoConfiguration {
     public ConversationStorageService conversationStorageService(SceneEngineProperties properties) {
         this.storageService = new FileConversationStorageService(properties.getConversation().getStorage().getPath());
         return this.storageService;
+    }
+
+    /**
+     * LLM 服务（默认实现）
+     * <p>提供默认占位实现，允许 SE 在没有 LLM 插件的情况下启动</p>
+     * <p>skill-llm 插件可以提供更完整的实现</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(LlmService.class)
+    public LlmService llmService() {
+        return new DefaultLlmService();
     }
 
     /**
