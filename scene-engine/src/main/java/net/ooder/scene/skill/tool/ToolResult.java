@@ -86,4 +86,15 @@ public class ToolResult {
     public void setData(Map<String, Object> data) {
         this.data = data;
     }
+
+    /**
+     * 获取错误代码
+     * @return 错误代码，如果没有则返回 null
+     */
+    public String getCode() {
+        if (data != null && data.containsKey("code")) {
+            return (String) data.get("code");
+        }
+        return success ? "SUCCESS" : "ERROR";
+    }
 }

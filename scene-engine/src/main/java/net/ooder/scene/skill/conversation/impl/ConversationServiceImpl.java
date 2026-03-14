@@ -5,9 +5,7 @@ import net.ooder.scene.llm.LlmService;
 import net.ooder.scene.llm.SceneChatRequest;
 import net.ooder.scene.skill.conversation.*;
 import net.ooder.scene.skill.conversation.storage.ConversationStorageService;
-import net.ooder.scene.skill.knowledge.KnowledgeBaseService;
-import net.ooder.scene.skill.knowledge.KnowledgeSearchRequest;
-import net.ooder.scene.skill.knowledge.KnowledgeSearchResult;
+import net.ooder.scene.skill.knowledge.*;
 import net.ooder.scene.skill.rag.RagApi;
 import net.ooder.scene.skill.rag.RagContext;
 import net.ooder.scene.skill.rag.RagResult;
@@ -42,6 +40,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final LlmService llmService;
     private final AuditService auditService;
     private final ConversationStorageService storageService;
+    private final InteractionFeedbackService feedbackService;
 
     private final Map<String, Conversation> conversations = new ConcurrentHashMap<>();
     private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
@@ -55,7 +54,7 @@ public class ConversationServiceImpl implements ConversationService {
                                     ToolRegistry toolRegistry,
                                     ToolOrchestrator toolOrchestrator,
                                     LlmService llmService) {
-        this(knowledgeBaseService, ragPipeline, toolRegistry, toolOrchestrator, llmService, null, null);
+        this(knowledgeBaseService, ragPipeline, toolRegistry, toolOrchestrator, llmService, null, null, null);
     }
 
     public ConversationServiceImpl(KnowledgeBaseService knowledgeBaseService,
@@ -64,7 +63,8 @@ public class ConversationServiceImpl implements ConversationService {
                                     ToolOrchestrator toolOrchestrator,
                                     LlmService llmService,
                                     AuditService auditService,
-                                    ConversationStorageService storageService) {
+                                    ConversationStorageService storageService,
+                                    InteractionFeedbackService feedbackService) {
         this.knowledgeBaseService = knowledgeBaseService;
         this.ragPipeline = ragPipeline;
         this.toolRegistry = toolRegistry;
@@ -72,6 +72,7 @@ public class ConversationServiceImpl implements ConversationService {
         this.llmService = llmService;
         this.auditService = auditService;
         this.storageService = storageService;
+        this.feedbackService = feedbackService;
 
         if (storageService != null) {
             storageService.initialize();
@@ -243,6 +244,24 @@ public class ConversationServiceImpl implements ConversationService {
         conversation.setUpdatedAt(System.currentTimeMillis());
         
         trimHistory(history);
+        
+        // 记录交互反馈
+        if (feedbackService != null) {
+            Map<String, Object> context = new HashMap<>();
+            context.put("userId", conversation.getUserId());
+            context.put("conversationId", conversationId);
+            context.put("enableRag", request.isEnableRag());
+            context.put("enableTools", request.isEnableTools());
+            context.put("sourceCount", sources.size());
+            context.put("toolExecutionCount", toolExecutions.size());
+            
+            feedbackService.recordInteraction(conversationId, request.getContent(), response.getContent(), context);
+            
+            // 如果开启自动学习，触发知识库更新
+            if (autoLearn && stats.getTotalMessages() % 10 == 0) {
+                feedbackService.triggerKnowledgeBaseUpdate(conversation.getKbId());
+            }
+        }
         
         return response;
     }
