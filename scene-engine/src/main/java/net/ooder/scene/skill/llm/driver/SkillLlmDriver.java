@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static net.ooder.scene.skill.llm.driver.SkillLlmConfig.*;
+
 /**
  * Skills 动态 LLM 驱动器
  * 
@@ -76,7 +78,7 @@ public class SkillLlmDriver {
     private static final Logger log = LoggerFactory.getLogger(SkillLlmDriver.class);
 
     private final Map<String, SkillLlmConfig> configs = new ConcurrentHashMap<>();
-    private final Map<String, FunctionExecutor> functionExecutors = new ConcurrentHashMap<>();
+    private final Map<String, SkillLlmConfig.FunctionExecutor> functionExecutors = new ConcurrentHashMap<>();
     
     private final LlmProvider defaultProvider;
     private final String defaultModel;
@@ -261,13 +263,13 @@ public class SkillLlmDriver {
         
         Object capability = map.get("capability");
         if (capability != null) {
-            def.setCapabilityId(capability.toString());
+            def.setCapability(capability.toString());
         }
         
         return def;
     }
 
-    public void registerFunctionExecutor(String skillId, String functionName, FunctionExecutor executor) {
+    public void registerFunctionExecutor(String skillId, String functionName, SkillLlmConfig.FunctionExecutor executor) {
         String key = skillId + ":" + functionName;
         functionExecutors.put(key, executor);
         log.info("Registered function executor: {}", key);
@@ -277,7 +279,7 @@ public class SkillLlmDriver {
                                    Map<String, Object> arguments, 
                                    ExecutionContext context) {
         String key = skillId + ":" + functionName;
-        FunctionExecutor executor = functionExecutors.get(key);
+        SkillLlmConfig.FunctionExecutor executor = functionExecutors.get(key);
         
         if (executor == null) {
             log.warn("No executor found for function: {}", key);
@@ -326,233 +328,5 @@ public class SkillLlmDriver {
     public void clear() {
         configs.clear();
         functionExecutors.clear();
-    }
-
-    public static class SkillLlmConfig {
-        private String skillId;
-        private String skillName;
-        
-        private String systemPrompt;
-        private Double temperature;
-        private Integer maxTokens;
-        private String defaultModel;
-        private String defaultProvider;
-        
-        private List<FunctionDefinition> functions = new ArrayList<>();
-        private List<CapabilityMapping> capabilityMappings = new ArrayList<>();
-        
-        private Map<String, Object> extendedConfig = new HashMap<>();
-
-        public String getSkillId() {
-            return skillId;
-        }
-
-        public void setSkillId(String skillId) {
-            this.skillId = skillId;
-        }
-
-        public String getSkillName() {
-            return skillName;
-        }
-
-        public void setSkillName(String skillName) {
-            this.skillName = skillName;
-        }
-
-        public String getSystemPrompt() {
-            return systemPrompt;
-        }
-
-        public void setSystemPrompt(String systemPrompt) {
-            this.systemPrompt = systemPrompt;
-        }
-
-        public Double getTemperature() {
-            return temperature;
-        }
-
-        public void setTemperature(Double temperature) {
-            this.temperature = temperature;
-        }
-
-        public Integer getMaxTokens() {
-            return maxTokens;
-        }
-
-        public void setMaxTokens(Integer maxTokens) {
-            this.maxTokens = maxTokens;
-        }
-
-        public String getDefaultModel() {
-            return defaultModel;
-        }
-
-        public void setDefaultModel(String defaultModel) {
-            this.defaultModel = defaultModel;
-        }
-
-        public String getDefaultProvider() {
-            return defaultProvider;
-        }
-
-        public void setDefaultProvider(String defaultProvider) {
-            this.defaultProvider = defaultProvider;
-        }
-
-        public List<FunctionDefinition> getFunctions() {
-            return functions;
-        }
-
-        public void setFunctions(List<FunctionDefinition> functions) {
-            this.functions = functions != null ? functions : new ArrayList<>();
-        }
-
-        public List<CapabilityMapping> getCapabilityMappings() {
-            return capabilityMappings;
-        }
-
-        public void setCapabilityMappings(List<CapabilityMapping> capabilityMappings) {
-            this.capabilityMappings = capabilityMappings != null ? capabilityMappings : new ArrayList<>();
-        }
-
-        public Map<String, Object> getExtendedConfig() {
-            return extendedConfig;
-        }
-
-        public void setExtendedConfig(Map<String, Object> extendedConfig) {
-            this.extendedConfig = extendedConfig != null ? extendedConfig : new HashMap<>();
-        }
-    }
-
-    public static class FunctionDefinition {
-        private String name;
-        private String description;
-        private Map<String, Object> parameters;
-        private List<String> required;
-        private String capabilityId;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public Map<String, Object> getParameters() {
-            return parameters;
-        }
-
-        public void setParameters(Map<String, Object> parameters) {
-            this.parameters = parameters;
-        }
-
-        public List<String> getRequired() {
-            return required;
-        }
-
-        public void setRequired(List<String> required) {
-            this.required = required;
-        }
-
-        public String getCapabilityId() {
-            return capabilityId;
-        }
-
-        public void setCapabilityId(String capabilityId) {
-            this.capabilityId = capabilityId;
-        }
-    }
-
-    public static class CapabilityMapping {
-        private String capabilityId;
-        private String capabilityName;
-        private Map<String, String> parameterMapping;
-        private Map<String, Object> defaultParameters;
-
-        public String getCapabilityId() {
-            return capabilityId;
-        }
-
-        public void setCapabilityId(String capabilityId) {
-            this.capabilityId = capabilityId;
-        }
-
-        public String getCapabilityName() {
-            return capabilityName;
-        }
-
-        public void setCapabilityName(String capabilityName) {
-            this.capabilityName = capabilityName;
-        }
-
-        public Map<String, String> getParameterMapping() {
-            return parameterMapping;
-        }
-
-        public void setParameterMapping(Map<String, String> parameterMapping) {
-            this.parameterMapping = parameterMapping;
-        }
-
-        public Map<String, Object> getDefaultParameters() {
-            return defaultParameters;
-        }
-
-        public void setDefaultParameters(Map<String, Object> defaultParameters) {
-            this.defaultParameters = defaultParameters;
-        }
-    }
-
-    @FunctionalInterface
-    public interface FunctionExecutor {
-        Object execute(Map<String, Object> arguments, ExecutionContext context);
-    }
-
-    public static class ExecutionContext {
-        private String skillId;
-        private String userId;
-        private String sessionId;
-        private Map<String, Object> context;
-
-        public ExecutionContext(String skillId, String userId) {
-            this.skillId = skillId;
-            this.userId = userId;
-        }
-
-        public String getSkillId() {
-            return skillId;
-        }
-
-        public String getUserId() {
-            return userId;
-        }
-
-        public String getSessionId() {
-            return sessionId;
-        }
-
-        public void setSessionId(String sessionId) {
-            this.sessionId = sessionId;
-        }
-
-        public Map<String, Object> getContext() {
-            return context;
-        }
-
-        public void setContext(Map<String, Object> context) {
-            this.context = context;
-        }
-
-        public static ExecutionContext of(String skillId, String userId) {
-            return new ExecutionContext(skillId, userId);
-        }
     }
 }

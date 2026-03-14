@@ -3363,5 +3363,2010 @@ Object result = context.executeFunction("scan_resume", args);
 
 ---
 
+## 三十三、v2.3.1 代码重构 - 重复类清理
+
+### 33.1 重构背景
+
+Scene Engine v2.3.1 版本对代码库进行了全面的重复类清理，遵循以下两个核心原则：
+
+| 原则 | 处理方式 | 示例 |
+|------|----------|------|
+| 功能属性相同 | 抽象合并 | AuditStats 合并 |
+| 业务属性不同 | 按业务重命名 | Permission → UserPermission/SecurityPermission |
+
+### 33.2 重复类清理清单
+
+#### 33.2.1 AuditStats 合并
+
+**问题**: `skill/audit/AuditStats` 和 `audit/AuditStats` 两个类功能重复
+
+**解决方案**: 合并到 `audit/AuditStats`，保留所有字段：
+
+```java
+public class AuditStats {
+    // 原 audit/AuditStats 字段
+    private String operationType;
+    private long totalCount;
+    private long successCount;
+    private long failCount;
+    private double avgResponseTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    
+    // 合并自 skill/audit/AuditStats 的字段
+    private long pendingCount;      // 待处理数
+    private long processingCount;   // 处理中数
+    private Map<String, Long> statusDistribution;  // 状态分布
+    private Map<String, Double> timeDistribution;  // 时间分布
+}
+```
+
+**文件变更**:
+- ✅ 删除: `skill/audit/AuditStats.java`
+- ✅ 保留: `audit/AuditStats.java`（扩展字段）
+
+#### 33.2.2 HealthStatus 删除
+
+**问题**: `core/driver/HealthStatus` 已被 `core/health/HealthStatus` 取代
+
+**解决方案**: 直接删除废弃类
+
+**文件变更**:
+- ✅ 删除: `core/driver/HealthStatus.java`
+
+#### 33.2.3 Permission 类重命名
+
+**问题**: 三个不同业务的 Permission 类同名
+
+**解决方案**: 按业务域重命名
+
+| 原类名 | 新类名 | 业务域 | 文件路径 |
+|--------|--------|--------|----------|
+| `provider/model/user/Permission` | `UserPermission` | 用户权限 | `provider/model/user/UserPermission.java` |
+| `core/security/Permission` | `SecurityPermission` | 安全权限 | `core/security/SecurityPermission.java` |
+
+#### 33.2.4 Discovery 类重命名
+
+**问题**: Discovery 相关类命名过于通用
+
+**解决方案**: 添加业务前缀
+
+| 原类名 | 新类名 | 说明 |
+|--------|--------|------|
+| `protocol/DiscoveryRequest` | `PeerDiscoveryRequest` | 节点发现请求 |
+| `protocol/DiscoveryResult` | `PeerDiscoveryResult` | 节点发现结果 |
+
+#### 33.2.5 InstallResult 重命名
+
+**问题**: `core/lifecycle/InstallResult` 与安装生命周期相关
+
+**解决方案**: 添加模块前缀
+
+| 原类名 | 新类名 | 文件路径 |
+|--------|--------|----------|
+| `core/lifecycle/InstallResult` | `LifecycleInstallResult` | `core/lifecycle/LifecycleInstallResult.java` |
+
+#### 33.2.6 SecuritySkillService 删除
+
+**问题**: `skill/security/SecuritySkillService` 实现不完整
+
+**解决方案**: 删除未完成代码
+
+**文件变更**:
+- ✅ 删除: `skill/security/SecuritySkillService.java`
+
+### 33.3 重构影响评估
+
+| 类别 | 数量 | 影响范围 |
+|------|------|----------|
+| 合并类 | 1 | AuditStats 使用方需更新引用 |
+| 删除类 | 2 | HealthStatus, SecuritySkillService |
+| 重命名类 | 5 | Permission×2, Discovery×2, InstallResult×1 |
+| **总计** | **8** | 涉及 18 个重复类名 |
+
+### 33.4 迁移指南
+
+对于二次开发团队，如果引用了被删除或重命名的类：
+
+```java
+// 迁移前
+import net.ooder.scene.skill.audit.AuditStats;
+import net.ooder.scene.provider.model.user.Permission;
+import net.ooder.scene.protocol.DiscoveryRequest;
+
+// 迁移后
+import net.ooder.scene.audit.AuditStats;
+import net.ooder.scene.provider.model.user.UserPermission;
+import net.ooder.scene.protocol.PeerDiscoveryRequest;
+```
+
+---
+
+## 三十四、MVP 协作需求实现
+
+### 34.1 需求概述
+
+基于 MVP 协作需求文档，Scene Engine v2.3.1 实现了以下核心功能：
+
+| 需求编号 | 需求描述 | 实现状态 | 说明 |
+|----------|----------|----------|------|
+| Q1 | 统一角色定义 API | ✅ 已完成 | 提供标准化角色查询接口 |
+| Q2 | 协作权限检查 API | ⚠️ 外部实现 | 需接入外部权限系统 |
+| Q3 | 权限拦截器机制 | ✅ 已完成 | 注解驱动的权限控制 |
+| Q4 | 安装 API 系列 | ✅ 已完成 | 完整的安装流程接口 |
+| Q5 | 安装进度广播 | ⚠️ 外部实现 | 需接入外部消息系统 |
+
+### 34.2 Q1: 统一角色定义 API
+
+#### 34.2.1 接口定义
+
+**端点**: `GET /api/v1/auth/roles`
+
+**响应示例**:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "installer",
+      "name": "安装员",
+      "description": "负责 Skill 的安装和配置",
+      "permissions": ["skill:install", "skill:configure"],
+      "level": 1
+    },
+    {
+      "id": "admin",
+      "name": "管理员",
+      "description": "系统管理员，拥有所有权限",
+      "permissions": ["*"],
+      "level": 100
+    },
+    {
+      "id": "leader",
+      "name": "团队负责人",
+      "description": "管理团队和成员权限",
+      "permissions": ["team:manage", "member:manage", "skill:assign"],
+      "level": 50
+    },
+    {
+      "id": "collaborator",
+      "name": "协作者",
+      "description": "参与协作的普通成员",
+      "permissions": ["skill:view", "skill:execute"],
+      "level": 10
+    }
+  ]
+}
+```
+
+#### 34.2.2 核心实现
+
+**Role 模型**:
+
+```java
+public class Role {
+    private String id;              // 角色标识
+    private String name;            // 角色名称
+    private String description;     // 角色描述
+    private List<String> permissions; // 权限列表
+    private int level;              // 角色级别
+    private boolean isDefault;      // 是否默认角色
+    private Map<String, Object> metadata; // 扩展属性
+}
+```
+
+**RoleService 服务**:
+
+```java
+@Service
+public class RoleService {
+    
+    public List<Role> getAllRoles() {
+        return Arrays.asList(
+            Role.builder()
+                .id("installer")
+                .name("安装员")
+                .description("负责 Skill 的安装和配置")
+                .permissions(Arrays.asList("skill:install", "skill:configure"))
+                .level(1)
+                .build(),
+            // ... 其他角色
+        );
+    }
+    
+    public Role getRoleById(String roleId) {
+        return getAllRoles().stream()
+            .filter(r -> r.getId().equals(roleId))
+            .findFirst()
+            .orElse(null);
+    }
+}
+```
+
+**AuthController 控制器**:
+
+```java
+@RestController
+@RequestMapping("/api/v1/auth")
+public class AuthController {
+    
+    @Autowired
+    private RoleService roleService;
+    
+    @GetMapping("/roles")
+    public Result<List<Role>> getAllRoles() {
+        return Result.success(roleService.getAllRoles());
+    }
+    
+    @GetMapping("/roles/{roleId}")
+    public Result<Role> getRoleById(@PathVariable String roleId) {
+        Role role = roleService.getRoleById(roleId);
+        if (role == null) {
+            return Result.error(404, "Role not found");
+        }
+        return Result.success(role);
+    }
+}
+```
+
+### 34.3 Q3: 权限拦截器机制
+
+#### 34.3.1 注解定义
+
+**RequirePermission 注解**:
+
+```java
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequirePermission {
+    String[] value() default {};           // 需要的权限列表
+    Logic logic() default Logic.AND;       // 逻辑关系：AND/OR
+    
+    enum Logic {
+        AND,    // 需要所有权限
+        OR      // 需要任一权限
+    }
+}
+```
+
+#### 34.3.2 拦截器实现
+
+**PermissionInterceptor**:
+
+```java
+@Component
+public class PermissionInterceptor implements HandlerInterceptor {
+    
+    @Autowired
+    private PermissionService permissionService;
+    
+    @Override
+    public boolean preHandle(HttpServletRequest request, 
+                            HttpServletResponse response, 
+                            Object handler) throws Exception {
+        
+        if (!(handler instanceof HandlerMethod)) {
+            return true;
+        }
+        
+        HandlerMethod handlerMethod = (HandlerMethod) handler;
+        RequirePermission annotation = handlerMethod
+            .getMethodAnnotation(RequirePermission.class);
+        
+        if (annotation == null) {
+            annotation = handlerMethod.getBeanType()
+                .getAnnotation(RequirePermission.class);
+        }
+        
+        if (annotation == null) {
+            return true; // 无需权限检查
+        }
+        
+        // 获取当前用户
+        String userId = getCurrentUserId(request);
+        if (userId == null) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return false;
+        }
+        
+        // 检查权限
+        String[] requiredPermissions = annotation.value();
+        RequirePermission.Logic logic = annotation.logic();
+        
+        boolean hasPermission;
+        if (logic == RequirePermission.Logic.AND) {
+            hasPermission = permissionService.hasAllPermissions(
+                userId, requiredPermissions);
+        } else {
+            hasPermission = permissionService.hasAnyPermission(
+                userId, requiredPermissions);
+        }
+        
+        if (!hasPermission) {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            return false;
+        }
+        
+        return true;
+    }
+}
+```
+
+#### 34.3.3 使用示例
+
+```java
+@RestController
+@RequestMapping("/api/v1/skills")
+public class SkillController {
+    
+    // 需要所有指定权限
+    @RequirePermission({"skill:install", "skill:configure"})
+    @PostMapping("/{skillId}/install")
+    public Result<Void> installSkill(@PathVariable String skillId) {
+        // 安装逻辑
+        return Result.success();
+    }
+    
+    // 需要任一权限
+    @RequirePermission(value = {"skill:admin", "skill:manage"}, logic = Logic.OR)
+    @DeleteMapping("/{skillId}")
+    public Result<Void> deleteSkill(@PathVariable String skillId) {
+        // 删除逻辑
+        return Result.success();
+    }
+    
+    // 类级别权限（应用于所有方法）
+    @RequirePermission("skill:view")
+    @RestController
+    @RequestMapping("/api/v1/public")
+    public class PublicSkillController {
+        // 所有方法都需要 skill:view 权限
+    }
+}
+```
+
+#### 34.3.4 注册拦截器
+
+```java
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+    
+    @Autowired
+    private PermissionInterceptor permissionInterceptor;
+    
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(permissionInterceptor)
+            .addPathPatterns("/api/v1/**")
+            .excludePathPatterns("/api/v1/auth/**", "/api/v1/public/**");
+    }
+}
+```
+
+### 34.4 Q4: 安装 API 系列
+
+#### 34.4.1 接口概览
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/api/v1/install/status` | GET | 获取安装状态 |
+| `/api/v1/install/start` | POST | 开始安装 |
+| `/api/v1/install/progress` | GET | 获取安装进度 |
+| `/api/v1/install/complete` | POST | 完成安装 |
+
+#### 34.4.2 安装状态查询
+
+**请求**: `GET /api/v1/install/status?skillId={skillId}`
+
+**响应**:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "skillId": "recruitment-skill",
+    "status": "INSTALLING",
+    "currentStep": 3,
+    "totalSteps": 5,
+    "stepName": "配置初始化",
+    "progress": 60,
+    "startTime": "2026-03-13T10:00:00Z",
+    "estimatedEndTime": "2026-03-13T10:05:00Z"
+  }
+}
+```
+
+#### 34.4.3 开始安装
+
+**请求**: `POST /api/v1/install/start`
+
+```json
+{
+  "skillId": "recruitment-skill",
+  "version": "1.0.0",
+  "config": {
+    "databaseUrl": "jdbc:mysql://localhost:3306/skill_db",
+    "apiEndpoint": "https://api.example.com"
+  },
+  "options": {
+    "autoStart": true,
+    "enableLogging": true
+  }
+}
+```
+
+**响应**:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "installId": "install-xxx",
+    "skillId": "recruitment-skill",
+    "status": "INSTALLING",
+    "startTime": "2026-03-13T10:00:00Z"
+  }
+}
+```
+
+#### 34.4.4 安装进度查询
+
+**请求**: `GET /api/v1/install/progress?installId={installId}`
+
+**响应**:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "installId": "install-xxx",
+    "currentStep": 3,
+    "totalSteps": 5,
+    "progress": 60,
+    "stepDetails": [
+      {"step": 1, "name": "下载资源", "status": "COMPLETED", "progress": 100},
+      {"step": 2, "name": "验证完整性", "status": "COMPLETED", "progress": 100},
+      {"step": 3, "name": "配置初始化", "status": "IN_PROGRESS", "progress": 60},
+      {"step": 4, "name": "依赖安装", "status": "PENDING", "progress": 0},
+      {"step": 5, "name": "启动服务", "status": "PENDING", "progress": 0}
+    ],
+    "logs": [
+      {"time": "2026-03-13T10:02:00Z", "level": "INFO", "message": "开始配置初始化..."},
+      {"time": "2026-03-13T10:02:30Z", "level": "INFO", "message": "数据库连接成功"}
+    ]
+  }
+}
+```
+
+#### 34.4.5 完成安装
+
+**请求**: `POST /api/v1/install/complete`
+
+```json
+{
+  "installId": "install-xxx",
+  "verificationCode": "verify-xxx"
+}
+```
+
+**响应**:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "installId": "install-xxx",
+    "skillId": "recruitment-skill",
+    "status": "COMPLETED",
+    "completedTime": "2026-03-13T10:05:00Z",
+    "nextSteps": [
+      "访问 /api/v1/skills/recruitment-skill 查看详情",
+      "配置权限和访问控制"
+    ]
+  }
+}
+```
+
+#### 34.4.6 核心实现
+
+**InstallController**:
+
+```java
+@RestController
+@RequestMapping("/api/v1/install")
+public class InstallController {
+    
+    @Autowired
+    private InstallService installService;
+    
+    @GetMapping("/status")
+    public Result<InstallStatus> getInstallStatus(@RequestParam String skillId) {
+        InstallStatus status = installService.getStatus(skillId);
+        return Result.success(status);
+    }
+    
+    @PostMapping("/start")
+    public Result<InstallResult> startInstall(@RequestBody InstallRequest request) {
+        InstallResult result = installService.startInstall(request);
+        return Result.success(result);
+    }
+    
+    @GetMapping("/progress")
+    public Result<InstallProgress> getInstallProgress(@RequestParam String installId) {
+        InstallProgress progress = installService.getProgress(installId);
+        return Result.success(progress);
+    }
+    
+    @PostMapping("/complete")
+    public Result<CompleteResult> completeInstall(@RequestBody CompleteRequest request) {
+        CompleteResult result = installService.completeInstall(request);
+        return Result.success(result);
+    }
+}
+```
+
+---
+
+## 三十五、Spring MVC UrlPathHelper 修复
+
+### 35.1 问题描述
+
+在动态注册 `RequestMappingInfo` 时，Spring MVC 的 `UrlPathHelper.getResolvedLookupPath` 方法需要 `org.springframework.web.util.UrlPathHelper.PATH` 属性，但该属性未被正确设置，导致以下错误：
+
+```
+java.lang.IllegalStateException: 
+  Could not find PATH attribute in request. 
+  Are you using UrlPathHelper to parse the request URL?
+```
+
+### 35.2 根本原因
+
+当通过 `RequestMappingHandlerMapping` 动态注册 Controller 时，Spring MVC 需要解析请求路径。`UrlPathHelper` 使用请求属性缓存解析后的路径，但在某些情况下该属性未被设置。
+
+### 35.3 解决方案
+
+#### 35.3.1 WebMvcConfig 配置
+
+创建全局 UrlPathHelper 配置：
+
+```java
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+    
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        UrlPathHelper urlPathHelper = new UrlPathHelper();
+        urlPathHelper.setAlwaysUseFullPath(true);
+        urlPathHelper.setUrlDecode(true);
+        urlPathHelper.setRemoveSemicolonContent(false);
+        configurer.setUrlPathHelper(urlPathHelper);
+    }
+}
+```
+
+#### 35.3.2 FixedUrlPathHelper 实现
+
+创建自定义的 UrlPathHelper，缓存 PATH 属性：
+
+```java
+@Configuration
+public class RequestMappingConfig {
+    
+    @Bean
+    @Primary
+    public RequestMappingHandlerMapping requestMappingHandlerMapping() {
+        RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
+        
+        UrlPathHelper urlPathHelper = new UrlPathHelper();
+        urlPathHelper.setAlwaysUseFullPath(true);
+        urlPathHelper.setUrlDecode(true);
+        urlPathHelper.setRemoveSemicolonContent(false);
+        
+        mapping.setUrlPathHelper(urlPathHelper);
+        return mapping;
+    }
+    
+    public static class FixedUrlPathHelper extends UrlPathHelper {
+        private static final String PATH_ATTRIBUTE = 
+            FixedUrlPathHelper.class.getName() + ".PATH";
+        
+        @Override
+        public String resolveAndCacheLookupPath(HttpServletRequest request) {
+            String lookupPath = (String) request.getAttribute(PATH_ATTRIBUTE);
+            if (lookupPath != null) {
+                return lookupPath;
+            }
+            lookupPath = getPathWithinApplication(request);
+            request.setAttribute(PATH_ATTRIBUTE, lookupPath);
+            return lookupPath;
+        }
+    }
+}
+```
+
+### 35.4 配置说明
+
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| `alwaysUseFullPath` | `true` | 始终使用完整路径 |
+| `urlDecode` | `true` | 解码 URL |
+| `removeSemicolonContent` | `false` | 保留分号内容 |
+
+### 35.5 动态注册示例
+
+修复后，可以正常动态注册 Controller：
+
+```java
+@Service
+public class DynamicControllerRegistrar {
+    
+    @Autowired
+    private RequestMappingHandlerMapping handlerMapping;
+    
+    public void registerDynamicController(String path, Method method, Object handler) {
+        RequestMappingInfo mappingInfo = RequestMappingInfo
+            .paths(path)
+            .methods(RequestMethod.GET)
+            .build();
+        
+        handlerMapping.registerMapping(mappingInfo, handler, method);
+    }
+}
+```
+
+### 35.6 兼容性说明
+
+- **Spring Boot 版本**: 2.7.x, 3.x
+- **Spring MVC 版本**: 5.3.x, 6.x
+- **JDK 版本**: 8+
+
+---
+
+## 三十六、Skills 动态加载架构
+
+### 36.1 架构概述
+
+Scene Engine 支持非 POM 方式的 Skills 动态加载，实现 Skill 的热插拔和运行时扩展。
+
+### 36.2 核心组件
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Skills 动态加载架构                           │
+├─────────────────────────────────────────────────────────────────┤
+│  Skill Loader                                                    │
+│  ├── SkillJarLoader        # JAR 包加载器                        │
+│  ├── SkillClassLoader      # 类隔离加载器                        │
+│  └── SkillScanner          # Skill 扫描器                        │
+├─────────────────────────────────────────────────────────────────┤
+│  Skill Manager                                                   │
+│  ├── SkillRegistry         # Skill 注册表                        │
+│  ├── SkillLifecycle        # 生命周期管理                        │
+│  └── SkillDependency       # 依赖管理                            │
+├─────────────────────────────────────────────────────────────────┤
+│  Skill Runtime                                                   │
+│  ├── SkillContext          # Skill 上下文                        │
+│  ├── SkillFunction         # 函数注册                            │
+│  └── SkillEvent            # 事件处理                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 36.3 加载流程
+
+```
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ 扫描目录  │ -> │ 加载 JAR  │ -> │ 解析配置  │ -> │ 注册 Skill│
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+      │              │              │              │
+      ▼              ▼              ▼              ▼
+  扫描 skills/    创建 ClassLoader  读取 skill.json  注入 Spring
+  目录下的 JAR    隔离加载类         解析元数据      容器管理
+```
+
+### 36.4 核心实现
+
+#### 36.4.1 SkillJarLoader
+
+```java
+@Component
+public class SkillJarLoader {
+    
+    private final Map<String, SkillClassLoader> classLoaders = new ConcurrentHashMap<>();
+    
+    public Skill loadSkillFromJar(File jarFile) throws Exception {
+        // 创建独立的 ClassLoader
+        SkillClassLoader classLoader = new SkillClassLoader(
+            jarFile.toURI().toURL(),
+            this.getClass().getClassLoader()
+        );
+        
+        // 加载 skill.json 配置
+        SkillConfig config = loadSkillConfig(classLoader);
+        
+        // 加载主类
+        Class<?> mainClass = classLoader.loadClass(config.getMainClass());
+        Skill skill = (Skill) mainClass.getDeclaredConstructor().newInstance();
+        
+        // 缓存 ClassLoader
+        classLoaders.put(config.getSkillId(), classLoader);
+        
+        return skill;
+    }
+    
+    private SkillConfig loadSkillConfig(SkillClassLoader classLoader) throws IOException {
+        InputStream is = classLoader.getResourceAsStream("skill.json");
+        return new ObjectMapper().readValue(is, SkillConfig.class);
+    }
+}
+```
+
+#### 36.4.2 SkillClassLoader
+
+```java
+public class SkillClassLoader extends URLClassLoader {
+    
+    private final Set<String> sharedPackages;
+    
+    public SkillClassLoader(URL[] urls, ClassLoader parent) {
+        super(urls, parent);
+        this.sharedPackages = Set.of(
+            "net.ooder.scene.api",
+            "net.ooder.scene.skill",
+            "org.springframework"
+        );
+    }
+    
+    @Override
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        // 共享包使用父类加载器
+        for (String pkg : sharedPackages) {
+            if (name.startsWith(pkg)) {
+                return super.loadClass(name, resolve);
+            }
+        }
+        
+        // 优先从当前 ClassLoader 加载
+        try {
+            return findClass(name);
+        } catch (ClassNotFoundException e) {
+            return super.loadClass(name, resolve);
+        }
+    }
+}
+```
+
+#### 36.4.3 SkillLifecycle
+
+```java
+@Service
+public class SkillLifecycle {
+    
+    @Autowired
+    private SkillRegistry registry;
+    
+    public void install(Skill skill) {
+        // 1. 验证依赖
+        validateDependencies(skill);
+        
+        // 2. 注册到 Spring 容器
+        registerToSpringContext(skill);
+        
+        // 3. 初始化
+        skill.initialize();
+        
+        // 4. 注册到注册表
+        registry.register(skill);
+        
+        // 5. 发布事件
+        publishEvent(new SkillInstalledEvent(skill));
+    }
+    
+    public void start(String skillId) {
+        Skill skill = registry.get(skillId);
+        skill.start();
+        publishEvent(new SkillStartedEvent(skill));
+    }
+    
+    public void stop(String skillId) {
+        Skill skill = registry.get(skillId);
+        skill.stop();
+        publishEvent(new SkillStoppedEvent(skill));
+    }
+    
+    public void uninstall(String skillId) {
+        Skill skill = registry.get(skillId);
+        skill.destroy();
+        registry.unregister(skillId);
+        publishEvent(new SkillUninstalledEvent(skill));
+    }
+}
+```
+
+### 36.5 Skill 配置
+
+**skill.json**:
+
+```json
+{
+  "skillId": "recruitment-skill",
+  "name": "招聘助手",
+  "version": "1.0.0",
+  "mainClass": "com.example.RecruitmentSkill",
+  "dependencies": [
+    {
+      "skillId": "resume-parser",
+      "version": ">=1.0.0"
+    }
+  ],
+  "functions": [
+    {
+      "name": "scan_resume",
+      "description": "扫描简历",
+      "parameters": {
+        "resumeId": {
+          "type": "string",
+          "description": "简历ID"
+        }
+      }
+    }
+  ],
+  "resources": {
+    "memory": "512MB",
+    "cpu": "1"
+  }
+}
+```
+
+### 36.6 使用示例
+
+```java
+@Service
+public class SkillManagementService {
+    
+    @Autowired
+    private SkillJarLoader jarLoader;
+    
+    @Autowired
+    private SkillLifecycle lifecycle;
+    
+    // 从 JAR 文件安装 Skill
+    public void installSkillFromJar(String jarPath) throws Exception {
+        File jarFile = new File(jarPath);
+        Skill skill = jarLoader.loadSkillFromJar(jarFile);
+        lifecycle.install(skill);
+    }
+    
+    // 启动 Skill
+    public void startSkill(String skillId) {
+        lifecycle.start(skillId);
+    }
+    
+    // 停止 Skill
+    public void stopSkill(String skillId) {
+        lifecycle.stop(skillId);
+    }
+    
+    // 卸载 Skill
+    public void uninstallSkill(String skillId) {
+        lifecycle.uninstall(skillId);
+    }
+}
+```
+
+### 36.7 目录结构
+
+```
+skills/
+├── recruitment-skill-1.0.0.jar
+├── resume-parser-1.0.0.jar
+└── interview-scheduler-1.0.0.jar
+```
+
+### 36.8 注意事项
+
+| 注意事项 | 说明 |
+|----------|------|
+| 类隔离 | 每个 Skill 使用独立的 ClassLoader，避免类冲突 |
+| 依赖管理 | Skill 依赖的其他 Skill 需先安装 |
+| 资源限制 | 可为每个 Skill 配置内存和 CPU 限制 |
+| 版本兼容 | 检查 Skill 与 Scene Engine 版本兼容性 |
+| 热更新 | 卸载后重新安装可实现热更新 |
+
+---
+
+## 三十七、LLM 上下文协作需求实现
+
+### 37.1 变更背景
+
+#### 37.1.1 问题背景
+
+Scene Engine v2.3.1 版本之前，Ooder 平台的 LLM 模块存在以下核心问题：
+
+| 问题 | 影响 | 严重程度 |
+|------|------|----------|
+| 上下文持久化分散在各 Skill 中实现 | 缺乏统一管理，数据孤岛 | 高 |
+| Skills 切换时上下文无法正确保存和恢复 | 用户体验中断，状态丢失 | 高 |
+| 知识库 RAG 未与对话自动关联 | 需要手动触发，效率低下 | 中 |
+| LLM 调用仍为 Mock 实现 | 无法接入真实 AI 能力 | 高 |
+
+#### 37.1.2 变更目标
+
+建立完整的 LLM 上下文管理体系，实现：
+
+1. **统一存储**: SE 提供集中式上下文持久化服务
+2. **无缝切换**: Skills 切换时自动保存/恢复上下文
+3. **智能检索**: 对话时自动触发知识库 RAG
+4. **真实调用**: LLM Provider 接入真实 API
+
+#### 37.1.3 涉及模块
+
+| 模块 | 负责团队 | 变更前状态 | 变更后状态 |
+|------|----------|------------|------------|
+| scene-engine (SE) | SE Team | 提供基础存储 | 提供上下文管理服务 |
+| skill-llm-core | LLM Team | Mock 实现 | 真实 API 调用 |
+| skill-llm-chat | Skills Team | 基础功能 | 完整闭环 |
+| skill-knowledge-base | Skills Team | 内存存储 | 持久化 + RAG |
+
+---
+
+### 37.2 方案合理性分析
+
+#### 37.2.1 整体架构评估
+
+**变更原因**: 原有架构中各 Skill 自行管理上下文，导致数据不一致、无法共享、切换丢失等问题。
+
+| 维度 | 评估 | 说明 |
+|------|------|------|
+| **职责划分** | ✅ 合理 | SE 负责存储、LLM Team 负责调用、Skills Team 负责业务 |
+| **接口设计** | ✅ 清晰 | 各团队接口边界明确，依赖关系清晰 |
+| **数据流** | ⚠️ 需优化 | 存在循环依赖风险（见矛盾点分析） |
+| **实施顺序** | ✅ 合理 | P0→P1→P2 的优先级划分符合依赖关系 |
+
+#### 37.2.2 技术选型评估
+
+**变更原因**: 需要选择轻量级、易部署、适合 MVP 阶段的技术方案。
+
+| 技术 | 评估 | 建议 |
+|------|------|------|
+| JSON 文件存储 | ⚠️ 临时方案 | 适合 MVP，生产环境建议迁移到数据库 |
+| SQLite-Vec | ✅ 合适 | 轻量级向量存储，适合嵌入式场景 |
+| 多级配置 | ✅ 灵活 | SCENE_STEP > SCENE > SCENE_GROUP > PERSONAL > ENTERPRISE > SYSTEM |
+
+---
+
+### 37.3 矛盾点识别与解决方案
+
+#### 37.3.1 矛盾点 1：循环依赖风险
+
+**问题描述**:
+```
+SE Team 的 ContextStorageService
+    ↑ 依赖
+LLM Team 的 ContextBuilderService (需要加载存储的上下文)
+    ↑ 依赖
+SE Team 的存储实现
+```
+
+**变更原因**: ContextBuilderService 需要访问存储的上下文数据，但直接依赖会导致循环依赖。
+
+**解决方案**:
+```java
+// 建议：ContextBuilderService 只依赖接口，不依赖具体实现
+public interface ContextBuilderService {
+    /**
+     * 构建完整上下文
+     * @param request 构建请求
+     * @param loadedContext 已加载的上下文数据（由调用方提供）
+     * @return 合并后的上下文
+     */
+    MergedContext buildContext(ContextBuildRequest request, 
+                               Map<String, Object> loadedContext);
+}
+
+// SE Team 负责调用，打破循环依赖
+@RestController
+public class ContextController {
+    @Autowired
+    private ContextStorageService storageService;
+    @Autowired
+    private ContextBuilderService builderService;
+    
+    @GetMapping("/api/v1/context/{sessionId}/build")
+    public Result<MergedContext> build(@PathVariable String sessionId,
+                                        @RequestBody ContextBuildRequest request) {
+        // SE Team 加载数据
+        Map<String, Object> context = storageService.loadSessionContext(sessionId);
+        // 传递给 LLM Team 构建
+        MergedContext merged = builderService.buildContext(request, context);
+        return Result.success(merged);
+    }
+}
+```
+
+#### 37.3.2 矛盾点 2：Token 限制与上下文完整性冲突
+
+**问题描述**:
+- 文档规定 `MAX_TOKENS = 4096`
+- 但上下文可能包含：用户配置 + 会话历史 + Skill 状态 + 知识库 RAG 结果
+- 简单截断可能导致关键信息丢失
+
+**变更原因**: LLM API 有 Token 限制，但业务需要完整的上下文信息。
+
+**冲突示例**:
+```
+系统提示: 500 tokens
+对话历史 (10轮): 2000 tokens
+知识库 RAG (5条): 1500 tokens
+页面状态: 300 tokens
+总计: 4300 tokens > 4096 限制
+```
+
+**解决方案**:
+```java
+@Component
+public class SmartContextTruncator {
+    
+    private static final int MAX_TOKENS = 4096;
+    private static final double SAFETY_MARGIN = 0.9; // 预留 10% 安全余量
+    
+    public String truncate(List<ContextData> contexts) {
+        int effectiveLimit = (int) (MAX_TOKENS * SAFETY_MARGIN);
+        
+        // 按优先级排序（高优先级保留）
+        List<ContextPriority> priorities = Arrays.asList(
+            ContextPriority.SYSTEM_PROMPT,      // 必须保留
+            ContextPriority.CURRENT_QUERY,      // 必须保留
+            ContextPriority.RAG_RESULTS,        // 高优先级
+            ContextPriority.RECENT_HISTORY,     // 中优先级
+            ContextPriority.PAGE_STATE,         // 低优先级
+            ContextPriority.OLD_HISTORY         // 可裁剪
+        );
+        
+        int remainingTokens = effectiveLimit;
+        StringBuilder result = new StringBuilder();
+        
+        for (ContextPriority priority : priorities) {
+            ContextData data = findByPriority(contexts, priority);
+            if (data == null) continue;
+            
+            int tokens = countTokens(data);
+            if (tokens <= remainingTokens) {
+                result.append(format(data));
+                remainingTokens -= tokens;
+            } else if (priority.isTruncatable()) {
+                // 可裁剪的内容进行智能摘要
+                String summary = summarize(data, remainingTokens);
+                result.append(summary);
+                break; // 后续低优先级内容丢弃
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    private int countTokens(ContextData data) {
+        // 使用 tiktoken 或近似算法计算 Token 数
+        return TikTokenUtil.count(data.toString());
+    }
+    
+    private String summarize(ContextData data, int maxTokens) {
+        // 对长内容进行摘要处理
+        String content = data.getContent();
+        if (countTokens(content) <= maxTokens) {
+            return content;
+        }
+        // 提取关键信息，生成摘要
+        return extractKeyPoints(content, maxTokens);
+    }
+}
+```
+
+#### 37.3.3 矛盾点 3：Skills 切换时的状态同步时机
+
+**问题描述**:
+文档中的切换流程：`beforeSwitch()` -> 页面导航 -> `afterSwitch()`
+
+**变更原因**: 页面导航是同步的，可能导致 `beforeSwitch()` 的异步保存未完成就跳转，导致状态丢失。
+
+**解决方案**:
+```java
+// 后端：提供同步保存接口
+@RestController
+@RequestMapping("/api/v1/skills")
+public class SkillSwitchController {
+    
+    @Autowired
+    private SkillSwitchHandler switchHandler;
+    
+    @PostMapping("/switch")
+    public Result<SwitchResponse> switchSkill(@RequestBody SwitchRequest request) {
+        String fromSkillId = request.getFromSkillId();
+        String toSkillId = request.getToSkillId();
+        String sessionId = request.getSessionId();
+        
+        // 1. 同步执行切换前处理
+        switchHandler.beforeSwitch(fromSkillId, toSkillId, sessionId);
+        
+        // 2. 获取全局上下文
+        GlobalContext globalContext = switchHandler.getGlobalContext(
+            request.getUserId()
+        );
+        
+        // 3. 返回切换响应（前端收到后再跳转）
+        return Result.success(SwitchResponse.builder()
+            .success(true)
+            .targetUrl("/console/skills/" + toSkillId + "/pages/index.html")
+            .globalContext(globalContext)
+            .build()
+        );
+    }
+}
+```
+
+```javascript
+// 前端：确保保存完成后再跳转
+async function switchSkill(toSkillId) {
+    const currentContext = pageContextCollector.collect();
+    
+    try {
+        // 显示加载状态，防止用户重复点击
+        showLoading('保存状态中...');
+        
+        // 调用后端同步接口
+        const response = await fetch('/api/v1/skills/switch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fromSkillId: currentContext.pageType.skillId,
+                toSkillId: toSkillId,
+                sessionId: currentSessionId,
+                pageState: currentContext
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.code === 200) {
+            // 后端确认保存成功后再跳转
+            window.location.href = result.data.targetUrl;
+        } else {
+            hideLoading();
+            showError('切换失败: ' + result.message);
+        }
+    } catch (error) {
+        hideLoading();
+        // 保存失败提示用户确认
+        showConfirm('状态保存失败，是否继续切换？', () => {
+            window.location.href = `/console/skills/${toSkillId}/pages/index.html`;
+        });
+    }
+}
+```
+
+#### 37.3.4 矛盾点 4：知识库 RAG 与会话自动关联的触发条件
+
+**问题描述**:
+文档要求："对话时自动触发知识库 RAG"，但没有定义"何时触发"的具体规则。
+
+**变更原因**: 所有对话都触发 RAG 会造成性能浪费和 Token 浪费。
+
+**解决方案**:
+```java
+@Component
+public class RagTrigger {
+    
+    // 知识库相关关键词
+    private static final List<String> KNOWLEDGE_KEYWORDS = Arrays.asList(
+        "怎么", "如何", "什么是", "为什么", "请解释",
+        "说明", "介绍", "帮助", "文档", "指南"
+    );
+    
+    // 简单问候词
+    private static final List<String> GREETINGS = Arrays.asList(
+        "你好", "嗨", "hello", "hi", "在吗", "您好"
+    );
+    
+    public boolean shouldTrigger(String userQuery, SessionContext context) {
+        // 规则 1: 问题长度检查（太短的问题不需要 RAG）
+        if (userQuery.length() < 10) {
+            return false;
+        }
+        
+        // 规则 2: 检查是否是简单问候
+        boolean isGreeting = GREETINGS.stream()
+            .anyMatch(greeting -> userQuery.toLowerCase().contains(greeting.toLowerCase()));
+        if (isGreeting && userQuery.length() < 20) {
+            return false;
+        }
+        
+        // 规则 3: 包含知识库相关关键词
+        boolean hasKeyword = KNOWLEDGE_KEYWORDS.stream()
+            .anyMatch(keyword -> userQuery.contains(keyword));
+        
+        // 规则 4: 用户显式启用知识库
+        Boolean useKnowledge = context.getUseKnowledgeFlag();
+        
+        // 规则 5: 历史对话中使用了知识库（延续使用）
+        boolean usedInHistory = context.getRecentMessages(3).stream()
+            .anyMatch(msg -> msg.hasRagResults());
+        
+        return hasKeyword || Boolean.TRUE.equals(useKnowledge) || usedInHistory;
+    }
+    
+    public RagOptions buildOptions(String userQuery) {
+        // 根据问题复杂度调整检索参数
+        RagOptions options = new RagOptions();
+        
+        if (userQuery.length() > 100) {
+            // 复杂问题，检索更多文档
+            options.setTopK(8);
+            options.setRerank(true);
+        } else {
+            // 简单问题，减少检索
+            options.setTopK(3);
+            options.setRerank(false);
+        }
+        
+        return options;
+    }
+}
+```
+
+#### 37.3.5 矛盾点 5：并发访问的文件锁问题
+
+**问题描述**:
+使用 JSON 文件存储，多用户并发时可能产生竞态条件。
+
+**变更原因**: 文件系统不支持并发写入，需要手动实现锁机制。
+
+**冲突场景**:
+```
+用户A读取 context.json -> 用户B读取 context.json 
+-> 用户A修改并保存 -> 用户B修改并保存（覆盖A的修改）
+```
+
+**解决方案**:
+```java
+@Component
+public class JsonStorageService implements ContextStorageService {
+    
+    // 会话级别的读写锁
+    private final Map<String, ReentrantReadWriteLock> locks = new ConcurrentHashMap<>();
+    
+    // 锁过期清理（防止内存泄漏）
+    private final ScheduledExecutorService cleanupExecutor = 
+        Executors.newSingleThreadScheduledExecutor();
+    
+    @PostConstruct
+    public void init() {
+        // 每小时清理一次过期锁
+        cleanupExecutor.scheduleAtFixedRate(this::cleanupExpiredLocks, 1, 1, TimeUnit.HOURS);
+    }
+    
+    @Override
+    public void saveSessionContext(String sessionId, Map<String, Object> context) {
+        ReentrantReadWriteLock lock = locks.computeIfAbsent(
+            sessionId, k -> new ReentrantReadWriteLock()
+        );
+        
+        lock.writeLock().lock();
+        try {
+            // 写入文件
+            File file = getSessionFile(sessionId);
+            writeToFile(file, context);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+    
+    @Override
+    public Map<String, Object> loadSessionContext(String sessionId) {
+        ReentrantReadWriteLock lock = locks.get(sessionId);
+        if (lock == null) {
+            // 无锁时直接读取
+            return readFromFile(getSessionFile(sessionId));
+        }
+        
+        lock.readLock().lock();
+        try {
+            return readFromFile(getSessionFile(sessionId));
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+    
+    @Override
+    public void deleteSession(String sessionId) {
+        ReentrantReadWriteLock lock = locks.remove(sessionId);
+        if (lock != null) {
+            lock.writeLock().lock();
+            try {
+                File file = getSessionFile(sessionId);
+                if (file.exists()) {
+                    file.delete();
+                }
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+    }
+    
+    private void cleanupExpiredLocks() {
+        // 清理长时间未使用的锁
+        locks.entrySet().removeIf(entry -> {
+            ReentrantReadWriteLock lock = entry.getValue();
+            return !lock.isWriteLocked() && lock.getReadLockCount() == 0;
+        });
+    }
+}
+```
+
+#### 37.3.6 矛盾点 6：LLM Provider 配置与 Skill 配置的冲突
+
+**问题描述**:
+- LLM Team 提供多级配置（SYSTEM > ENTERPRISE > PERSONAL > SCENE > SCENE_STEP）
+- Skills Team 的 Skill 可能有自己的 LLM 配置需求
+
+**变更原因**: 配置优先级冲突，需要明确 Skill 配置的优先级位置。
+
+**解决方案**:
+```java
+@Component
+public class ConfigResolver {
+    
+    // 配置优先级（从低到高，后面的覆盖前面的）
+    private static final List<ConfigSource> PRIORITY_ORDER = Arrays.asList(
+        ConfigSource.SYSTEM,        // 系统默认配置
+        ConfigSource.ENTERPRISE,    // 企业级配置
+        ConfigSource.PERSONAL,      // 个人配置
+        ConfigSource.SCENE,         // 场景配置
+        ConfigSource.SKILL,         // Skill 配置（新增）
+        ConfigSource.SCENE_STEP     // 步骤配置（最高优先级）
+    );
+    
+    @Autowired
+    private LlmConfigRepository configRepository;
+    
+    @Autowired
+    private SkillConfigService skillConfigService;
+    
+    public ResolvedConfig resolve(ConfigResolveRequest request) {
+        LlmConfig mergedConfig = new LlmConfig();
+        Map<ConfigSource, LlmConfig> allConfigs = new HashMap<>();
+        
+        // 1. 加载各级配置
+        for (ConfigSource source : PRIORITY_ORDER) {
+            LlmConfig config = loadConfig(source, request);
+            if (config != null) {
+                allConfigs.put(source, config);
+                // 后面的配置覆盖前面的
+                mergeConfig(mergedConfig, config);
+            }
+        }
+        
+        // 2. 加载 Skill 特定配置（如果指定了 Skill）
+        if (request.getSkillId() != null) {
+            LlmConfig skillConfig = skillConfigService.getConfig(request.getSkillId());
+            if (skillConfig != null) {
+                allConfigs.put(ConfigSource.SKILL, skillConfig);
+                mergeConfig(mergedConfig, skillConfig);
+            }
+        }
+        
+        return ResolvedConfig.builder()
+            .effectiveConfig(mergedConfig)
+            .allConfigs(allConfigs)
+            .build();
+    }
+    
+    private LlmConfig loadConfig(ConfigSource source, ConfigResolveRequest request) {
+        switch (source) {
+            case SYSTEM:
+                return configRepository.findSystemConfig();
+            case ENTERPRISE:
+                return configRepository.findEnterpriseConfig(request.getEnterpriseId());
+            case PERSONAL:
+                return configRepository.findPersonalConfig(request.getUserId());
+            case SCENE:
+                return configRepository.findSceneConfig(request.getSceneId());
+            case SCENE_STEP:
+                return configRepository.findSceneStepConfig(request.getSceneStepId());
+            default:
+                return null;
+        }
+    }
+}
+```
+
+---
+
+### 37.4 开发任务安排
+
+#### 37.4.1 实施计划
+
+**变更原因**: 需要按优先级和依赖关系分阶段实施，降低风险。
+
+```
+Phase 1: 基础设施 (3天)
+├── SE-001: ContextStorageService 接口定义 (0.5d)
+├── SE-002: JsonStorageService 实现 (1.5d)
+├── SE-003: 并发文件锁机制 (1d)
+├── LLM-001: LlmProvider 接口完善 (0.5d)
+└── SK-001: PageContextCollector 前端实现 (1d)
+
+Phase 2: 核心服务 (4天)
+├── SE-004: SkillSwitchHandler 实现 (2d)
+├── SE-005: KnowledgeStorageService 实现 (1d)
+├── LLM-002: OpenAI Provider 真实实现 (1.5d)
+├── LLM-003: 通义千问 Provider 真实实现 (1.5d)
+├── LLM-004: LlmConfigService 实现 (1d)
+├── LLM-005: ContextBuilderService 实现 (2d)
+└── SK-002: Skill切换流程集成 (2d)
+
+Phase 3: RAG 集成 (3天)
+├── SK-003: SQLite-Vec 集成 (2d)
+├── SK-004: RagService 实现 (2d)
+└── SK-005: 对话 RAG 触发集成 (1d)
+```
+
+#### 37.4.2 关键里程碑
+
+| 里程碑 | 日期 | 验收标准 | 变更验证 |
+|--------|------|----------|----------|
+| M1: 存储服务就绪 | Day 3 | ContextStorageService 所有方法通过单元测试 | 数据正确持久化到 `data/` 目录 |
+| M2: LLM 真实调用 | Day 5 | OpenAI 和千问 Provider 成功调用真实 API | 返回非 Mock 的真实 AI 响应 |
+| M3: 上下文构建 | Day 7 | ContextBuilderService 能正确合并多级上下文 | Token 限制内包含所有关键信息 |
+| M4: Skills 切换 | Day 7 | 切换 Skill 时状态正确保存/恢复 | 页面刷新后状态不丢失 |
+| M5: RAG 集成 | Day 10 | 对话时自动触发 RAG，返回带来源的回答 | 相关问题时自动引用知识库 |
+
+#### 37.4.3 风险应对
+
+| 风险 | 概率 | 影响 | 应对措施 | 变更回滚方案 |
+|------|------|------|----------|--------------|
+| 文件存储性能瓶颈 | 中 | 高 | Day 3 评估性能，必要时引入 SQLite 或 Redis | 保留原有数据库存储接口 |
+| LLM API 不稳定 | 高 | 中 | 实现熔断降级，Mock 模式作为 fallback | 配置开关切回 Mock 模式 |
+| Token 计算不准确 | 中 | 高 | 使用 tiktoken 库，预留 10% 安全余量 | 动态调整安全余量参数 |
+| 跨团队接口变更 | 中 | 高 | 每日站会同步，接口变更需提前 1 天通知 | 版本化接口，保持向后兼容 |
+
+---
+
+### 37.5 接口定义
+
+#### 37.5.1 ContextStorageService
+
+**变更原因**: 提供统一的上下文存储接口，替代各 Skill 自行实现的存储逻辑。
+
+```java
+package net.ooder.scene.skill.engine.context;
+
+/**
+ * 上下文存储服务 - SE 核心服务
+ * 变更说明: 新增接口，统一上下文持久化管理
+ */
+public interface ContextStorageService {
+
+    // ========== 用户上下文 ==========
+    
+    /**
+     * 保存用户上下文
+     * @param userId 用户ID
+     * @param context 上下文数据
+     */
+    void saveUserContext(String userId, Map<String, Object> context);
+    
+    /**
+     * 加载用户上下文
+     * @param userId 用户ID
+     * @return 上下文数据，不存在返回空Map
+     */
+    Map<String, Object> loadUserContext(String userId);
+    
+    // ========== 会话上下文 ==========
+    
+    void saveSessionContext(String sessionId, Map<String, Object> context);
+    Map<String, Object> loadSessionContext(String sessionId);
+    boolean sessionExists(String sessionId);
+    void deleteSession(String sessionId);
+    
+    // ========== Skill 上下文 ==========
+    
+    void saveSkillContext(String skillId, String sessionId, Map<String, Object> context);
+    Map<String, Object> loadSkillContext(String skillId, String sessionId);
+    
+    // ========== 对话历史 ==========
+    
+    void saveChatMessage(String sessionId, Map<String, Object> message);
+    List<Map<String, Object>> loadChatHistory(String sessionId, int limit);
+    
+    // ========== 页面状态 ==========
+    
+    void savePageState(String sessionId, String pageId, Map<String, Object> state);
+    Map<String, Object> loadPageState(String sessionId, String pageId);
+}
+```
+
+#### 37.5.2 SkillSwitchHandler
+
+**变更原因**: 统一管理 Skills 切换时的状态保存和恢复逻辑。
+
+```java
+/**
+ * Skill 切换处理器
+ * 变更说明: 新增接口，处理切换前后的状态同步
+ */
+public interface SkillSwitchHandler {
+    
+    /**
+     * 切换前处理
+     * - 保存当前 Skill 的页面状态
+     * - 保存当前 Skill 的上下文
+     * - 更新会话的 currentSkill
+     */
+    void beforeSwitch(String fromSkillId, String toSkillId, String sessionId);
+    
+    /**
+     * 切换后处理
+     * - 恢复目标 Skill 的上下文
+     * - 恢复目标 Skill 的页面状态
+     * - 更新菜单高亮
+     */
+    void afterSwitch(String fromSkillId, String toSkillId, String sessionId);
+    
+    /**
+     * 获取全局共享上下文
+     */
+    GlobalContext getGlobalContext(String userId);
+}
+```
+
+#### 37.5.3 LlmProvider
+
+**变更原因**: 将 Mock 实现替换为真实 API 调用。
+
+```java
+/**
+ * LLM 提供者接口
+ * 变更说明: 完善接口，支持真实 API 调用
+ */
+public interface LlmProvider {
+    
+    String getProviderType();
+    List<String> getSupportedModels();
+    
+    /**
+     * 对话补全
+     * 变更: 从 Mock 返回改为真实 API 调用
+     */
+    ChatResponse chat(ChatRequest request);
+    
+    /**
+     * 流式对话 (SSE)
+     * 变更: 新增流式支持
+     */
+    void chatStream(ChatRequest request, StreamHandler handler);
+    
+    /**
+     * 文本嵌入
+     */
+    List<float[]> embed(String model, List<String> texts);
+    
+    /**
+     * 健康检查
+     * 变更: 新增健康检查接口
+     */
+    boolean healthCheck();
+}
+```
+
+#### 37.5.4 RagService
+
+**变更原因**: 将手动触发的 RAG 改为自动触发。
+
+```java
+/**
+ * 检索增强生成服务
+ * 变更说明: 新增服务，实现对话时自动触发 RAG
+ */
+public interface RagService {
+    
+    /**
+     * RAG 查询
+     * @param query 用户问题
+     * @param kbIds 知识库ID列表
+     * @param options 检索选项
+     * @return 增强后的回答
+     */
+    RagResponse query(String query, List<String> kbIds, RagOptions options);
+    
+    /**
+     * 流式 RAG 查询
+     */
+    void queryStream(String query, List<String> kbIds, 
+                     RagOptions options, StreamHandler handler);
+    
+    /**
+     * 判断是否触发 RAG
+     * 变更: 新增智能触发判断
+     */
+    boolean shouldTrigger(String query, SessionContext context);
+}
+```
+
+---
+
+### 37.6 存储结构
+
+**变更原因**: 统一存储目录结构，替代分散的存储方式。
+
+```
+data/
+├── users/
+│   └── {userId}.json           # 用户配置和偏好
+│
+├── sessions/
+│   └── {sessionId}/
+│       ├── context.json        # 会话上下文
+│       ├── chat-history.json   # 对话历史
+│       └── pages/
+│           └── {pageId}.json   # 页面状态
+│
+├── skills/
+│   └── {skillId}/
+│       └── {sessionId}/
+│           └── context.json    # Skill 特定上下文
+│
+└── knowledge/
+    └── {kbId}/
+        ├── documents/
+        │   ├── {docId}.json    # 文档元数据
+        │   └── {docId}.txt     # 文档内容
+        └── index/
+            └── vectors.db      # SQLite-Vec 向量索引
+```
+
+---
+
+### 37.7 验收标准
+
+#### 37.7.1 SE Team
+
+- [x] ContextStorageService 所有方法可用
+- [x] 数据正确持久化到 `data/` 目录
+- [x] Skills 切换时上下文正确保存/恢复
+- [x] 知识库文档正确存储和检索
+
+#### 37.7.2 LLM Team
+
+- [x] OpenAI Provider 真实 API 调用成功
+- [x] 通义千问 Provider 真实 API 调用成功
+- [x] 流式输出正常工作
+- [x] 多级配置正确解析
+
+#### 37.7.3 Skills Team
+
+- [x] 对话历史正确持久化
+- [x] 知识库 RAG 自动触发
+- [x] Skills 切换无状态丢失
+- [x] AI 助手上下文正确构建
+
+---
+
+## 三十八、SKILLS-LLM 集成开发指南
+
+### 38.1 架构说明
+
+#### 38.1.1 层级划分
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SKILLS-LLM 工程                          │
+│  ┌─────────────────┐  ┌─────────────────┐                  │
+│  │  Web Controller │  │  Service Layer  │                  │
+│  │  (页面CRUD)     │  │  (业务逻辑)     │                  │
+│  └────────┬────────┘  └────────┬────────┘                  │
+│           │                    │                           │
+│           └────────────────────┘                           │
+│                      │                                     │
+│                      ▼ 调用 SE 层 Service                   │
+├─────────────────────────────────────────────────────────────┤
+│                    SE 工程 (scene-engine)                   │
+│  ┌─────────────────────────┐  ┌─────────────────────────┐  │
+│  │ ContextStorageService   │  │ SkillSwitchHandler      │  │
+│  │ (上下文存储API)          │  │ (Skill切换API)          │  │
+│  └─────────────────────────┘  └─────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 38.1.2 职责边界
+
+| 层级 | 职责 | 示例 |
+|------|------|------|
+| **SKILLS-LLM** | 页面交互、业务逻辑、Web API | Controller、页面状态管理 |
+| **SE** | 系统核心服务、数据持久化 | ContextStorageService、SkillSwitchHandler |
+
+**重要**: SE 层不提供 Web 访问，仅通过 Service API 供其他服务调用。
+
+---
+
+### 38.2 SE 层提供的 API
+
+#### 38.2.1 ContextStorageService
+
+**注入方式**:
+```java
+@Autowired
+private ContextStorageService contextStorageService;
+```
+
+**核心方法**:
+
+```java
+// 会话上下文
+void saveSessionContext(String sessionId, Map<String, Object> context);
+Map<String, Object> loadSessionContext(String sessionId);
+
+// Skill 上下文
+void saveSkillContext(String skillId, String sessionId, Map<String, Object> context);
+Map<String, Object> loadSkillContext(String skillId, String sessionId);
+
+// 页面状态
+void savePageState(String sessionId, String pageId, Map<String, Object> state);
+Map<String, Object> loadPageState(String sessionId, String pageId);
+
+// 对话历史
+void saveChatMessage(String sessionId, Map<String, Object> message);
+List<Map<String, Object>> loadChatHistory(String sessionId, int limit);
+
+// 用户上下文
+void saveUserContext(String userId, Map<String, Object> context);
+Map<String, Object> loadUserContext(String userId);
+```
+
+#### 38.2.2 SkillSwitchHandler
+
+**注入方式**:
+```java
+@Autowired
+private SkillSwitchHandler skillSwitchHandler;
+```
+
+**核心方法**:
+
+```java
+/**
+ * 执行完整的 Skill 切换流程
+ */
+SwitchResult switchSkill(SwitchRequest request);
+
+/**
+ * 获取全局上下文
+ */
+GlobalContext getGlobalContext(String userId);
+
+/**
+ * 切换前处理（如需细粒度控制）
+ */
+Map<String, Object> beforeSwitch(String fromSkillId, String toSkillId, String sessionId);
+
+/**
+ * 切换后处理（如需细粒度控制）
+ */
+void afterSwitch(String fromSkillId, String toSkillId, String sessionId, Map<String, Object> context);
+```
+
+**SwitchRequest 示例**:
+```java
+SkillSwitchHandler.SwitchRequest request = new SkillSwitchHandler.SwitchRequest();
+request.setFromSkillId("recruitment-skill");
+request.setToSkillId("interview-skill");
+request.setSessionId("session-xxx");
+request.setUserId("user-xxx");
+request.setCurrentPageId("resume-list");
+request.setCurrentPageState(pageState);
+
+SkillSwitchHandler.SwitchResult result = skillSwitchHandler.switchSkill(request);
+if (result.isSuccess()) {
+    // 切换成功
+    GlobalContext globalContext = result.getGlobalContext();
+    Map<String, Object> restoredContext = result.getRestoredContext();
+}
+```
+
+---
+
+### 38.3 SKILLS-LLM 开发任务
+
+#### 38.3.1 需要实现的组件
+
+| 组件 | 说明 | 依赖 SE API |
+|------|------|-------------|
+| `ContextController` | Web 层，提供页面 CRUD API | ContextStorageService |
+| `ContextBuilderService` | 构建 LLM 上下文 | loadSessionContext, loadSkillContext |
+| `PageContextCollector` | 前端页面状态收集 | - |
+| `LlmProvider` 实现 | OpenAI/千问 Provider | - |
+| `RagService` | 知识库 RAG 服务 | ContextStorageService |
+
+#### 38.3.2 ContextController 示例
+
+```java
+@RestController
+@RequestMapping("/api/v1/context")
+public class ContextController {
+    
+    @Autowired
+    private ContextStorageService contextStorageService;
+    
+    @Autowired
+    private SkillSwitchHandler skillSwitchHandler;
+    
+    // 页面级 API - 保存页面状态
+    @PostMapping("/sessions/{sessionId}/pages/{pageId}")
+    public Result<Void> savePageState(@PathVariable String sessionId,
+                                      @PathVariable String pageId,
+                                      @RequestBody Map<String, Object> state) {
+        contextStorageService.savePageState(sessionId, pageId, state);
+        return Result.success();
+    }
+    
+    // 页面级 API - 加载页面状态
+    @GetMapping("/sessions/{sessionId}/pages/{pageId}")
+    public Result<Map<String, Object>> loadPageState(@PathVariable String sessionId,
+                                                     @PathVariable String pageId) {
+        Map<String, Object> state = contextStorageService.loadPageState(sessionId, pageId);
+        return Result.success(state);
+    }
+    
+    // Skill 切换 API
+    @PostMapping("/skills/switch")
+    public Result<SwitchResult> switchSkill(@RequestBody SwitchRequest request) {
+        SwitchResult result = skillSwitchHandler.switchSkill(request);
+        return Result.success(result);
+    }
+    
+    // 获取全局上下文
+    @GetMapping("/users/{userId}/global")
+    public Result<GlobalContext> getGlobalContext(@PathVariable String userId) {
+        GlobalContext context = skillSwitchHandler.getGlobalContext(userId);
+        return Result.success(context);
+    }
+}
+```
+
+#### 38.3.3 ContextBuilderService 示例
+
+```java
+@Service
+public class ContextBuilderService {
+    
+    @Autowired
+    private ContextStorageService storageService;
+    
+    /**
+     * 构建 LLM 对话上下文
+     */
+    public MergedContext buildContext(String sessionId, ContextBuildRequest request) {
+        MergedContext merged = new MergedContext();
+        
+        // 1. 从 SE 加载会话上下文
+        Map<String, Object> sessionContext = storageService.loadSessionContext(sessionId);
+        merged.setSessionContext(sessionContext);
+        
+        // 2. 加载 Skill 上下文
+        String skillId = (String) sessionContext.get("currentSkill");
+        if (skillId != null) {
+            Map<String, Object> skillContext = storageService.loadSkillContext(skillId, sessionId);
+            merged.setSkillContext(skillContext);
+        }
+        
+        // 3. 加载对话历史
+        List<Map<String, Object>> history = storageService.loadChatHistory(sessionId, 10);
+        merged.setChatHistory(history);
+        
+        // 4. 构建最终提示词
+        String prompt = buildPrompt(merged, request);
+        merged.setFinalPrompt(prompt);
+        
+        return merged;
+    }
+}
+```
+
+---
+
+### 38.4 集成注意事项
+
+#### 38.4.1 依赖配置
+
+在 SKILLS-LLM 工程的 `pom.xml` 中添加 SE 依赖:
+
+```xml
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>scene-engine</artifactId>
+    <version>2.3.1</version>
+</dependency>
+```
+
+#### 38.4.2 存储路径配置
+
+SE 层使用 `data/` 目录作为默认存储根路径，可通过配置修改:
+
+```yaml
+# application.yml
+scene:
+  engine:
+    context:
+      storage:
+        root: /custom/data/path
+```
+
+#### 38.4.3 并发安全
+
+SE 层的 `JsonStorageService` 已实现基于 `ReentrantReadWriteLock` 的并发控制，SKILLS-LLM 无需额外处理并发问题。
+
+#### 38.4.4 错误处理
+
+SE 层 API 在异常时会抛出 `RuntimeException`，SKILLS-LLM 应进行适当捕获和处理:
+
+```java
+try {
+    contextStorageService.saveSessionContext(sessionId, context);
+} catch (Exception e) {
+    logger.error("Failed to save context", e);
+    // 业务层错误处理
+    throw new BusinessException("保存上下文失败", e);
+}
+```
+
+---
+
+### 38.5 开发顺序建议
+
+```
+Phase 1: 基础集成 (2天)
+├── 1. 添加 SE 依赖
+├── 2. 实现 ContextController (Web 层)
+└── 3. 验证上下文存储/读取
+
+Phase 2: Skill 切换 (2天)
+├── 1. 集成 SkillSwitchHandler
+├── 2. 实现页面状态收集
+└── 3. 验证切换流程
+
+Phase 3: LLM 集成 (3天)
+├── 1. 实现 ContextBuilderService
+├── 2. 实现 LlmProvider (OpenAI/千问)
+└── 3. 验证对话流程
+
+Phase 4: RAG 集成 (3天)
+├── 1. 实现 RagService
+├── 2. 集成 SQLite-Vec
+└── 3. 验证知识库检索
+```
+
+---
+
+### 38.6 常见问题
+
+#### Q1: SE 层是否提供 REST API?
+**A**: 不提供。SE 层仅提供 Service API，Web 层由 SKILLS-LLM 实现。
+
+#### Q2: 如何调试上下文存储?
+**A**: 检查 `data/` 目录下的 JSON 文件，或使用 `ContextStorageService.getStorageRoot()` 获取存储路径。
+
+#### Q3: Skill 切换时状态丢失?
+**A**: 确保在切换前调用 `savePageState()` 保存当前页面状态，并通过 `SkillSwitchHandler.switchSkill()` 执行完整切换流程。
+
+#### Q4: 如何清理过期数据?
+**A**: 调用 `ContextStorageService.cleanupExpiredData(maxAgeDays)` 方法。
+
+---
+
 **文档维护**: Ooder Team  
-**最后更新**: 2026-03-09
+**最后更新**: 2026-03-14

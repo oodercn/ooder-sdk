@@ -31,6 +31,19 @@ public class LlmConfigAdapter {
         return adapter;
     }
 
+    public static LlmConfigAdapter fromSceneConfig(net.ooder.scene.llm.config.LlmConfig sceneConfig) {
+        LlmConfigAdapter adapter = new LlmConfigAdapter();
+        if (sceneConfig != null) {
+            adapter.endpoint = sceneConfig.getEndpoint();
+            adapter.apiKey = sceneConfig.getApiKey();
+            adapter.model = sceneConfig.getModel();
+            adapter.maxTokens = sceneConfig.getMaxTokens();
+            adapter.temperature = sceneConfig.getTemperature();
+            adapter.timeout = sceneConfig.getTimeout();
+        }
+        return adapter;
+    }
+
     public LlmDriver.LlmConfig toDriverConfig() {
         LlmDriver.LlmConfig config = new LlmDriver.LlmConfig();
         config.setEndpoint(endpoint);

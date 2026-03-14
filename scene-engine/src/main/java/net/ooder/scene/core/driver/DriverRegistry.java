@@ -1,6 +1,7 @@
 package net.ooder.scene.core.driver;
 
 import net.ooder.sdk.core.InterfaceDefinition;
+import net.ooder.sdk.core.driver.Driver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

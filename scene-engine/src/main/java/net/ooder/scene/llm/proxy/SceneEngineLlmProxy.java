@@ -209,8 +209,20 @@ public class SceneEngineLlmProxy implements LlmDriver {
     // ========== 私有方法 ==========
 
     private List<Map<String, Object>> convertMessages(List<ChatMessage> messages) {
-        // 转换消息格式
-        return new java.util.ArrayList<>();
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        if (messages == null) {
+            return result;
+        }
+        for (ChatMessage msg : messages) {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("role", msg.getRole());
+            map.put("content", msg.getContent());
+            if (msg.getName() != null) {
+                map.put("name", msg.getName());
+            }
+            result.add(map);
+        }
+        return result;
     }
 
     private Map<String, Object> convertOptions(Object request) {
@@ -222,13 +234,45 @@ public class SceneEngineLlmProxy implements LlmDriver {
 
     private DriverChatResponse convertToDriverChatResponse(Map<String, Object> response) {
         DriverChatResponse driverResponse = new DriverChatResponse();
-        // 转换响应格式
+        if (response == null) {
+            return driverResponse;
+        }
+        
+        // 提取模型信息
+        Object model = response.get("model");
+        if (model != null) {
+            driverResponse.setModel(model.toString());
+        }
+        
         return driverResponse;
     }
 
     private EmbeddingResponse convertToEmbeddingResponse(List<double[]> embeddings) {
         EmbeddingResponse response = new EmbeddingResponse();
-        // 转换响应格式
+        if (embeddings == null || embeddings.isEmpty()) {
+            return response;
+        }
+        
+        // 将 double[] 转换为 float[]
+        List<float[]> floatEmbeddings = new java.util.ArrayList<>();
+        for (double[] embedding : embeddings) {
+            float[] floatArray = new float[embedding.length];
+            for (int i = 0; i < embedding.length; i++) {
+                floatArray[i] = (float) embedding[i];
+            }
+            floatEmbeddings.add(floatArray);
+        }
+        
+        List<EmbeddingData> dataList = new java.util.ArrayList<>();
+        for (int i = 0; i < floatEmbeddings.size(); i++) {
+            float[] embedding = floatEmbeddings.get(i);
+            EmbeddingData data = new EmbeddingData();
+            data.setIndex(i);
+            data.setEmbedding(embedding);
+            dataList.add(data);
+        }
+        response.setData(dataList);
+        
         return response;
     }
 }

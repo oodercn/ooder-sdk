@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.ooder.scene.skill.llm.driver.SkillLlmConfig.*;
+
 /**
  * Skill 函数执行器
  * 
@@ -46,23 +48,23 @@ public class SkillFunctionExecutor {
     /**
      * 注册函数到 Capability 的映射
      */
-    public void registerMapping(String skillId, SkillLlmDriver.FunctionDefinition function) {
+    public void registerMapping(String skillId, FunctionDefinition function) {
         String key = buildKey(skillId, function.getName());
         
         FunctionMapping mapping = new FunctionMapping();
         mapping.setSkillId(skillId);
         mapping.setFunctionName(function.getName());
-        mapping.setCapabilityId(function.getCapabilityId());
+        mapping.setCapabilityId(function.getCapability());
         
         mappings.put(key, mapping);
-        log.info("Registered function mapping: {} -> {}", function.getName(), function.getCapabilityId());
+        log.info("Registered function mapping: {} -> {}", function.getName(), function.getCapability());
     }
 
     /**
      * 批量注册映射
      */
-    public void registerMappings(String skillId, List<SkillLlmDriver.FunctionDefinition> functions) {
-        for (SkillLlmDriver.FunctionDefinition function : functions) {
+    public void registerMappings(String skillId, List<FunctionDefinition> functions) {
+        for (FunctionDefinition function : functions) {
             registerMapping(skillId, function);
         }
     }
@@ -72,7 +74,7 @@ public class SkillFunctionExecutor {
      */
     public Object execute(String skillId, String functionName, 
                           Map<String, Object> arguments,
-                          SkillLlmDriver.ExecutionContext context) {
+                          ExecutionContext context) {
         String key = buildKey(skillId, functionName);
         FunctionMapping mapping = mappings.get(key);
         
@@ -112,7 +114,7 @@ public class SkillFunctionExecutor {
      */
     private Map<String, Object> transformParameters(FunctionMapping mapping,
                                                      Map<String, Object> arguments,
-                                                     SkillLlmDriver.ExecutionContext context) {
+                                                     ExecutionContext context) {
         Map<String, Object> params = new HashMap<>();
         
         if (mapping.getParameterMapping() != null) {

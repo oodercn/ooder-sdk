@@ -104,6 +104,21 @@
                 <version>${spring.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-instrument</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context-support</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.mvel</groupId>
                 <artifactId>mvel2</artifactId>
                 <version>${mvel2.version}</version>
@@ -161,7 +176,9 @@
     <modules>
         <module>ooder-config</module>
         <module>ooder-database</module>
+        <module>ooder-iot-webclient</module>
         <module>ooder-common-client</module>
+        <module>ooder-index-web</module>
         <module>ooder-vfs-web</module>
         <module>ooder-server</module>
         <module>ooder-org-web</module>

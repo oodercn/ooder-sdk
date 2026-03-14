@@ -1,5 +1,6 @@
 package net.ooder.scene.skill.llm.impl;
 
+import net.ooder.scene.llm.ChatRequest;
 import net.ooder.scene.skill.llm.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,23 +168,39 @@ public abstract class AbstractLlmProvider implements EnhancedLlmProvider {
     @Override
     public List<Map<String, Object>> batchChat(List<ChatRequest> requests) {
         List<Map<String, Object>> results = new ArrayList<>();
+        int index = 0;
         for (ChatRequest request : requests) {
             try {
                 Map<String, Object> result = chat(
                     request.getModel(),
-                    request.getMessages(),
-                    request.getOptions()
+                    convertToMapList(request.getMessages()),
+                    request.getParameters()
                 );
                 results.add(result);
             } catch (Exception e) {
-                log.error("Batch chat failed for request: {}", request.getRequestId(), e);
+                log.error("Batch chat failed for request #{}: {}", index, e.getMessage(), e);
                 Map<String, Object> errorResult = new HashMap<>();
                 errorResult.put("error", e.getMessage());
-                errorResult.put("requestId", request.getRequestId());
+                errorResult.put("requestIndex", index);
                 results.add(errorResult);
             }
+            index++;
         }
         return results;
+    }
+
+    private List<Map<String, Object>> convertToMapList(List<ChatRequest.Message> messages) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ChatRequest.Message msg : messages) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("role", msg.getRole());
+            map.put("content", msg.getContent());
+            if (msg.getName() != null) {
+                map.put("name", msg.getName());
+            }
+            result.add(map);
+        }
+        return result;
     }
 
     @Override

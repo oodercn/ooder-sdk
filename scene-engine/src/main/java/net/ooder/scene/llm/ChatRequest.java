@@ -1,5 +1,7 @@
 package net.ooder.scene.llm;
 
+import net.ooder.scene.skill.llm.FunctionCall;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -127,26 +129,4 @@ public class ChatRequest {
         public void setFunctionCall(FunctionCall functionCall) { this.functionCall = functionCall; }
     }
 
-    /**
-     * Function 调用
-     */
-    public static class FunctionCall {
-        private String id;
-        private String name;
-        private String arguments;
-
-        public FunctionCall() {}
-
-        public FunctionCall(String name, String arguments) {
-            this.name = name;
-            this.arguments = arguments;
-        }
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getArguments() { return arguments; }
-        public void setArguments(String arguments) { this.arguments = arguments; }
-    }
 }

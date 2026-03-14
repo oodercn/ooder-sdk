@@ -1,6 +1,7 @@
 package net.ooder.scene.llm.proxy.connection;
 
 import net.ooder.scene.llm.config.LlmConfig;
+import net.ooder.scene.llm.proxy.LlmConfigAdapter;
 import net.ooder.sdk.drivers.llm.LlmDriver;
 
 import org.slf4j.Logger;
@@ -169,16 +170,7 @@ public class LlmConnectionManager {
         }
 
         private LlmDriver.LlmConfig convertToDriverConfig(net.ooder.scene.llm.config.LlmConfig sceneConfig) {
-            LlmDriver.LlmConfig config = new LlmDriver.LlmConfig();
-            config.setEndpoint(sceneConfig.getEndpoint());
-            config.setApiKey(sceneConfig.getApiKey());
-            config.setModel(sceneConfig.getModel());
-            config.setDefaultModel(sceneConfig.getModel());
-            config.setMaxTokens(sceneConfig.getMaxTokens());
-            config.setTemperature(sceneConfig.getTemperature());
-            config.setTimeout((int) sceneConfig.getTimeout());
-            config.setMaxRetries(3);
-            return config;
+            return LlmConfigAdapter.fromSceneConfig(sceneConfig).toDriverConfig();
         }
 
         @Override

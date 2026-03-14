@@ -30,9 +30,20 @@ public interface PermissionService {
     );
 
     /**
-     * 获取用户权限列表
+     * 获取用户权限列表（SecurityPermission格式）
      */
     CompletableFuture<List<SecurityPermission>> getUserPermissions(String userId);
+
+    /**
+     * 获取用户权限列表（字符串格式）
+     */
+    default CompletableFuture<List<String>> getUserPermissionStrings(String userId) {
+        return getUserPermissions(userId).thenApply(permissions ->
+            permissions.stream()
+                .map(p -> p.getResource() + ":" + p.getAction())
+                .collect(java.util.stream.Collectors.toList())
+        );
+    }
 
     /**
      * 获取角色权限列表

@@ -79,7 +79,7 @@ public interface EnhancedLlmProvider extends LlmProvider {
      * @param requests 请求列表
      * @return 结果列表
      */
-    List<Map<String, Object>> batchChat(List<ChatRequest> requests);
+    List<Map<String, Object>> batchChat(List<net.ooder.scene.llm.ChatRequest> requests);
 
     /**
      * 检查模型是否支持函数调用
@@ -113,53 +113,4 @@ public interface EnhancedLlmProvider extends LlmProvider {
      * @return token 数量
      */
     int countTokens(String model, String text);
-
-    /**
-     * 对话请求
-     */
-    class ChatRequest {
-        private String model;
-        private List<Map<String, Object>> messages;
-        private Map<String, Object> options;
-        private String requestId;
-
-        public ChatRequest() {}
-
-        public ChatRequest(String model, List<Map<String, Object>> messages) {
-            this.model = model;
-            this.messages = messages;
-        }
-
-        public String getModel() {
-            return model;
-        }
-
-        public void setModel(String model) {
-            this.model = model;
-        }
-
-        public List<Map<String, Object>> getMessages() {
-            return messages;
-        }
-
-        public void setMessages(List<Map<String, Object>> messages) {
-            this.messages = messages;
-        }
-
-        public Map<String, Object> getOptions() {
-            return options;
-        }
-
-        public void setOptions(Map<String, Object> options) {
-            this.options = options;
-        }
-
-        public String getRequestId() {
-            return requestId;
-        }
-
-        public void setRequestId(String requestId) {
-            this.requestId = requestId;
-        }
-    }
 }
