@@ -269,6 +269,72 @@ public abstract class AbstractLlmProvider implements EnhancedLlmProvider {
         return sb.toString();
     }
 
+    @Override
+    public Map<String, Object> chatWithTools(String model,
+                                              List<Map<String, Object>> messages,
+                                              List<String> toolNames,
+                                              Map<String, Object> options) {
+        log.info("chatWithTools called with model: {}, tools: {}", model, toolNames);
+        
+        // 1. 获取工具定义（这里简化处理，实际需要集成 ToolRegistry）
+        List<Map<String, Object>> tools = buildToolDefinitions(toolNames);
+        
+        // 2. 调用带函数调用的对话
+        Map<String, Object> response = chatWithFunctions(model, messages, null, options);
+        
+        // 3. 检查是否需要工具调用
+        if (response.containsKey("function_call")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> functionCall = (Map<String, Object>) response.get("function_call");
+            String functionName = (String) functionCall.get("name");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> functionArgs = (Map<String, Object>) functionCall.get("arguments");
+            
+            log.info("Function call detected: {} with args: {}", functionName, functionArgs);
+            
+            // 4. 执行工具调用（简化实现，实际需要调用 ToolOrchestrator）
+            Object functionResult = executeTool(functionName, functionArgs);
+            
+            // 5. 将工具结果反馈给 LLM
+            Map<String, Object> resultMessage = new HashMap<>();
+            resultMessage.put("role", "function");
+            resultMessage.put("name", functionName);
+            resultMessage.put("content", toJson(functionResult));
+            
+            List<Map<String, Object>> newMessages = new ArrayList<>(messages);
+            newMessages.add(resultMessage);
+            
+            // 6. 再次调用获取最终响应
+            return chat(model, newMessages, options);
+        }
+        
+        return response;
+    }
+    
+    /**
+     * 构建工具定义列表
+     */
+    protected List<Map<String, Object>> buildToolDefinitions(List<String> toolNames) {
+        // 简化实现，返回空列表
+        // 实际实现需要从 ToolRegistry 获取工具定义
+        return new ArrayList<>();
+    }
+    
+    /**
+     * 执行工具调用
+     */
+    protected Object executeTool(String functionName, Map<String, Object> args) {
+        // 简化实现，返回模拟结果
+        // 实际实现需要调用 ToolOrchestrator 执行工具
+        log.info("Executing tool: {} with args: {}", functionName, args);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("tool", functionName);
+        result.put("status", "success");
+        result.put("result", "Tool execution result for " + functionName);
+        return result;
+    }
+
     protected static class ModelConfig {
         final String name;
         final boolean supportsStreaming;

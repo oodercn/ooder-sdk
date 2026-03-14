@@ -113,4 +113,19 @@ public interface EnhancedLlmProvider extends LlmProvider {
      * @return token 数量
      */
     int countTokens(String model, String text);
+
+    /**
+     * 带工具调用的对话
+     * <p>自动处理工具注册、调用、结果反馈的完整流程</p>
+     *
+     * @param model 模型名称
+     * @param messages 消息列表
+     * @param toolNames 要使用的工具名称列表（null表示使用所有可用工具）
+     * @param options 可选参数
+     * @return 对话结果，包含最终响应
+     */
+    Map<String, Object> chatWithTools(String model,
+                                      List<Map<String, Object>> messages,
+                                      List<String> toolNames,
+                                      Map<String, Object> options);
 }

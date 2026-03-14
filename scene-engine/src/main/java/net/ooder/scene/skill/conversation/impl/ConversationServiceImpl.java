@@ -1,5 +1,7 @@
 package net.ooder.scene.skill.conversation.impl;
 
+import net.ooder.scene.llm.LlmService;
+import net.ooder.scene.llm.SceneChatRequest;
 import net.ooder.scene.skill.conversation.*;
 import net.ooder.scene.skill.knowledge.KnowledgeBaseService;
 import net.ooder.scene.skill.knowledge.KnowledgeSearchRequest;
@@ -35,6 +37,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final RagApi ragPipeline;
     private final ToolRegistry toolRegistry;
     private final ToolOrchestrator toolOrchestrator;
+    private final LlmService llmService;
     
     private final Map<String, Conversation> conversations = new ConcurrentHashMap<>();
     private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
@@ -43,11 +46,13 @@ public class ConversationServiceImpl implements ConversationService {
     public ConversationServiceImpl(KnowledgeBaseService knowledgeBaseService,
                                     RagApi ragPipeline,
                                     ToolRegistry toolRegistry,
-                                    ToolOrchestrator toolOrchestrator) {
+                                    ToolOrchestrator toolOrchestrator,
+                                    LlmService llmService) {
         this.knowledgeBaseService = knowledgeBaseService;
         this.ragPipeline = ragPipeline;
         this.toolRegistry = toolRegistry;
         this.toolOrchestrator = toolOrchestrator;
+        this.llmService = llmService;
     }
     
     @Override
@@ -291,32 +296,63 @@ public class ConversationServiceImpl implements ConversationService {
     private String generateResponse(String query, List<Message> history,
                                     List<MessageResponse.SourceReference> sources,
                                     List<MessageResponse.ToolExecution> toolExecutions) {
-        StringBuilder sb = new StringBuilder();
+        // 构建系统提示词
+        StringBuilder systemPrompt = new StringBuilder();
+        systemPrompt.append("你是一个智能助手，能够回答用户的问题。");
         
+        // 添加知识库检索结果到上下文
         if (!sources.isEmpty()) {
-            sb.append("根据知识库检索结果，我找到了以下相关信息：\n\n");
-            
+            systemPrompt.append("\n\n参考信息：\n");
             for (int i = 0; i < Math.min(3, sources.size()); i++) {
                 MessageResponse.SourceReference ref = sources.get(i);
-                sb.append((i + 1)).append(". ").append(ref.getTitle()).append("\n");
-                sb.append("   ").append(ref.getContent().substring(0, Math.min(200, ref.getContent().length()))).append("...\n\n");
+                systemPrompt.append("[").append(i + 1).append("] ")
+                           .append(ref.getTitle()).append(": ")
+                           .append(ref.getContent().substring(0, Math.min(200, ref.getContent().length())))
+                           .append("\n");
             }
         }
         
+        // 添加工具执行结果到上下文
         if (!toolExecutions.isEmpty()) {
-            sb.append("\n已执行以下工具调用：\n");
+            systemPrompt.append("\n工具执行结果：\n");
             for (MessageResponse.ToolExecution exec : toolExecutions) {
-                sb.append("- ").append(exec.getToolName()).append(": ");
-                sb.append(exec.isSuccess() ? "成功" : "失败").append("\n");
+                systemPrompt.append("- ").append(exec.getToolName()).append(": ");
+                if (exec.isSuccess()) {
+                    systemPrompt.append(exec.getResult() != null ? exec.getResult() : "执行成功");
+                } else {
+                    systemPrompt.append("执行失败");
+                }
+                systemPrompt.append("\n");
             }
         }
         
-        if (sb.length() == 0) {
-            sb.append("我已收到您的问题：").append(query).append("。");
-            sb.append("请提供更多上下文信息，以便我能够更好地回答您的问题。");
+        // 使用 LLM 生成响应
+        try {
+            SceneChatRequest request = new SceneChatRequest()
+                .system(systemPrompt.toString())
+                .user(query);
+            
+            // 添加历史消息
+            for (Message msg : history) {
+                if (msg.getRole().equals(Message.ROLE_USER)) {
+                    request.user(msg.getContent());
+                } else if (msg.getRole().equals(Message.ROLE_ASSISTANT)) {
+                    request.assistant(msg.getContent());
+                }
+            }
+            
+            // 调用 LLM 服务
+            net.ooder.sdk.llm.tool.ChatResponse response = llmService.chat(request);
+            
+            if (response != null && response.getContent() != null) {
+                return response.getContent();
+            }
+        } catch (Exception e) {
+            log.error("Failed to generate response using LLM: {}", e.getMessage(), e);
         }
         
-        return sb.toString();
+        // 如果 LLM 调用失败，返回兜底响应
+        return "抱歉，我暂时无法回答您的问题。请稍后再试。";
     }
     
     private void trimHistory(List<Message> history) {
