@@ -1,6 +1,7 @@
 package net.ooder.scene.spi.impl;
 
 import net.ooder.scene.skill.conversation.ConversationService;
+import net.ooder.scene.skill.conversation.storage.ConversationStorageService;
 import net.ooder.scene.skill.knowledge.InteractionFeedbackService;
 import net.ooder.scene.skill.knowledge.KnowledgeBaseService;
 import net.ooder.scene.skill.knowledge.TerminologyService;
@@ -17,6 +18,7 @@ import net.ooder.scene.spi.SceneEngineServiceProvider;
  */
 public class DefaultSceneEngineServiceProvider implements SceneEngineServiceProvider {
 
+    private final ConversationStorageService storageService;
     private final ConversationService conversationService;
     private final KnowledgeBaseService knowledgeBaseService;
     private final TerminologyService terminologyService;
@@ -24,18 +26,25 @@ public class DefaultSceneEngineServiceProvider implements SceneEngineServiceProv
     private final ToolRegistry toolRegistry;
     private final ToolOrchestrator toolOrchestrator;
 
-    public DefaultSceneEngineServiceProvider(ConversationService conversationService,
+    public DefaultSceneEngineServiceProvider(ConversationStorageService storageService,
+                                               ConversationService conversationService,
                                                KnowledgeBaseService knowledgeBaseService,
                                                TerminologyService terminologyService,
                                                InteractionFeedbackService interactionFeedbackService,
                                                ToolRegistry toolRegistry,
                                                ToolOrchestrator toolOrchestrator) {
+        this.storageService = storageService;
         this.conversationService = conversationService;
         this.knowledgeBaseService = knowledgeBaseService;
         this.terminologyService = terminologyService;
         this.interactionFeedbackService = interactionFeedbackService;
         this.toolRegistry = toolRegistry;
         this.toolOrchestrator = toolOrchestrator;
+    }
+
+    @Override
+    public ConversationStorageService getStorageService() {
+        return storageService;
     }
 
     @Override
@@ -101,6 +110,9 @@ public class DefaultSceneEngineServiceProvider implements SceneEngineServiceProv
         }
         if (serviceType.isInstance(toolOrchestrator)) {
             return toolOrchestrator != null;
+        }
+        if (serviceType.isInstance(storageService)) {
+            return storageService != null;
         }
         
         return false;

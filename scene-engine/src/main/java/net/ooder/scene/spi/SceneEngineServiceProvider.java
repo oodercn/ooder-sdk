@@ -1,6 +1,7 @@
 package net.ooder.scene.spi;
 
 import net.ooder.scene.skill.conversation.ConversationService;
+import net.ooder.scene.skill.conversation.storage.ConversationStorageService;
 import net.ooder.scene.skill.knowledge.InteractionFeedbackService;
 import net.ooder.scene.skill.knowledge.KnowledgeBaseService;
 import net.ooder.scene.skill.knowledge.TerminologyService;
@@ -25,6 +26,13 @@ import net.ooder.scene.skill.tool.ToolRegistry;
  * @since 2.3.1
  */
 public interface SceneEngineServiceProvider {
+
+    /**
+     * 获取对话存储服务
+     *
+     * @return 对话存储服务
+     */
+    ConversationStorageService getStorageService();
 
     /**
      * 获取对话服务

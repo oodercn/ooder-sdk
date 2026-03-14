@@ -19,7 +19,7 @@
 | **07-RAG** | 向量存储、RAG Pipeline、自适应检索 | [07-rag/](07-rag/) |
 | **08-工具调用** | 工具注册、编排、Function Calling | [08-tool/](08-tool/) |
 | **09-SPI** | 服务暴露、插件开发 | [09-spi/](09-spi/) |
-| **10-集成** | Spring Boot集成、配置参考 | [10-integration/](10-integration/) |
+| **10-集成** | Spring Boot集成、配置参考、Skill集成 | [10-integration/](10-integration/) |
 | **11-最佳实践** | 开发规范、性能优化、安全建议 | [11-best-practices/](11-best-practices/) |
 | **12-参考** | API索引、错误码、版本历史 | [12-reference/](12-reference/) |
 
@@ -42,6 +42,7 @@
 ### 高级特性
 - [SPI服务暴露](09-spi/01-service-provider.md)
 - [Spring Boot集成](10-integration/01-spring-boot.md)
+- [Skill控制器工厂](10-integration/03-skill-controller-factory.md)
 - [性能优化](11-best-practices/02-performance.md)
 
 ---
@@ -56,6 +57,7 @@
 | 交互反馈 | 自动学习、知识库更新 | [06-feedback/](06-feedback/) |
 | SPI暴露 | Skill插件访问SE服务 | [09-spi/](09-spi/) |
 | 简化API | chat/chatWithTools/chatStream | [03-conversation/](03-conversation/) |
+| Skill控制器工厂 | 解决Skill非Spring Bean问题 | [10-integration/03-skill-controller-factory.md](10-integration/03-skill-controller-factory.md) |
 
 ---
 
