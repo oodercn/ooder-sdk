@@ -1,6 +1,6 @@
 package net.ooder.scene.skill.llm.impl;
 
-import net.ooder.scene.llm.ChatRequest;
+import net.ooder.scene.llm.SceneChatRequest;
 import net.ooder.scene.skill.llm.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,10 +166,10 @@ public abstract class AbstractLlmProvider implements EnhancedLlmProvider {
     }
 
     @Override
-    public List<Map<String, Object>> batchChat(List<ChatRequest> requests) {
+    public List<Map<String, Object>> batchChat(List<SceneChatRequest> requests) {
         List<Map<String, Object>> results = new ArrayList<>();
         int index = 0;
-        for (ChatRequest request : requests) {
+        for (SceneChatRequest request : requests) {
             try {
                 Map<String, Object> result = chat(
                     request.getModel(),
@@ -189,9 +189,9 @@ public abstract class AbstractLlmProvider implements EnhancedLlmProvider {
         return results;
     }
 
-    private List<Map<String, Object>> convertToMapList(List<ChatRequest.Message> messages) {
+    private List<Map<String, Object>> convertToMapList(List<SceneChatRequest.Message> messages) {
         List<Map<String, Object>> result = new ArrayList<>();
-        for (ChatRequest.Message msg : messages) {
+        for (SceneChatRequest.Message msg : messages) {
             Map<String, Object> map = new HashMap<>();
             map.put("role", msg.getRole());
             map.put("content", msg.getContent());

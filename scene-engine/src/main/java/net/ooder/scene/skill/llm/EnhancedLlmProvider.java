@@ -79,7 +79,7 @@ public interface EnhancedLlmProvider extends LlmProvider {
      * @param requests 请求列表
      * @return 结果列表
      */
-    List<Map<String, Object>> batchChat(List<net.ooder.scene.llm.ChatRequest> requests);
+    List<Map<String, Object>> batchChat(List<net.ooder.scene.llm.SceneChatRequest> requests);
 
     /**
      * 检查模型是否支持函数调用

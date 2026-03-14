@@ -9,11 +9,12 @@ import java.util.Map;
 
 /**
  * 聊天请求
+ * <p>SE 业务层聊天请求，区别于 SDK 的 DriverChatRequest</p>
  *
  * @author ooder
  * @since 2.4
  */
-public class ChatRequest {
+public class SceneChatRequest {
 
     private String provider;
     private String model;
@@ -22,66 +23,66 @@ public class ChatRequest {
     private List<FunctionCall> functions = new ArrayList<>();
     private boolean stream;
 
-    public ChatRequest() {}
+    public SceneChatRequest() {}
 
-    public ChatRequest(String message) {
+    public SceneChatRequest(String message) {
         this.messages.add(new Message("user", message));
     }
 
-    public ChatRequest(List<Message> messages) {
+    public SceneChatRequest(List<Message> messages) {
         this.messages = messages;
     }
 
-    public static ChatRequest of(String message) {
-        return new ChatRequest(message);
+    public static SceneChatRequest of(String message) {
+        return new SceneChatRequest(message);
     }
 
-    public ChatRequest provider(String provider) {
+    public SceneChatRequest provider(String provider) {
         this.provider = provider;
         return this;
     }
 
-    public ChatRequest model(String model) {
+    public SceneChatRequest model(String model) {
         this.model = model;
         return this;
     }
 
-    public ChatRequest addMessage(String role, String content) {
+    public SceneChatRequest addMessage(String role, String content) {
         this.messages.add(new Message(role, content));
         return this;
     }
 
-    public ChatRequest system(String content) {
+    public SceneChatRequest system(String content) {
         this.messages.add(0, new Message("system", content));
         return this;
     }
 
-    public ChatRequest user(String content) {
+    public SceneChatRequest user(String content) {
         this.messages.add(new Message("user", content));
         return this;
     }
 
-    public ChatRequest assistant(String content) {
+    public SceneChatRequest assistant(String content) {
         this.messages.add(new Message("assistant", content));
         return this;
     }
 
-    public ChatRequest temperature(double temperature) {
+    public SceneChatRequest temperature(double temperature) {
         this.parameters.put("temperature", temperature);
         return this;
     }
 
-    public ChatRequest maxTokens(int maxTokens) {
+    public SceneChatRequest maxTokens(int maxTokens) {
         this.parameters.put("max_tokens", maxTokens);
         return this;
     }
 
-    public ChatRequest stream(boolean stream) {
+    public SceneChatRequest stream(boolean stream) {
         this.stream = stream;
         return this;
     }
 
-    public ChatRequest addFunction(FunctionCall function) {
+    public SceneChatRequest addFunction(FunctionCall function) {
         this.functions.add(function);
         return this;
     }

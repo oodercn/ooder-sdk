@@ -8,9 +8,9 @@ import java.util.Map;
 
 public interface LlmService {
 
-    ChatResponse chat(ChatRequest request);
+    ChatResponse chat(SceneChatRequest request);
 
-    void chatStream(ChatRequest request, StreamHandler handler);
+    void chatStream(SceneChatRequest request, StreamHandler handler);
 
     String complete(String prompt, int maxTokens);
 

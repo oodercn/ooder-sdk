@@ -3,7 +3,7 @@ package net.ooder.scene.llm.config.generator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.llm.LlmService;
-import net.ooder.scene.llm.ChatRequest;
+import net.ooder.scene.llm.SceneChatRequest;
 import net.ooder.sdk.llm.tool.ChatResponse;
 import net.ooder.scene.llm.config.layered.LlmConfigProperties;
 import net.ooder.scene.llm.config.skillsmd.SkillsMdDocument;
@@ -46,7 +46,7 @@ public class LlmConfigGeneratorService {
 
         String userPrompt = buildUserPrompt(document, userRequirements);
 
-        ChatRequest request = new ChatRequest()
+        SceneChatRequest request = new SceneChatRequest()
             .system(SYSTEM_PROMPT)
             .user(userPrompt)
             .temperature(0.3)
