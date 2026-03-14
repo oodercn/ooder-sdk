@@ -87,19 +87,18 @@ public class SceneEngineAutoConfiguration {
 
     /**
      * 交互反馈服务
+     * <p>KnowledgeBaseService 为可选依赖</p>
      */
     @Bean
     @ConditionalOnMissingBean(InteractionFeedbackService.class)
     public InteractionFeedbackService interactionFeedbackService(
-            KnowledgeBaseService knowledgeBaseService,
             TerminologyService terminologyService,
             ConversationService conversationService) {
         this.interactionFeedbackService = new InteractionFeedbackServiceImpl(
-                knowledgeBaseService,
+                null,  // knowledgeBaseService - 可选
                 terminologyService,
                 conversationService
         );
-        this.knowledgeService = knowledgeBaseService;
         return this.interactionFeedbackService;
     }
 
