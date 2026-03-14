@@ -16,6 +16,7 @@ import net.ooder.scene.skill.SkillControllerFactory;
 import net.ooder.scene.spi.SceneServices;
 import net.ooder.scene.spi.SceneServiceFactory;
 import net.ooder.scene.spi.impl.DefaultSceneServiceFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,13 +36,23 @@ import javax.annotation.PostConstruct;
 @EnableConfigurationProperties(SceneEngineProperties.class)
 public class SceneEngineAutoConfiguration {
 
+    // 服务字段，用于 @PostConstruct 方法
+    private ConversationStorageService storageService;
+    private ConversationService conversationService;
+    private KnowledgeBaseService knowledgeService;
+    private TerminologyService terminologyService;
+    private InteractionFeedbackService interactionFeedbackService;
+    private ToolRegistry toolRegistry;
+    private ToolOrchestrator toolOrchestrator;
+
     /**
      * 对话存储服务
      */
     @Bean
     @ConditionalOnMissingBean(ConversationStorageService.class)
     public ConversationStorageService conversationStorageService(SceneEngineProperties properties) {
-        return new FileConversationStorageService(properties.getConversation().getStorage().getPath());
+        this.storageService = new FileConversationStorageService(properties.getConversation().getStorage().getPath());
+        return this.storageService;
     }
 
     /**
@@ -50,7 +61,8 @@ public class SceneEngineAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ToolRegistry.class)
     public ToolRegistry toolRegistry() {
-        return new ToolRegistryImpl();
+        this.toolRegistry = new ToolRegistryImpl();
+        return this.toolRegistry;
     }
 
     /**
@@ -59,7 +71,8 @@ public class SceneEngineAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ToolOrchestrator.class)
     public ToolOrchestrator toolOrchestrator(ToolRegistry toolRegistry) {
-        return new ToolOrchestratorImpl(toolRegistry);
+        this.toolOrchestrator = new ToolOrchestratorImpl(toolRegistry);
+        return this.toolOrchestrator;
     }
 
     /**
@@ -68,7 +81,8 @@ public class SceneEngineAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(TerminologyService.class)
     public TerminologyService terminologyService() {
-        return new TerminologyServiceImpl();
+        this.terminologyService = new TerminologyServiceImpl();
+        return this.terminologyService;
     }
 
     /**
@@ -80,11 +94,13 @@ public class SceneEngineAutoConfiguration {
             KnowledgeBaseService knowledgeBaseService,
             TerminologyService terminologyService,
             ConversationService conversationService) {
-        return new InteractionFeedbackServiceImpl(
+        this.interactionFeedbackService = new InteractionFeedbackServiceImpl(
                 knowledgeBaseService,
                 terminologyService,
                 conversationService
         );
+        this.knowledgeService = knowledgeBaseService;
+        return this.interactionFeedbackService;
     }
 
     /**
@@ -110,7 +126,7 @@ public class SceneEngineAutoConfiguration {
                 storageService,
                 feedbackService
         );
-
+        this.conversationService = service;
         return service;
     }
 
@@ -119,15 +135,7 @@ public class SceneEngineAutoConfiguration {
      * <p>在 SE 启动时初始化，供 Skill 插件使用</p>
      */
     @PostConstruct
-    public void initSceneServices(
-            ConversationStorageService storageService,
-            ConversationService conversationService,
-            KnowledgeBaseService knowledgeService,
-            TerminologyService terminologyService,
-            InteractionFeedbackService interactionFeedbackService,
-            ToolRegistry toolRegistry,
-            ToolOrchestrator toolOrchestrator) {
-
+    public void initSceneServices() {
         SceneServiceFactory factory = new DefaultSceneServiceFactory(
                 storageService,
                 conversationService,
