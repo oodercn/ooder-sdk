@@ -1,7 +1,7 @@
 # Scene Engine v2.3.1 二次开发指南
 
 **版本**: v2.3.1  
-**日期**: 2026-03-07  
+**日期**: 2026-03-14  
 **状态**: 正式发布
 
 ---
@@ -92,7 +92,180 @@ scene-engine v2.3
 
 ---
 
-## 三、知识库管理 API
+## 三、对话服务 API（新增 v2.3.1）
+
+### 3.1 接口说明
+
+**接口**: `ConversationService`
+
+**位置**: `net.ooder.scene.skill.conversation.ConversationService`
+
+**功能**:
+- 多轮对话管理
+- 对话历史维护
+- 工具调用集成
+- RAG 增强对话
+- 自动学习反馈
+
+### 3.2 简洁 API 使用方式
+
+#### 3.2.1 基础对话
+
+```java
+// 获取对话服务
+ConversationService conversationService = sceneEngine.getConversationService();
+
+// 创建对话
+Conversation conversation = conversationService.createConversation(
+    "user-001", 
+    new ConversationCreateRequest("招聘咨询")
+);
+
+// 简洁对话 - 一行代码完成
+Message response = conversationService.chat(
+    conversation.getConversationId(), 
+    "JD的招聘流程是什么？"
+);
+
+System.out.println("助手回复: " + response.getContent());
+```
+
+#### 3.2.2 带工具执行的对话
+
+```java
+// 启用工具调用
+List<String> tools = Arrays.asList("search_knowledge", "get_current_time");
+
+Message response = conversationService.chatWithTools(
+    conversation.getConversationId(),
+    "现在几点了？帮我查一下招聘流程。",
+    tools
+);
+
+// 查看工具执行结果
+if (response.getToolExecutions() != null) {
+    for (ToolExecution exec : response.getToolExecutions()) {
+        System.out.println("工具: " + exec.getToolName() + 
+                          " 结果: " + exec.getResult());
+    }
+}
+```
+
+#### 3.2.3 流式对话
+
+```java
+// 流式输出
+conversationService.chatStream(
+    conversation.getConversationId(),
+    "讲一个关于招聘的故事",
+    new StreamMessageHandler() {
+        @Override
+        public void onContent(String chunk) {
+            System.out.print(chunk);  // 实时输出
+        }
+        
+        @Override
+        public void onComplete(MessageResponse response) {
+            System.out.println("\n[完成]");
+        }
+        
+        @Override
+        public void onError(String error) {
+            System.err.println("错误: " + error);
+        }
+    }
+);
+```
+
+### 3.3 完整对话流程示例
+
+```java
+// 1. 创建对话服务（通常通过 Spring 注入）
+@Autowired
+private ConversationService conversationService;
+
+// 2. 创建对话
+ConversationCreateRequest createRequest = new ConversationCreateRequest();
+createRequest.setTitle("招聘流程咨询");
+createRequest.setKbId("recruitment-kb");  // 关联知识库
+
+Conversation conversation = conversationService.createConversation(
+    "user-001", 
+    createRequest
+);
+
+// 3. 配置对话参数
+MessageRequest request = new MessageRequest();
+request.setContent("JD怎么写？");
+request.setEnableRag(true);        // 启用 RAG
+request.setEnableTools(true);      // 启用工具
+request.setKbIds(Arrays.asList("recruitment-kb"));
+
+// 4. 发送消息
+MessageResponse response = conversationService.sendMessage(
+    conversation.getConversationId(), 
+    request
+);
+
+// 5. 处理响应
+System.out.println("回复: " + response.getContent());
+
+// 查看知识库引用
+for (SourceReference source : response.getSources()) {
+    System.out.println("引用: " + source.getTitle() + 
+                      " (相关度: " + source.getScore() + ")");
+}
+
+// 6. 获取对话历史
+List<Message> history = conversationService.getHistory(
+    conversation.getConversationId(), 
+    10
+);
+
+// 7. 对话分析
+ConversationAnalysis analysis = conversationService.analyze(
+    conversation.getConversationId()
+);
+System.out.println("用户意图: " + analysis.getIntent());
+System.out.println("情感倾向: " + analysis.getSentiment());
+```
+
+### 3.4 自动学习配置
+
+```java
+// 开启自动学习（对话内容自动反馈到知识库）
+conversationService.setAutoLearn(true);
+
+// 发送消息（自动学习模式）
+MessageResponse response = conversationService.sendMessage(
+    conversationId, 
+    request
+);
+// 高质量问答对会自动提取并更新到知识库
+```
+
+### 3.5 配置参数（application.yml）
+
+```yaml
+se:
+  conversation:
+    enabled: true                    # 启用对话服务
+    storage:
+      type: file                     # 存储类型：file, memory, database
+      path: ${user.home}/.ooder/data/conversations  # 文件存储路径
+    auto-learn: true                 # 开启自动学习
+    max-history: 100                 # 最大历史消息数
+    audit:
+      enabled: true                  # 启用审计
+      include-tool-calls: true       # 包含工具调用记录
+    knowledge:
+      auto-update: true              # 自动更新知识库
+      min-content-length: 50         # 学习最小内容长度
+```
+
+---
+
+## 四、知识库管理 API
 
 ### 2.1 接口说明
 
@@ -206,7 +379,274 @@ for (KnowledgeSearchResult result : results) {
 
 ---
 
-## 四、向量存储 API
+## 五、术语服务 API（新增 v2.3.1）
+
+### 5.1 接口说明
+
+**接口**: `TerminologyService`
+
+**位置**: `net.ooder.scene.skill.knowledge.TerminologyService`
+
+**功能**:
+- 术语识别与规范化
+- 缩写/简写自动扩展
+- 同义词扩展（用于增强检索）
+- 查询预处理 Pipeline
+- 业务字典管理
+
+### 5.2 核心方法
+
+```java
+public interface TerminologyService {
+    
+    // 解析查询中的术语
+    TerminologyResolution resolve(String query);
+    
+    // 规范化查询（术语标准化）
+    String normalize(String query);
+    
+    // 扩展缩写和简写
+    String expandAbbreviations(String query);
+    
+    // 获取术语的同义词列表
+    List<String> getSynonyms(String term);
+    
+    // 生成查询变体（用于多路召回）
+    List<String> generateQueryVariants(String query);
+    
+    // 预处理查询（完整 Pipeline）
+    PreprocessedQuery preprocess(String query);
+    
+    // 添加术语映射
+    void addTerminology(TerminologyMapping mapping);
+    
+    // 从知识库加载术语
+    void loadFromKnowledgeBase(String kbId);
+}
+```
+
+### 5.3 使用示例
+
+#### 5.3.1 查询预处理
+
+```java
+// 获取术语服务
+TerminologyService terminologyService = sceneEngine.getTerminologyService();
+
+// 用户查询（包含缩写）
+String userQuery = "JD的招聘流程是什么？";
+
+// 预处理查询
+PreprocessedQuery preprocessed = terminologyService.preprocess(userQuery);
+
+System.out.println("原始查询: " + preprocessed.getOriginalQuery());
+System.out.println("规范化查询: " + preprocessed.getNormalizedQuery());
+System.out.println("扩展查询: " + preprocessed.getExpandedQuery());
+System.out.println("查询类型: " + preprocessed.getQueryType());
+
+// 识别到的术语
+for (TermMatch term : preprocessed.getRecognizedTerms()) {
+    System.out.println("术语: " + term.getTerm() + 
+                      " 位置: " + term.getStartPosition() + "-" + term.getEndPosition());
+}
+
+// 查询变体（用于多路召回）
+for (String variant : preprocessed.getQueryVariants()) {
+    System.out.println("变体: " + variant);
+}
+```
+
+#### 5.3.2 缩写扩展
+
+```java
+// 扩展缩写
+String expanded = terminologyService.expandAbbreviations("JD和HR的区别是什么？");
+System.out.println(expanded);  // 输出: Job Description和Human Resources的区别是什么？
+```
+
+#### 5.3.3 术语管理
+
+```java
+// 添加自定义术语
+TerminologyMapping mapping = new TerminologyMapping();
+mapping.setTerm("Job Description");
+mapping.setDefinition("职位描述，包含岗位职责、任职要求等信息");
+mapping.addAbbreviation("JD");
+mapping.addAlias("职位描述");
+mapping.addAlias("岗位描述");
+mapping.setCategory("recruitment");
+
+terminologyService.addTerminology(mapping);
+
+// 从知识库加载术语
+terminologyService.loadFromKnowledgeBase("recruitment-kb");
+```
+
+### 5.4 内置缩写词典
+
+v2.3.1 内置了常用缩写词典：
+
+| 缩写 | 全称 | 说明 |
+|------|------|------|
+| JD | Job Description | 职位描述 |
+| HR | Human Resources | 人力资源 |
+| CV | Curriculum Vitae | 简历 |
+| OKR | Objectives and Key Results | 目标与关键成果 |
+| KPI | Key Performance Indicator | 关键绩效指标 |
+| SOP | Standard Operating Procedure | 标准操作流程 |
+| FAQ | Frequently Asked Questions | 常见问题 |
+| API | Application Programming Interface | 应用程序接口 |
+| AI | Artificial Intelligence | 人工智能 |
+| ML | Machine Learning | 机器学习 |
+| LLM | Large Language Model | 大语言模型 |
+| RAG | Retrieval-Augmented Generation | 检索增强生成 |
+
+---
+
+## 六、交互反馈服务 API（新增 v2.3.1）
+
+### 6.1 接口说明
+
+**接口**: `InteractionFeedbackService`
+
+**位置**: `net.ooder.scene.skill.knowledge.InteractionFeedbackService`
+
+**功能**:
+- 对话记录自动归档
+- 高质量问答对提取
+- 扩展查询结果反馈
+- 知识库自动更新
+- 用户反馈收集（点赞/点踩）
+- 术语自动学习
+
+### 6.2 反馈循环流程
+
+```
+用户交互 → 数据收集 → 质量评估 → 知识提取 → 知识库更新 → 模型优化
+    ↑                                                              ↓
+    └──────────────────── 效果验证 ← 用户反馈 ←────────────────────┘
+```
+
+### 6.3 核心方法
+
+```java
+public interface InteractionFeedbackService {
+    
+    // 记录对话交互
+    void recordInteraction(String sessionId, String query, 
+                          String response, Map<String, Object> context);
+    
+    // 记录扩展查询结果
+    void recordExpandedSearch(String originalQuery, String expandedQuery,
+                              List<Map<String, Object>> searchResults,
+                              List<Map<String, Object>> usedResults);
+    
+    // 记录用户反馈
+    void recordFeedback(String interactionId, FeedbackType feedbackType,
+                        String feedbackContent, String userId);
+    
+    // 提取高质量问答对
+    List<QAPair> extractQAPairs(String sessionId);
+    
+    // 自动归档对话记录
+    String archiveConversation(String sessionId, String kbId);
+    
+    // 触发知识库更新
+    int triggerKnowledgeBaseUpdate(String kbId);
+    
+    // 学习新术语
+    void learnTerminology(String context, String term, String definition);
+    
+    // 获取交互统计
+    InteractionStats getStats(int timeRange);
+}
+```
+
+### 6.4 使用示例
+
+#### 6.4.1 记录交互
+
+```java
+// 获取反馈服务
+InteractionFeedbackService feedbackService = sceneEngine.getInteractionFeedbackService();
+
+// 记录交互
+Map<String, Object> context = new HashMap<>();
+context.put("userId", "user-001");
+context.put("queryType", "factual");
+context.put("enableRag", true);
+context.put("sourceCount", 3);
+
+feedbackService.recordInteraction(
+    sessionId,
+    "JD的招聘流程是什么？",
+    "招聘流程包括：1.需求分析 2.职位发布 3.简历筛选...",
+    context
+);
+```
+
+#### 6.4.2 用户反馈
+
+```java
+// 记录正面反馈
+feedbackService.recordFeedback(
+    interactionId,
+    InteractionFeedbackService.FeedbackType.POSITIVE,
+    "回答很详细，很有帮助",
+    "user-001"
+);
+
+// 记录纠错反馈
+feedbackService.recordFeedback(
+    interactionId,
+    InteractionFeedbackService.FeedbackType.CORRECTION,
+    "第三步应该是面试安排，不是简历筛选",
+    "user-001"
+);
+```
+
+#### 6.4.3 提取问答对
+
+```java
+// 提取高质量问答对
+List<QAPair> qaPairs = feedbackService.extractQAPairs(sessionId);
+
+for (QAPair qa : qaPairs) {
+    System.out.println("问题: " + qa.getQuestion());
+    System.out.println("回答: " + qa.getAnswer());
+    System.out.println("质量分数: " + qa.getQualityScore());
+    System.out.println("来源: " + qa.getSources());
+}
+```
+
+#### 6.4.4 归档对话
+
+```java
+// 归档对话到知识库
+String docId = feedbackService.archiveConversation(sessionId, "recruitment-kb");
+System.out.println("对话已归档，文档ID: " + docId);
+
+// 触发知识库更新（将问答对添加到知识库）
+int updatedCount = feedbackService.triggerKnowledgeBaseUpdate("recruitment-kb");
+System.out.println("更新了 " + updatedCount + " 个文档");
+```
+
+#### 6.4.5 查看统计
+
+```java
+// 获取过去24小时的统计
+InteractionStats stats = feedbackService.getStats(24);
+
+System.out.println("总交互数: " + stats.getTotalInteractions());
+System.out.println("正面反馈: " + stats.getPositiveFeedback());
+System.out.println("负面反馈: " + stats.getNegativeFeedback());
+System.out.println("提取问答对: " + stats.getExtractedQAPairs());
+System.out.println("学习术语: " + stats.getLearnedTerms());
+```
+
+---
+
+## 七、向量存储 API
 
 ### 3.1 接口说明
 
@@ -975,6 +1415,115 @@ public class KnowledgeBaseController {
 1. 使用 ownerId 字段隔离
 2. 权限检查
 3. 数据过滤
+
+---
+
+## 十四、SPI 服务暴露（新增 v2.3.1）
+
+### 14.1 概述
+
+**接口**: `SceneEngineServiceProvider`
+
+**位置**: `net.ooder.scene.spi.SceneEngineServiceProvider`
+
+**功能**:
+- 为 Skill 插件提供访问 SE 核心服务的统一入口
+- 通过 Java SPI 机制实现服务发现和加载
+- 解耦 Skill 与 SE 内部实现
+
+### 14.2 暴露的服务
+
+| 服务 | 接口 | 说明 |
+|------|------|------|
+| 对话服务 | `ConversationService` | 多轮对话管理 |
+| 知识库服务 | `KnowledgeBaseService` | 知识库管理 |
+| 术语服务 | `TerminologyService` | 术语解析与管理 |
+| 交互反馈服务 | `InteractionFeedbackService` | 交互数据反馈 |
+| 工具注册表 | `ToolRegistry` | 工具注册与发现 |
+| 工具编排器 | `ToolOrchestrator` | 工具调用执行 |
+
+### 14.3 在 Skill 中使用
+
+```java
+// 1. 加载 SPI 服务提供者
+SceneEngineServiceProvider provider = ServiceLoader
+    .load(SceneEngineServiceProvider.class)
+    .findFirst()
+    .orElseThrow(() -> new IllegalStateException("SceneEngineServiceProvider not found"));
+
+// 2. 获取所需服务
+ConversationService conversationService = provider.getConversationService();
+KnowledgeBaseService knowledgeBaseService = provider.getKnowledgeBaseService();
+TerminologyService terminologyService = provider.getTerminologyService();
+
+// 3. 检查服务可用性
+if (provider.isServiceAvailable(InteractionFeedbackService.class)) {
+    InteractionFeedbackService feedbackService = provider.getInteractionFeedbackService();
+}
+
+// 4. 使用服务
+Conversation conversation = conversationService.createConversation(
+    "user-001",
+    new ConversationCreateRequest("招聘咨询")
+);
+
+Message response = conversationService.chat(
+    conversation.getConversationId(),
+    "JD的招聘流程是什么？"
+);
+```
+
+### 14.4 服务提供者信息
+
+```java
+// 获取提供者信息
+String providerName = provider.getProviderName();      // "SceneEngine-Default"
+String providerVersion = provider.getProviderVersion(); // "2.3.1"
+
+System.out.println("服务提供者: " + providerName + " v" + providerVersion);
+```
+
+### 14.5 Spring Boot 集成
+
+在 Spring Boot 应用中，可以通过配置类注入：
+
+```java
+@Configuration
+public class SceneEngineConfig {
+    
+    @Bean
+    public SceneEngineServiceProvider sceneEngineServiceProvider(
+            ConversationService conversationService,
+            KnowledgeBaseService knowledgeBaseService,
+            TerminologyService terminologyService,
+            InteractionFeedbackService feedbackService,
+            ToolRegistry toolRegistry,
+            ToolOrchestrator toolOrchestrator) {
+        
+        return new DefaultSceneEngineServiceProvider(
+            conversationService,
+            knowledgeBaseService,
+            terminologyService,
+            feedbackService,
+            toolRegistry,
+            toolOrchestrator
+        );
+    }
+}
+
+// 在 Skill 中注入使用
+@Service
+public class MySkillService {
+    
+    @Autowired
+    private SceneEngineServiceProvider provider;
+    
+    public void doSomething() {
+        ConversationService conv = provider.getConversationService();
+        // ...
+    }
+}
+```
 
 ---
 
