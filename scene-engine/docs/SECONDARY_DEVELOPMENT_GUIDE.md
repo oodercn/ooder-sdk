@@ -65,7 +65,34 @@ scene-engine v2.3
 
 ---
 
-## 二、知识库管理 API
+## 二、命名规范说明
+
+### 2.1 SE 与 SDK 类命名区分
+
+从 v2.3.1 开始，Scene Engine 采用统一的命名规范，区分 SE 业务层类与 SDK 底层类：
+
+| 层级 | 命名规则 | 示例 |
+|------|---------|------|
+| **SDK 类** | 无特殊前缀，简洁命名 | `DriverChatRequest`, `LlmDriver.LlmConfig`, `EmbeddingService` |
+| **SE 类** | 加 `Scene` 前缀 | `SceneChatRequest`, `SceneLlmConfig`, `SceneEmbeddingService` |
+
+### 2.2 主要类名对照表
+
+| SE 类名 (业务层) | SDK 类名 (底层) | 说明 |
+|-----------------|----------------|------|
+| `SceneChatRequest` | `DriverChatRequest` | SE 使用 Builder 模式，SDK 使用标准 POJO |
+| `SceneLlmConfig` | `LlmDriver.LlmConfig` | SE 包含业务逻辑，SDK 为纯配置 |
+| `SceneEmbeddingService` | `EmbeddingService` | SE 提供业务封装，SDK 提供底层能力 |
+
+### 2.3 使用原则
+
+1. **应用层只依赖 SE 类**：使用 `SceneChatRequest` 而非 `DriverChatRequest`
+2. **SE 内部通过适配器调用 SDK**：`LlmConfigAdapter` 负责转换
+3. **禁止直接依赖 SDK**：所有 LLM 能力通过 SE 统一接口访问
+
+---
+
+## 三、知识库管理 API
 
 ### 2.1 接口说明
 
@@ -179,7 +206,7 @@ for (KnowledgeSearchResult result : results) {
 
 ---
 
-## 三、向量存储 API
+## 四、向量存储 API
 
 ### 3.1 接口说明
 
@@ -260,7 +287,7 @@ for (SearchResult result : results) {
 
 ---
 
-## 四、RAG Pipeline API
+## 五、RAG Pipeline API
 
 ### 4.1 接口说明
 
@@ -336,13 +363,13 @@ for (RagResult.RetrievedChunk chunk : result.getChunks()) {
 
 ---
 
-## 五、嵌入服务 API
+## 六、嵌入服务 API
 
 ### 5.1 接口说明
 
-**接口**: `EmbeddingService`
+**接口**: `SceneEmbeddingService`
 
-**位置**: `net.ooder.scene.skill.vector.EmbeddingService`
+**位置**: `net.ooder.scene.skill.vector.SceneEmbeddingService`
 
 **功能**:
 - 文本向量化
@@ -352,7 +379,7 @@ for (RagResult.RetrievedChunk chunk : result.getChunks()) {
 ### 5.2 核心方法
 
 ```java
-public interface EmbeddingService {
+public interface SceneEmbeddingService {
     
     float[] embed(String text);
     List<float[]> embedBatch(List<String> texts);
@@ -400,7 +427,7 @@ System.out.println("相似度: " + similarity);
 
 ---
 
-## 六、场景技能分类 API
+## 七、场景技能分类 API
 
 ### 6.1 接口说明
 
@@ -542,7 +569,7 @@ List<String> tags = MetadataCompat.getBusinessTags(metadata);
 
 ---
 
-## 七、用户知识贡献 API
+## 八、用户知识贡献 API
 
 ### 7.1 接口说明
 
@@ -610,7 +637,7 @@ Document doc = contributionService.importFromUrl("user-001", "kb-001", request);
 
 ---
 
-## 八、权限管理 API
+## 九、权限管理 API
 
 ### 8.1 接口说明
 
@@ -656,7 +683,7 @@ permService.transferOwnership("kb-001", "old-owner", "new-owner");
 
 ---
 
-## 九、知识分享 API
+## 十、知识分享 API
 
 ### 9.1 接口说明
 
@@ -2033,7 +2060,7 @@ public interface EnhancedLlmProvider {
     FunctionCallResult chatWithFunctions(String systemPrompt, String userMessage, List<FunctionDef> functions);
     String chatMultimodal(String systemPrompt, List<ContentPart> contents);
     String chatWithContext(String systemPrompt, String userMessage, Map<String, Object> context);
-    List<String> batchChat(List<ChatRequest> requests);
+    List<String> batchChat(List<SceneChatRequest> requests);
     
     void registerModel(String modelId, ModelConfig config);
     void setDefaultModel(String modelId);
@@ -2118,10 +2145,10 @@ String response = provider.chatWithContext(
 #### 23.3.5 批量请求
 
 ```java
-List<ChatRequest> requests = Arrays.asList(
-    new ChatRequest("翻译成英文", "你好世界"),
-    new ChatRequest("翻译成英文", "今天天气不错"),
-    new ChatRequest("翻译成英文", "谢谢你的帮助")
+List<SceneChatRequest> requests = Arrays.asList(
+    new SceneChatRequest("翻译成英文", "你好世界"),
+    new SceneChatRequest("翻译成英文", "今天天气不错"),
+    new SceneChatRequest("翻译成英文", "谢谢你的帮助")
 );
 
 List<String> responses = provider.batchChat(requests);
@@ -2287,7 +2314,7 @@ public interface EnhancedLlmProvider extends LlmProvider {
     Map<String, Object> executeFunctionCall(String model, List<Map<String, Object>> messages, String functionName, Map<String, Object> functionArgs, Object functionResult, Map<String, Object> options);
     Map<String, Object> chatMultimodal(String model, List<Map<String, Object>> messages, Map<String, Object> options);
     Map<String, Object> chatWithContext(String model, List<Map<String, Object>> messages, String systemPrompt, Map<String, Object> context, Map<String, Object> options);
-    List<Map<String, Object>> batchChat(List<ChatRequest> requests);
+    List<Map<String, Object>> batchChat(List<SceneChatRequest> requests);
     boolean supportsFunctionCalling(String model);
     boolean supportsMultimodal(String model);
     int getContextWindowSize(String model);
@@ -2964,7 +2991,7 @@ controller.registerFunctionExecutor("recruitment-skill", "schedule_interview", (
 });
 
 // 处理聊天请求
-ChatRequest request = new ChatRequest();
+SceneChatRequest request = new SceneChatRequest();
 request.setSkillId("recruitment-skill");
 request.setMessage("请帮我扫描简历 RESUME-001");
 
@@ -3089,7 +3116,7 @@ driver.loadConfig(skillPackage);
 factory.registerFunctionExecutors(driver, skillPackage);
 
 // 5. 处理聊天请求
-ChatRequest request = new ChatRequest();
+SceneChatRequest request = new SceneChatRequest();
 request.setSkillId("recruitment-skill");
 request.setMessage("请帮我扫描简历 RESUME-001");
 
@@ -4943,13 +4970,13 @@ public interface LlmProvider {
      * 对话补全
      * 变更: 从 Mock 返回改为真实 API 调用
      */
-    ChatResponse chat(ChatRequest request);
+    ChatResponse chat(SceneChatRequest request);
     
     /**
      * 流式对话 (SSE)
      * 变更: 新增流式支持
      */
-    void chatStream(ChatRequest request, StreamHandler handler);
+    void chatStream(SceneChatRequest request, StreamHandler handler);
     
     /**
      * 文本嵌入
