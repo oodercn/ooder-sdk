@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +40,7 @@ public class FileConversationStorageService implements ConversationStorageServic
     private final Path conversationsDir;
     private final Path messagesDir;
     private final Path toolCallsDir;
+    private final Path contextDir;
 
     public FileConversationStorageService(String storagePath) {
         this.storagePath = storagePath;
@@ -48,6 +50,7 @@ public class FileConversationStorageService implements ConversationStorageServic
         this.conversationsDir = Paths.get(storagePath, "conversations");
         this.messagesDir = Paths.get(storagePath, "messages");
         this.toolCallsDir = Paths.get(storagePath, "toolcalls");
+        this.contextDir = Paths.get(storagePath, "context");
     }
 
     @Override
@@ -56,6 +59,7 @@ public class FileConversationStorageService implements ConversationStorageServic
             Files.createDirectories(conversationsDir);
             Files.createDirectories(messagesDir);
             Files.createDirectories(toolCallsDir);
+            Files.createDirectories(contextDir);
             log.info("File conversation storage initialized at: {}", storagePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to initialize storage directories", e);
@@ -212,5 +216,43 @@ public class FileConversationStorageService implements ConversationStorageServic
             return logs;
         }
         return logs.subList(logs.size() - limit, logs.size());
+    }
+
+    @Override
+    public void saveContext(String key, Map<String, Object> data) {
+        try {
+            Path filePath = contextDir.resolve(key + ".json");
+            objectMapper.writeValue(filePath.toFile(), data);
+            log.debug("Saved context: {}", key);
+        } catch (IOException e) {
+            log.error("Failed to save context: {}", key, e);
+            throw new RuntimeException("Failed to save context", e);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> loadContext(String key) {
+        try {
+            Path filePath = contextDir.resolve(key + ".json");
+            if (!Files.exists(filePath)) {
+                return null;
+            }
+            return objectMapper.readValue(filePath.toFile(), Map.class);
+        } catch (IOException e) {
+            log.error("Failed to load context: {}", key, e);
+            return null;
+        }
+    }
+
+    @Override
+    public void deleteContext(String key) {
+        try {
+            Path filePath = contextDir.resolve(key + ".json");
+            Files.deleteIfExists(filePath);
+            log.debug("Deleted context: {}", key);
+        } catch (IOException e) {
+            log.error("Failed to delete context: {}", key, e);
+        }
     }
 }

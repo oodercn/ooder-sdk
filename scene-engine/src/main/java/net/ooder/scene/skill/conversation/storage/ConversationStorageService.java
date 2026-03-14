@@ -110,4 +110,27 @@ public interface ConversationStorageService {
      * 关闭存储服务
      */
     void shutdown();
+
+    /**
+     * 保存上下文数据
+     *
+     * @param key 存储键
+     * @param data 上下文数据
+     */
+    void saveContext(String key, java.util.Map<String, Object> data);
+
+    /**
+     * 加载上下文数据
+     *
+     * @param key 存储键
+     * @return 上下文数据，如果不存在返回 null
+     */
+    java.util.Map<String, Object> loadContext(String key);
+
+    /**
+     * 删除上下文数据
+     *
+     * @param key 存储键
+     */
+    void deleteContext(String key);
 }
