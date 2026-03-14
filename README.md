@@ -10,7 +10,7 @@ Ooder Agent 平台软件开发工具包，包含 Agent SDK、通用组件和场�
 
 ```
 ooder-sdk/
-├── agent-sdk/              # Agent SDK 核心模块 (v2.3)
+├── agent-sdk/              # Agent SDK 核心模块 (v2.3.1)
 │   ├── agent-sdk-api/      # API 接口层
 │   ├── agent-sdk-core/     # 核心实现层
 │   ├── skills-framework/   # Skills 框架
@@ -18,8 +18,8 @@ ooder-sdk/
 │   └── llm-sdk/            # LLM SDK 实现
 ├── ooder-api/              # 基础 API 接口
 ├── ooder-util/             # 工具类模块
-├── ooder-annotation/       # 注解模块 (v2.3)
-├── ooder-common/                 # 通用组件模块 (v2.3)
+├── ooder-annotation/       # 注解模块 (v2.3.1)
+├── ooder-common/                 # 通用组件模块 (v2.3.1)
 │   ├── ooder-config/       # 场景配置管理
 │   ├── ooder-database/     # 数据库访问层
 │   ├── ooder-common-client/# 客户端核心组件
@@ -27,7 +27,7 @@ ooder-sdk/
 │   ├── ooder-vfs-web/      # VFS Web 服务
 │   ├── ooder-org-web/      # 组织人员服务
 │   └── ooder-msg-web/      # 消息服务
-├── scene-engine/           # 场景引擎 (v2.3)
+├── scene-engine/           # 场景引擎 (v2.3.1)
 ├── pom.xml                 # 父 POM
 ├── README.md                     # 项目说明
 ├── ARCHITECTURE_GUIDE.md         # 架构指南

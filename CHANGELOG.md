@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-03-10
+
+### Added
+
+- SceneEngine LLM 代理层 (Beta)
+  - 用户-Agent-连接三层隔离架构
+  - LlmConnectionManager 连接池管理
+  - AgentSessionManager 四级缓存设计
+  - UserLlmSessionManager 配额管理
+  - 生命周期监听机制
+  - 监控和统计功能
+- Skills 规范配置文档
+  - 三闭环检查要求
+  - 字典表规范
+  - API 响应格式规范
+  - 命名规范和开发流程
+
+### Fixed
+
+- JDSConfig 配置问题修复
+  - 增加 JDSHome 默认值 `./JDSHome`
+  - 自动创建目录结构
+  - 避免 NullPointerException
+- JDSInit 类加载异常处理优化
+  - 改为警告日志输出
+  - 避免打印完整堆栈
+- LLM 连接池稳定性改进
+  - 优化连接池共享机制
+  - 改进引用计数管理
+
+### Changed
+
+- Maven 编译速度优化
+  - 在 local profile 中禁用 Javadoc 插件
+  - 编译时间从 7分56秒减少到 3分35秒
+- 统一版本号到 2.3.1
+  - 根 pom.xml
+  - 所有子模块 pom.xml
+
+## [2.3.0] - 2026-03-01
+
+### Added
+
+- 统一 SDK 发布 v2.3
+- 版本号统一规范
+- 完整的文档体系
+
 ## [1.0.0] - 2026-02-22
 
 ### Added
