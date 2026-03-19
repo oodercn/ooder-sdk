@@ -5,7 +5,8 @@
 **协作方**: SceneEngine (SE) ↔ SceneSDK (SDK)  
 **协作主题**: SceneGroupBridge 桥接接口实现  
 **优先级**: P0  
-**创建日期**: 2026-03-19
+**创建日期**: 2026-03-19  
+**状态**: ✅ 已完成
 
 ---
 
@@ -319,10 +320,10 @@ public interface SceneGroupApi {
 
 **SE 负责人**: SceneEngine Team  
 **SDK 负责人**: SDK Team  
-**协作状态**: 待确认
+**协作状态**: ✅ 已完成
 
 ---
 
-**文档状态**: 📝 待SDK确认  
+**文档状态**: ✅ 已确认  
 **创建日期**: 2026-03-19  
 **版本**: 1.0
