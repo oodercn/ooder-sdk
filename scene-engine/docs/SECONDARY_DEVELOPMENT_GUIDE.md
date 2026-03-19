@@ -3330,6 +3330,7 @@ public Map<String, Object> chat(String model, List<Map<String, Object>> messages
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| 2.3.1 | 2026-03-19 | **持久化重大更新**：新增 KnowledgeRepository 接口、JsonKnowledgeRepository 实现（默认）、InMemoryKnowledgeRepository 实现、JsonVectorStore 向量持久化、KnowledgePersistenceAutoConfiguration 自动配置；新增 SdkSceneGroupManagerAdapter 适配器；修复 Java 8 兼容性问题 |
 | 2.3.1 | 2026-03-09 | 新增 LLM Provider 标准实现指南、Function Calling 标准实现指南、应用端集成最佳实践、常见问题与解决方案 |
 | 2.3.1 | 2026-03-07 | 新增 MVEL 规则引擎 API、决策引擎 API、LLM 规则生成器 API、知识能力 API、增强型 LLM Provider API；场景技能分类体系修订；新增 LLM 与场景技能集成；新增知识库分层架构 |
 | 2.3 | 2026-03-06 | 新增知识库管理、向量存储、RAG Pipeline、用户知识贡献、权限管理、知识分享、批量导入、Function Calling、多轮对话 |

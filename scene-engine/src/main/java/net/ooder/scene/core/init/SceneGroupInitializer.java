@@ -5,19 +5,20 @@ import net.ooder.scene.core.impl.SceneAgentBridge;
 import net.ooder.scene.discovery.UnifiedSkillRegistry;
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.scene.SceneAgentEvent;
+import net.ooder.scene.group.persistence.SceneGroupPersistence;
+import net.ooder.scene.group.persistence.SceneGroupPersistenceImpl;
+import net.ooder.scene.participant.Participant;
 import net.ooder.sdk.api.capability.CapRegistry;
 import net.ooder.sdk.api.capability.Capability;
-import net.ooder.sdk.api.scene.SceneGroup;
-import net.ooder.sdk.api.scene.SceneGroupManager;
 import net.ooder.sdk.api.scene.SceneMember;
 import net.ooder.sdk.common.enums.MemberRole;
 import net.ooder.skills.api.SkillPackage;
 
-// 明确导入 SDK 的 MemberRole，避免与 scene.core.MemberRole 冲突
-
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 场景组初始化器
@@ -34,62 +35,68 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><b>场景激活</b> - 启动场景组</li>
  * </ol>
  *
+ * <p><b>2.3.1 新增：</b> 同步创建 SE SceneGroup 并持久化。</p>
+ *
  * @author Ooder Team
- * @version 2.3
+ * @version 2.3.1
  * @since 2.3.0
  */
 public class SceneGroupInitializer {
 
-    private final SceneGroupManager sceneGroupManager;
+    private static final Logger logger = LoggerFactory.getLogger(SceneGroupInitializer.class);
+    
+    private final net.ooder.sdk.api.scene.SceneGroupManager sdkSceneGroupManager;
     private final CapRegistry capRegistry;
     private final SceneEventPublisher eventPublisher;
     private final UnifiedSkillRegistry skillRegistry;
     private final Map<String, InitContext> initContexts = new ConcurrentHashMap<>();
-
-    public SceneGroupInitializer(SceneGroupManager sceneGroupManager,
+    
+    private SceneGroupPersistence sceneGroupPersistence;
+    private net.ooder.scene.group.SceneGroupManager seSceneGroupManager;
+    private SceneTypeHandler sceneTypeHandler;
+    
+    public SceneGroupInitializer(net.ooder.sdk.api.scene.SceneGroupManager sdkSceneGroupManager,
                                   CapRegistry capRegistry,
                                   SceneEventPublisher eventPublisher) {
-        this(sceneGroupManager, capRegistry, eventPublisher, null);
+        this(sdkSceneGroupManager, capRegistry, eventPublisher, null);
     }
 
-    public SceneGroupInitializer(SceneGroupManager sceneGroupManager,
+    public SceneGroupInitializer(net.ooder.sdk.api.scene.SceneGroupManager sdkSceneGroupManager,
                                   CapRegistry capRegistry,
                                   SceneEventPublisher eventPublisher,
                                   UnifiedSkillRegistry skillRegistry) {
-        this.sceneGroupManager = sceneGroupManager;
+        this.sdkSceneGroupManager = sdkSceneGroupManager;
         this.capRegistry = capRegistry;
         this.eventPublisher = eventPublisher;
         this.skillRegistry = skillRegistry;
+        
+        initPersistence();
+    }
+    
+    private void initPersistence() {
+        try {
+            this.sceneGroupPersistence = new SceneGroupPersistenceImpl();
+        } catch (Exception e) {
+            logger.warn("Failed to initialize persistence: {}", e.getMessage());
+        }
+    }
+    
+    public void setSeSceneGroupManager(net.ooder.scene.group.SceneGroupManager seManager) {
+        this.seSceneGroupManager = seManager;
+        this.sceneTypeHandler = new SceneTypeHandler(seManager);
     }
 
-    /**
-     * 执行场景组初始化
-     *
-     * @param request 初始化请求
-     * @return 初始化结果
-     */
     public CompletableFuture<InitResult> initialize(InitRequest request) {
         InitContext context = new InitContext(request);
         initContexts.put(context.getInitId(), context);
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Step 1: 场景加载
                 loadScene(context);
-
-                // Step 2: Agent 初始化
                 initializeAgents(context);
-
-                // Step 3: CAP 解析
                 parseCapabilities(context);
-
-                // Step 4: Skill 发现
                 discoverSkills(context);
-
-                // Step 5: Skill 挂载
                 mountSkills(context);
-
-                // Step 6: 场景激活
                 activate(context);
 
                 context.setStatus(InitStatus.COMPLETED);
@@ -103,15 +110,13 @@ public class SceneGroupInitializer {
         });
     }
 
-    // ==================== Step 1: 场景加载 ====================
-
     private void loadScene(InitContext context) {
         context.setStatus(InitStatus.LOADING_SCENE);
 
         InitRequest request = context.getRequest();
 
-        // 创建场景组配置
-        SceneGroupManager.SceneGroupConfig config = new SceneGroupManager.SceneGroupConfig();
+        net.ooder.sdk.api.scene.SceneGroupManager.SceneGroupConfig config = 
+            new net.ooder.sdk.api.scene.SceneGroupManager.SceneGroupConfig();
         config.setSceneId(request.getSceneId());
         config.setMinMembers(request.getMinMembers());
         config.setMaxMembers(request.getMaxMembers());
@@ -122,7 +127,6 @@ public class SceneGroupInitializer {
 
         context.setGroupConfig(config);
 
-        // 发布事件
         publishEvent(SceneAgentEvent.created(
             context.getInitId(),
             request.getSceneId(),
@@ -131,8 +135,6 @@ public class SceneGroupInitializer {
         ));
     }
 
-    // ==================== Step 2: Agent 初始化 ====================
-
     private void initializeAgents(InitContext context) {
         context.setStatus(InitStatus.INITIALIZING_AGENTS);
 
@@ -140,20 +142,15 @@ public class SceneGroupInitializer {
         List<AgentConfig> agentConfigs = request.getAgentConfigs();
 
         if (agentConfigs == null || agentConfigs.isEmpty()) {
-            // 默认创建一个 PRIMARY Agent
             agentConfigs = Collections.singletonList(
                 new AgentConfig(MemberRole.PRIMARY, request.getUserId())
             );
         }
 
         for (AgentConfig agentConfig : agentConfigs) {
-            // 创建 SceneAgent
             SceneAgentCore agent = createAgent(agentConfig);
-
-            // 保存到上下文
             context.addAgent(agent);
 
-            // 创建成员信息
             SceneMemberInfo member = new SceneMemberInfo();
             member.setMemberId(agent.getAgentId());
             member.setRole(agentConfig.getRole());
@@ -168,8 +165,6 @@ public class SceneGroupInitializer {
         return agent;
     }
 
-    // ==================== Step 3: CAP 解析 ====================
-
     private void parseCapabilities(InitContext context) {
         context.setStatus(InitStatus.PARSING_CAPS);
 
@@ -177,7 +172,6 @@ public class SceneGroupInitializer {
         List<String> requiredCaps = request.getRequiredCapabilities();
         List<String> optionalCaps = request.getOptionalCapabilities();
 
-        // 解析必需能力
         if (requiredCaps != null) {
             for (String capId : requiredCaps) {
                 Capability cap = capRegistry.findById(capId);
@@ -189,7 +183,6 @@ public class SceneGroupInitializer {
             }
         }
 
-        // 解析可选能力
         if (optionalCaps != null) {
             for (String capId : optionalCaps) {
                 Capability cap = capRegistry.findById(capId);
@@ -200,12 +193,9 @@ public class SceneGroupInitializer {
         }
     }
 
-    // ==================== Step 4: Skill 发现 ====================
-
     private void discoverSkills(InitContext context) {
         context.setStatus(InitStatus.DISCOVERING_SKILLS);
 
-        // 遍历所需能力，查找匹配的 Skill
         for (Capability cap : context.getRequiredCapabilities()) {
             List<SkillMatch> matches = findMatchingSkills(cap);
             context.addSkillMatches(cap.getCapId(), matches);
@@ -251,7 +241,7 @@ public class SceneGroupInitializer {
             });
             
         } catch (Exception e) {
-            // 记录错误但继续执行
+            logger.warn("Error finding matching skills: {}", e.getMessage());
         }
         
         return matches;
@@ -328,8 +318,6 @@ public class SceneGroupInitializer {
         return null;
     }
 
-    // ==================== Step 5: Skill 挂载 ====================
-
     private void mountSkills(InitContext context) {
         context.setStatus(InitStatus.MOUNTING_SKILLS);
 
@@ -356,44 +344,39 @@ public class SceneGroupInitializer {
         }
     }
 
-    // ==================== Step 6: 场景激活 ====================
-
     private void activate(InitContext context) {
         context.setStatus(InitStatus.ACTIVATING);
 
         InitRequest request = context.getRequest();
 
-        // 创建场景组
         try {
-            SceneGroup group = sceneGroupManager.create(
+            net.ooder.sdk.api.scene.SceneGroup sdkGroup = sdkSceneGroupManager.create(
                 request.getSceneId(),
                 context.getGroupConfig()
             ).join();
 
-            context.setSceneGroup(group);
+            context.setSceneGroup(sdkGroup);
 
-            // 让所有 Agent 加入场景组
             for (SceneAgentCore agent : context.getAgents()) {
                 MemberRole role = agent.getMemberRole();
                 if (role == null) {
                     role = MemberRole.MEMBER;
                 }
-                sceneGroupManager.join(group.getSceneGroupId(), agent.getAgentId(), role).join();
-                agent.setGroupId(group.getSceneGroupId());
+                sdkSceneGroupManager.join(sdkGroup.getSceneGroupId(), agent.getAgentId(), role).join();
+                agent.setGroupId(sdkGroup.getSceneGroupId());
             }
 
-            // 启动所有 Agent
             for (SceneAgentCore agent : context.getAgents()) {
                 SceneConfig config = new SceneConfig(agent.getAgentId());
                 config.setProperty("sceneId", request.getSceneId());
-                config.setProperty("groupId", group.getSceneGroupId());
+                config.setProperty("groupId", sdkGroup.getSceneGroupId());
                 agent.initialize(config);
             }
 
-            // 启动心跳
-            sceneGroupManager.startHeartbeat(group.getSceneGroupId());
+            sdkSceneGroupManager.startHeartbeat(sdkGroup.getSceneGroupId());
+            
+            syncCreateSeSceneGroup(context, sdkGroup);
 
-            // 发布激活事件
             publishEvent(SceneAgentEvent.activated(
                 context.getInitId(),
                 request.getSceneId(),
@@ -405,8 +388,100 @@ public class SceneGroupInitializer {
             throw new InitException("Failed to activate scene group: " + e.getMessage(), e);
         }
     }
-
-    // ==================== 辅助方法 ====================
+    
+    private void syncCreateSeSceneGroup(InitContext context, net.ooder.sdk.api.scene.SceneGroup sdkGroup) {
+        if (seSceneGroupManager == null) {
+            logger.warn("SE SceneGroupManager not set, skipping SE SceneGroup creation");
+            return;
+        }
+        
+        try {
+            InitRequest request = context.getRequest();
+            String sceneGroupId = sdkGroup.getSceneGroupId();
+            String templateId = request.getSceneId();
+            String creatorId = request.getUserId();
+            net.ooder.scene.group.SceneGroup.CreatorType creatorType = net.ooder.scene.group.SceneGroup.CreatorType.USER;
+            
+            net.ooder.scene.group.SceneGroup seGroup = seSceneGroupManager.createSceneGroup(
+                sceneGroupId,
+                templateId,
+                creatorId,
+                creatorType
+            );
+            
+            seGroup.setName(request.getSceneName());
+            
+            syncParticipants(context, seGroup);
+            
+            if (sceneTypeHandler != null) {
+                SceneTypeHandler.SceneType sceneType = detectSceneType(request);
+                sceneTypeHandler.applyBehavior(seGroup, sceneType);
+            }
+            
+            if (sceneGroupPersistence != null) {
+                sceneGroupPersistence.save(seGroup);
+            }
+            
+            logger.info("Synced SE SceneGroup: {}", sceneGroupId);
+            
+        } catch (Exception e) {
+            logger.error("Failed to sync SE SceneGroup: " + e.getMessage(), e);
+        }
+    }
+    
+    private void syncParticipants(InitContext context, net.ooder.scene.group.SceneGroup seGroup) {
+        for (SceneAgentCore agent : context.getAgents()) {
+            Participant participant = createParticipantFromAgent(agent, seGroup.getSceneGroupId());
+            seGroup.addParticipant(participant);
+        }
+        
+        String creatorId = context.getRequest().getUserId();
+        if (creatorId != null) {
+            Participant creator = new Participant(
+                seGroup.getSceneGroupId() + "-p-creator",
+                creatorId,
+                creatorId,
+                Participant.Type.USER
+            );
+            creator.setRole(Participant.Role.OWNER);
+            seGroup.addParticipant(creator);
+        }
+    }
+    
+    private Participant createParticipantFromAgent(SceneAgentCore agent, String sceneGroupId) {
+        String participantId = sceneGroupId + "-p-" + agent.getAgentId();
+        String userId = agent.getAgentId();
+        
+        Participant.Role role;
+        MemberRole memberRole = agent.getMemberRole();
+        if (memberRole == MemberRole.PRIMARY) {
+            role = Participant.Role.OWNER;
+        } else if (memberRole == MemberRole.BACKUP) {
+            role = Participant.Role.EMPLOYEE;
+        } else {
+            role = Participant.Role.OBSERVER;
+        }
+        
+        Participant.Type type = Participant.Type.USER;
+        
+        Participant participant = new Participant(participantId, userId, userId, type);
+        participant.setRole(role);
+        return participant;
+    }
+    
+    private SceneTypeHandler.SceneType detectSceneType(InitRequest request) {
+        Object sceneTypeObj = request.getProperties().get("sceneType");
+        if (sceneTypeObj != null) {
+            String sceneTypeStr = sceneTypeObj.toString().toUpperCase();
+            try {
+                return SceneTypeHandler.SceneType.valueOf(sceneTypeStr);
+            } catch (IllegalArgumentException e) {
+                // Ignore
+            }
+        }
+        
+        return SceneTypeHandler.SceneType.HYBRID;
+    }
 
     private void publishEvent(SceneAgentEvent event) {
         if (eventPublisher != null) {
@@ -414,16 +489,10 @@ public class SceneGroupInitializer {
         }
     }
 
-    /**
-     * 获取初始化上下文
-     */
     public InitContext getInitContext(String initId) {
         return initContexts.get(initId);
     }
 
-    /**
-     * 取消初始化
-     */
     public CompletableFuture<Boolean> cancel(String initId) {
         return CompletableFuture.supplyAsync(() -> {
             InitContext context = initContexts.get(initId);
@@ -433,12 +502,11 @@ public class SceneGroupInitializer {
 
             context.setStatus(InitStatus.CANCELLED);
 
-            // 清理已创建的资源
             for (SceneAgentCore agent : context.getAgents()) {
                 try {
                     agent.shutdown();
                 } catch (Exception e) {
-                    // 忽略关闭异常
+                    // Ignore
                 }
             }
 
@@ -446,19 +514,14 @@ public class SceneGroupInitializer {
         });
     }
 
-    // ==================== 内部类 ====================
-
-    /**
-     * 初始化上下文
-     */
     public static class InitContext {
         private final String initId;
         private final InitRequest request;
         private volatile InitStatus status = InitStatus.CREATED;
         private String errorMessage;
 
-        private SceneGroupManager.SceneGroupConfig groupConfig;
-        private SceneGroup sceneGroup;
+        private net.ooder.sdk.api.scene.SceneGroupManager.SceneGroupConfig groupConfig;
+        private net.ooder.sdk.api.scene.SceneGroup sceneGroup;
 
         private final List<SceneAgentCore> agents = new ArrayList<>();
         private final List<SceneMemberInfo> members = new ArrayList<>();
@@ -478,10 +541,10 @@ public class SceneGroupInitializer {
         public void setStatus(InitStatus status) { this.status = status; }
         public String getErrorMessage() { return errorMessage; }
         public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-        public SceneGroupManager.SceneGroupConfig getGroupConfig() { return groupConfig; }
-        public void setGroupConfig(SceneGroupManager.SceneGroupConfig groupConfig) { this.groupConfig = groupConfig; }
-        public SceneGroup getSceneGroup() { return sceneGroup; }
-        public void setSceneGroup(SceneGroup sceneGroup) { this.sceneGroup = sceneGroup; }
+        public net.ooder.sdk.api.scene.SceneGroupManager.SceneGroupConfig getGroupConfig() { return groupConfig; }
+        public void setGroupConfig(net.ooder.sdk.api.scene.SceneGroupManager.SceneGroupConfig groupConfig) { this.groupConfig = groupConfig; }
+        public net.ooder.sdk.api.scene.SceneGroup getSceneGroup() { return sceneGroup; }
+        public void setSceneGroup(net.ooder.sdk.api.scene.SceneGroup sceneGroup) { this.sceneGroup = sceneGroup; }
         public List<SceneAgentCore> getAgents() { return agents; }
         public void addAgent(SceneAgentCore agent) { agents.add(agent); }
         public List<SceneMemberInfo> getMembers() { return members; }
@@ -496,9 +559,6 @@ public class SceneGroupInitializer {
         public void addSkillBinding(String capId, SkillBinding binding) { skillBindings.add(binding); }
     }
 
-    /**
-     * 初始化状态
-     */
     public enum InitStatus {
         CREATED,
         LOADING_SCENE,
@@ -512,9 +572,6 @@ public class SceneGroupInitializer {
         CANCELLED
     }
 
-    /**
-     * 初始化请求
-     */
     public static class InitRequest {
         private String sceneId;
         private String sceneName;
@@ -555,9 +612,6 @@ public class SceneGroupInitializer {
         public void setOptionalCapabilities(List<String> optionalCapabilities) { this.optionalCapabilities = optionalCapabilities; }
     }
 
-    /**
-     * Agent 配置
-     */
     public static class AgentConfig {
         private MemberRole role;
         private String userId;
@@ -579,9 +633,6 @@ public class SceneGroupInitializer {
         public void setConfig(Map<String, Object> config) { this.config = config; }
     }
 
-    /**
-     * Skill 匹配信息
-     */
     public static class SkillMatch {
         private String skillId;
         private String skillName;
@@ -604,9 +655,6 @@ public class SceneGroupInitializer {
         public void setScore(double score) { this.score = score; }
     }
 
-    /**
-     * 初始化结果
-     */
     public static class InitResult {
         private final boolean success;
         private final InitContext context;
@@ -631,9 +679,6 @@ public class SceneGroupInitializer {
         public String getErrorMessage() { return errorMessage; }
     }
 
-    /**
-     * 初始化异常
-     */
     public static class InitException extends RuntimeException {
         public InitException(String message) {
             super(message);

@@ -170,12 +170,38 @@ public class SceneEngineProperties {
     public static class KnowledgeProperties {
         private VectorStoreProperties vectorStore = new VectorStoreProperties();
         private ChunkProperties chunk = new ChunkProperties();
+        private PersistenceProperties persistence = new PersistenceProperties();
 
         public VectorStoreProperties getVectorStore() { return vectorStore; }
         public void setVectorStore(VectorStoreProperties vectorStore) { this.vectorStore = vectorStore; }
 
         public ChunkProperties getChunk() { return chunk; }
         public void setChunk(ChunkProperties chunk) { this.chunk = chunk; }
+
+        public PersistenceProperties getPersistence() { return persistence; }
+        public void setPersistence(PersistenceProperties persistence) { this.persistence = persistence; }
+    }
+
+    /**
+     * 持久化配置
+     */
+    public static class PersistenceProperties {
+        private String type = "json";
+        private String basePath = System.getProperty("user.home") + "/.ooder/data/knowledge";
+        private boolean autoSave = true;
+        private long saveIntervalMs = 5000;
+
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+
+        public String getBasePath() { return basePath; }
+        public void setBasePath(String basePath) { this.basePath = basePath; }
+
+        public boolean isAutoSave() { return autoSave; }
+        public void setAutoSave(boolean autoSave) { this.autoSave = autoSave; }
+
+        public long getSaveIntervalMs() { return saveIntervalMs; }
+        public void setSaveIntervalMs(long saveIntervalMs) { this.saveIntervalMs = saveIntervalMs; }
     }
 
     /**

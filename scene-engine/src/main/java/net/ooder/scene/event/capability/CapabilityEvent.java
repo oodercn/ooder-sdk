@@ -12,6 +12,8 @@ public class CapabilityEvent extends SceneEvent {
     private final boolean success;
     private final String errorMessage;
     private final int syncedCount;
+    private final String capAddress;
+    private final String capType;
     
     private CapabilityEvent(Object source, SceneEventType eventType, String capId, String capName) {
         super(source, eventType);
@@ -22,6 +24,8 @@ public class CapabilityEvent extends SceneEvent {
         this.success = true;
         this.errorMessage = null;
         this.syncedCount = 0;
+        this.capAddress = null;
+        this.capType = null;
     }
     
     private CapabilityEvent(Object source, SceneEventType eventType, String capId, String capName,
@@ -34,6 +38,21 @@ public class CapabilityEvent extends SceneEvent {
         this.success = success;
         this.errorMessage = errorMessage;
         this.syncedCount = syncedCount;
+        this.capAddress = null;
+        this.capType = null;
+    }
+    
+    private CapabilityEvent(Object source, SceneEventType eventType, String capId, String capAddress, String capType) {
+        super(source, eventType);
+        this.capId = capId;
+        this.capAddress = capAddress;
+        this.capType = capType;
+        this.capName = null;
+        this.providerId = null;
+        this.requestId = null;
+        this.success = true;
+        this.errorMessage = null;
+        this.syncedCount = 0;
     }
     
     public static CapabilityEvent registered(Object source, String capId, String capName, String providerId) {
@@ -58,6 +77,32 @@ public class CapabilityEvent extends SceneEvent {
     public static CapabilityEvent syncCompleted(Object source, int syncedCount) {
         return new CapabilityEvent(source, SceneEventType.CAPABILITY_SYNC_COMPLETED, null, null,
                 null, null, true, null, syncedCount);
+    }
+    
+    public static CapabilityEvent discovered(Object source, String capId, String capAddress, String capType) {
+        SceneEventType eventType;
+        switch (capType != null ? capType.toLowerCase() : "") {
+            case "skill":
+                eventType = SceneEventType.SKILL_DISCOVERED;
+                break;
+            case "scene":
+                eventType = SceneEventType.SCENE_DISCOVERED;
+                break;
+            default:
+                eventType = SceneEventType.CAPABILITY_DISCOVERED;
+                break;
+        }
+        return new CapabilityEvent(source, eventType, capId, capAddress, capType);
+    }
+    
+    public static CapabilityEvent discoveryCompleted(Object source, int discoveredCount) {
+        return new CapabilityEvent(source, SceneEventType.DISCOVERY_COMPLETED, null, null,
+                null, null, true, null, discoveredCount);
+    }
+    
+    public static CapabilityEvent discoveryFailed(Object source, String error) {
+        return new CapabilityEvent(source, SceneEventType.DISCOVERY_FAILED, null, null,
+                null, null, false, error, 0);
     }
     
     public String getCapId() {
@@ -86,6 +131,14 @@ public class CapabilityEvent extends SceneEvent {
     
     public int getSyncedCount() {
         return syncedCount;
+    }
+    
+    public String getCapAddress() {
+        return capAddress;
+    }
+    
+    public String getCapType() {
+        return capType;
     }
     
     @Override

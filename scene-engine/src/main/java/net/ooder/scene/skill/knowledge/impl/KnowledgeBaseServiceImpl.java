@@ -1,6 +1,7 @@
 package net.ooder.scene.skill.knowledge.impl;
 
 import net.ooder.scene.skill.knowledge.*;
+import net.ooder.scene.skill.knowledge.persistence.KnowledgeRepository;
 import net.ooder.scene.skill.vector.SceneEmbeddingService;
 import net.ooder.scene.skill.vector.SearchResult;
 import net.ooder.scene.skill.vector.VectorStore;
@@ -8,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 知识库管理服务实现
@@ -24,21 +25,25 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     
     private static final Logger log = LoggerFactory.getLogger(KnowledgeBaseServiceImpl.class);
     
-    private final Map<String, KnowledgeBase> knowledgeBases = new ConcurrentHashMap<>();
-    private final Map<String, Map<String, Document>> documents = new ConcurrentHashMap<>();
-    private final Map<String, IndexStatus> indexStatuses = new ConcurrentHashMap<>();
-    private final Map<String, Map<String, String>> permissions = new ConcurrentHashMap<>();
-    
+    private final KnowledgeRepository repository;
     private final DocumentChunker chunker;
     private final SceneEmbeddingService embeddingService;
     private final VectorStore vectorStore;
     
-    public KnowledgeBaseServiceImpl(DocumentChunker chunker, 
+    public KnowledgeBaseServiceImpl(KnowledgeRepository repository,
+                                     DocumentChunker chunker, 
                                      SceneEmbeddingService embeddingService,
                                      VectorStore vectorStore) {
+        this.repository = repository;
         this.chunker = chunker;
         this.embeddingService = embeddingService;
         this.vectorStore = vectorStore;
+    }
+
+    public KnowledgeBaseServiceImpl(DocumentChunker chunker, 
+                                     SceneEmbeddingService embeddingService,
+                                     VectorStore vectorStore) {
+        this(null, chunker, embeddingService, vectorStore);
     }
     
     // ========== 知识库管理 ==========
@@ -57,13 +62,12 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         kb.setTags(request.getTags());
         kb.setMetadata(request.getMetadata());
         
-        knowledgeBases.put(kbId, kb);
-        documents.put(kbId, new ConcurrentHashMap<>());
-        permissions.put(kbId, new ConcurrentHashMap<>());
-        indexStatuses.put(kbId, new IndexStatus(kbId));
-        
-        // 授予所有者管理员权限
-        grantPermission(kbId, request.getOwnerId(), "admin");
+        if (repository != null) {
+            repository.saveKnowledgeBase(kb);
+            IndexStatus status = new IndexStatus(kbId);
+            repository.saveIndexStatus(status);
+            repository.savePermission(kbId, request.getOwnerId(), "admin");
+        }
         
         log.info("Knowledge base created: {}", kbId);
         return kb;
@@ -71,17 +75,23 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     
     @Override
     public boolean exists(String kbId) {
-        return knowledgeBases.containsKey(kbId);
+        if (repository != null) {
+            return repository.existsKnowledgeBase(kbId);
+        }
+        return false;
     }
     
     @Override
     public KnowledgeBase get(String kbId) {
-        return knowledgeBases.get(kbId);
+        if (repository != null) {
+            return repository.findKnowledgeBaseById(kbId);
+        }
+        return null;
     }
     
     @Override
     public KnowledgeBase update(String kbId, KnowledgeBaseUpdateRequest request) {
-        KnowledgeBase kb = knowledgeBases.get(kbId);
+        KnowledgeBase kb = get(kbId);
         if (kb == null) {
             throw new IllegalArgumentException("Knowledge base not found: " + kbId);
         }
@@ -110,6 +120,10 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         
         kb.setUpdatedAt(System.currentTimeMillis());
         
+        if (repository != null) {
+            repository.saveKnowledgeBase(kb);
+        }
+        
         log.info("Knowledge base updated: {}", kbId);
         return kb;
     }
@@ -118,47 +132,35 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     public void delete(String kbId) {
         log.info("Deleting knowledge base: {}", kbId);
         
-        KnowledgeBase kb = knowledgeBases.remove(kbId);
-        if (kb != null) {
-            // 删除所有文档
-            Map<String, Document> kbDocs = documents.remove(kbId);
-            if (kbDocs != null) {
-                for (String docId : kbDocs.keySet()) {
-                    vectorStore.deleteByMetadata("kbId", kbId);
-                }
-            }
-            
-            // 删除权限
-            permissions.remove(kbId);
-            indexStatuses.remove(kbId);
-            
-            // 从向量库删除
-            vectorStore.deleteByMetadata("kbId", kbId);
+        if (repository != null) {
+            repository.deleteDocumentsByKnowledgeBase(kbId);
+            repository.deletePermissionsByKnowledgeBase(kbId);
+            repository.deleteKnowledgeBase(kbId);
         }
+        
+        Map<String, Object> deleteFilter = new HashMap<>();
+        deleteFilter.put("kbId", kbId);
+        vectorStore.deleteByMetadata(deleteFilter);
         
         log.info("Knowledge base deleted: {}", kbId);
     }
     
     @Override
     public List<KnowledgeBase> listByOwner(String ownerId) {
-        List<KnowledgeBase> result = new ArrayList<>();
-        for (KnowledgeBase kb : knowledgeBases.values()) {
-            if (ownerId.equals(kb.getOwnerId())) {
-                result.add(kb);
-            }
+        if (repository != null) {
+            return repository.findKnowledgeBasesByOwner(ownerId);
         }
-        return result;
+        return new ArrayList<>();
     }
     
     @Override
     public List<KnowledgeBase> listPublic() {
-        List<KnowledgeBase> result = new ArrayList<>();
-        for (KnowledgeBase kb : knowledgeBases.values()) {
-            if (kb.isPublic()) {
-                result.add(kb);
-            }
+        if (repository != null) {
+            return repository.findAllKnowledgeBases().stream()
+                    .filter(KnowledgeBase::isPublic)
+                    .collect(Collectors.toList());
         }
-        return result;
+        return new ArrayList<>();
     }
     
     // ========== 文档管理 ==========
@@ -182,11 +184,13 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         doc.setTags(request.getTags());
         doc.setMetadata(request.getMetadata());
         
-        documents.get(kbId).put(docId, doc);
-        kb.incrementDocumentCount();
-        kb.setTotalSize(kb.getTotalSize() + doc.getFileSize());
+        if (repository != null) {
+            repository.saveDocument(doc);
+            kb.incrementDocumentCount();
+            kb.setTotalSize(kb.getTotalSize() + doc.getFileSize());
+            repository.saveKnowledgeBase(kb);
+        }
         
-        // 异步索引文档
         indexDocumentAsync(kb, doc);
         
         log.info("Document added: {}", docId);
@@ -204,34 +208,43 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     
     @Override
     public Document getDocument(String kbId, String docId) {
-        Map<String, Document> kbDocs = documents.get(kbId);
-        return kbDocs != null ? kbDocs.get(docId) : null;
+        if (repository != null) {
+            return repository.findDocumentById(kbId, docId);
+        }
+        return null;
     }
     
     @Override
     public void deleteDocument(String kbId, String docId) {
         log.info("Deleting document: {} from kb: {}", docId, kbId);
         
-        Map<String, Document> kbDocs = documents.get(kbId);
-        if (kbDocs != null) {
-            Document doc = kbDocs.remove(docId);
-            if (doc != null) {
-                KnowledgeBase kb = get(kbId);
-                if (kb != null) {
-                    kb.decrementDocumentCount();
-                    kb.setTotalSize(kb.getTotalSize() - doc.getFileSize());
+        Document doc = getDocument(kbId, docId);
+        if (doc != null) {
+            KnowledgeBase kb = get(kbId);
+            if (kb != null) {
+                kb.decrementDocumentCount();
+                kb.setTotalSize(kb.getTotalSize() - doc.getFileSize());
+                if (repository != null) {
+                    repository.saveKnowledgeBase(kb);
                 }
-                
-                // 从向量库删除
-                vectorStore.deleteByMetadata("docId", docId);
             }
+            
+            if (repository != null) {
+                repository.deleteDocument(kbId, docId);
+            }
+            
+            Map<String, Object> docFilter = new HashMap<>();
+            docFilter.put("docId", docId);
+            vectorStore.deleteByMetadata(docFilter);
         }
     }
     
     @Override
     public List<Document> listDocuments(String kbId) {
-        Map<String, Document> kbDocs = documents.get(kbId);
-        return kbDocs != null ? new ArrayList<>(kbDocs.values()) : new ArrayList<>();
+        if (repository != null) {
+            return repository.findDocumentsByKnowledgeBase(kbId);
+        }
+        return new ArrayList<>();
     }
     
     @Override
@@ -243,17 +256,14 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             throw new IllegalArgumentException("Knowledge base not found: " + kbId);
         }
         
-        // 1. 向量化查询
         float[] queryVector = embeddingService.embed(request.getQuery());
         
-        // 2. 向量检索
         List<SearchResult> vectorResults = vectorStore.search(
             queryVector,
             request.getTopK(),
             buildFilters(request)
         );
         
-        // 3. 构建结果
         List<KnowledgeSearchResult> results = new ArrayList<>();
         for (SearchResult vr : vectorResults) {
             if (vr.getScore() < request.getThreshold()) {
@@ -285,14 +295,15 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             throw new IllegalArgumentException("Knowledge base not found: " + kbId);
         }
         
-        IndexStatus status = indexStatuses.get(kbId);
+        IndexStatus status = getIndexStatus(kbId);
         List<Document> docs = listDocuments(kbId);
         
         status.start(docs.size(), kb.getTotalSize());
         
         try {
-            // 删除旧索引
-            vectorStore.deleteByMetadata("kbId", kbId);
+            Map<String, Object> rebuildFilter = new HashMap<>();
+            rebuildFilter.put("kbId", kbId);
+            vectorStore.deleteByMetadata(rebuildFilter);
             
             int totalChunks = 0;
             int indexedDocs = 0;
@@ -305,16 +316,27 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
                 indexedDocs++;
                 
                 doc.markIndexed(chunks.size());
+                if (repository != null) {
+                    repository.saveDocument(doc);
+                }
                 status.updateProgress(indexedDocs, totalChunks, totalChunks);
             }
             
             status.complete();
             kb.setIndexStatus(IndexStatus.INDEXED);
             
+            if (repository != null) {
+                repository.saveIndexStatus(status);
+                repository.saveKnowledgeBase(kb);
+            }
+            
             log.info("Index rebuilt for kb: {}, total chunks: {}", kbId, totalChunks);
             
         } catch (Exception e) {
             status.fail(e.getMessage());
+            if (repository != null) {
+                repository.saveIndexStatus(status);
+            }
             log.error("Failed to rebuild index for kb: {}", kbId, e);
             throw new RuntimeException("Failed to rebuild index: " + e.getMessage(), e);
         }
@@ -322,7 +344,15 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     
     @Override
     public IndexStatus getIndexStatus(String kbId) {
-        return indexStatuses.get(kbId);
+        if (repository != null) {
+            IndexStatus status = repository.findIndexStatus(kbId);
+            if (status == null) {
+                status = new IndexStatus(kbId);
+                repository.saveIndexStatus(status);
+            }
+            return status;
+        }
+        return new IndexStatus(kbId);
     }
     
     // ========== 权限管理 ==========
@@ -334,20 +364,16 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             return false;
         }
         
-        // 所有者拥有所有权限
         if (userId.equals(kb.getOwnerId())) {
             return true;
         }
         
-        // 公开知识库，所有人有读权限
         if (kb.isPublic() && "read".equals(permission)) {
             return true;
         }
         
-        // 检查显式权限
-        Map<String, String> kbPerms = permissions.get(kbId);
-        if (kbPerms != null) {
-            String userPerm = kbPerms.get(userId);
+        if (repository != null) {
+            String userPerm = repository.findPermission(kbId, userId);
             if (userPerm != null) {
                 return comparePermissions(userPerm, permission) >= 0;
             }
@@ -358,18 +384,16 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     
     @Override
     public void grantPermission(String kbId, String userId, String permission) {
-        Map<String, String> kbPerms = permissions.get(kbId);
-        if (kbPerms != null) {
-            kbPerms.put(userId, permission);
+        if (repository != null) {
+            repository.savePermission(kbId, userId, permission);
             log.info("Permission granted: kb={}, user={}, perm={}", kbId, userId, permission);
         }
     }
     
     @Override
     public void revokePermission(String kbId, String userId) {
-        Map<String, String> kbPerms = permissions.get(kbId);
-        if (kbPerms != null) {
-            kbPerms.remove(userId);
+        if (repository != null) {
+            repository.deletePermission(kbId, userId);
             log.info("Permission revoked: kb={}, user={}", kbId, userId);
         }
     }
@@ -379,25 +403,28 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
     private void indexDocumentAsync(KnowledgeBase kb, Document doc) {
         doc.markProcessing();
         
-        // 简化实现：同步索引
         try {
             List<DocumentChunk> chunks = indexDocument(kb, doc);
             doc.markIndexed(chunks.size());
+            if (repository != null) {
+                repository.saveDocument(doc);
+            }
         } catch (Exception e) {
             doc.markFailed(e.getMessage());
+            if (repository != null) {
+                repository.saveDocument(doc);
+            }
             log.error("Failed to index document: {}", doc.getDocId(), e);
         }
     }
     
     private List<DocumentChunk> indexDocument(KnowledgeBase kb, Document doc) {
-        // 1. 分块
         List<DocumentChunk> chunks = chunker.chunk(doc, kb);
         
         if (chunks.isEmpty()) {
             return chunks;
         }
         
-        // 2. 向量化
         List<String> texts = new ArrayList<>();
         for (DocumentChunk chunk : chunks) {
             texts.add(chunk.getContent());
@@ -405,7 +432,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         
         List<float[]> vectors = embeddingService.embedBatch(texts);
         
-        // 3. 存储到向量库
         for (int i = 0; i < chunks.size(); i++) {
             DocumentChunk chunk = chunks.get(i);
             float[] vector = vectors.get(i);

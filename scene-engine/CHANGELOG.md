@@ -1,5 +1,51 @@
 # Changelog
 
+## [2.3.1] - 2026-03-19
+
+### 持久化重大更新
+
+#### 知识库持久化
+- **KnowledgeRepository** - 知识库持久化接口
+- **JsonKnowledgeRepository** - JSON文件存储实现（默认方案）
+- **InMemoryKnowledgeRepository** - 内存存储实现（开发测试）
+- **RepositoryConfig** - 存储配置类
+- **KnowledgeRepositoryFactory** - 仓库工厂，支持动态切换存储类型
+
+#### 向量存储持久化
+- **JsonVectorStore** - JSON文件向量存储实现
+- 支持向量数据持久化和重启恢复
+
+#### 自动配置
+- **KnowledgePersistenceAutoConfiguration** - 知识库持久化自动配置
+- **SdkSceneGroupAutoConfiguration** - SDK SceneGroupManager 自动配置
+
+#### SDK 适配器
+- **SdkSceneGroupManagerAdapter** - SDK SceneGroupManager 接口适配器
+- 将 SE 原生 SceneGroupManager 适配为 SDK 接口
+
+#### 配置支持
+```yaml
+se:
+  knowledge:
+    persistence:
+      type: json  # json | memory | sql
+      base-path: ~/.ooder/data/knowledge
+      auto-save: true
+      save-interval-ms: 5000
+    vector-store:
+      type: json  # json | memory
+      dimension: 1536
+```
+
+#### Bug 修复
+- 修复 Java 8 兼容性问题（Map.of、toList() 等）
+- 修复 SceneGroupInitializer 语法错误
+
+#### 协作文档
+- `SE-SDK-COLLABORATION-RESPONSE.md` - MVP 协作响应文档
+
+---
+
 ## [2.3.1] - 2026-03-10
 
 ### 新增功能 (v3.0 模型重构)

@@ -121,7 +121,13 @@ public enum SceneEventType {
     
     DISCOVERY_PROVIDER_REGISTERED("discovery.provider.registered", "发现提供者注册"),
     DISCOVERY_PROVIDER_UNREGISTERED("discovery.provider.unregistered", "发现提供者注销"),
-    DISCOVERY_SYNC_FAILED("discovery.sync.failed", "发现同步失败");
+    DISCOVERY_SYNC_FAILED("discovery.sync.failed", "发现同步失败"),
+    
+    SKILL_DISCOVERED("skill.discovered", "技能发现"),
+    SCENE_DISCOVERED("scene.discovered", "场景发现"),
+    CAPABILITY_DISCOVERED("capability.discovered", "能力发现"),
+    DISCOVERY_COMPLETED("discovery.completed", "发现完成"),
+    DISCOVERY_FAILED("discovery.failed", "发现失败");
     
     private final String code;
     private final String description;

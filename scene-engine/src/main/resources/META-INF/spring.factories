@@ -1,3 +1,5 @@
 # Scene Engine Auto Configuration
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-net.ooder.scene.autoconfigure.SceneEngineAutoConfiguration
+net.ooder.scene.autoconfigure.SceneEngineAutoConfiguration,\
+net.ooder.scene.bridge.SdkSceneGroupAutoConfiguration,\
+net.ooder.scene.skill.config.KnowledgePersistenceAutoConfiguration

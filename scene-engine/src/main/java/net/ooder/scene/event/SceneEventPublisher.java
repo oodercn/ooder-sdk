@@ -1,5 +1,6 @@
 package net.ooder.scene.event;
 
+import net.ooder.scene.event.capability.CapabilityEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -62,5 +63,14 @@ public class SceneEventPublisher {
      */
     public void publishAsync(SceneEvent event) {
         new Thread(() -> publisher.publishEvent(event)).start();
+    }
+    
+    /**
+     * 发布能力事件
+     *
+     * @param event 能力事件
+     */
+    public void publishCapabilityEvent(CapabilityEvent event) {
+        publisher.publishEvent(event);
     }
 }

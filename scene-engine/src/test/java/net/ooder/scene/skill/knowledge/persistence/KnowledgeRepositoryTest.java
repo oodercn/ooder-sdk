@@ -1,6 +1,8 @@
 package net.ooder.scene.skill.knowledge.persistence;
 
-import net.ooder.scene.skill.knowledge.*;
+import net.ooder.scene.skill.knowledge.Document;
+import net.ooder.scene.skill.knowledge.IndexStatus;
+import net.ooder.scene.skill.knowledge.KnowledgeBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -46,8 +48,6 @@ public class KnowledgeRepositoryTest {
         }
     }
 
-    // ========== 知识库 CRUD 测试 ==========
-
     @Test
     @DisplayName("测试知识库保存和查询 - 内存存储")
     void testKnowledgeBaseSaveAndFind_InMemory() {
@@ -61,24 +61,19 @@ public class KnowledgeRepositoryTest {
     }
 
     private void testKnowledgeBaseSaveAndFind(KnowledgeRepository repo) {
-        // 创建知识库
         KnowledgeBase kb = createTestKnowledgeBase("test-kb-1", "Test KB", "user-1");
         repo.saveKnowledgeBase(kb);
 
-        // 验证保存成功
         assertTrue(repo.existsKnowledgeBase("test-kb-1"));
 
-        // 验证查询
         KnowledgeBase found = repo.findKnowledgeBaseById("test-kb-1");
         assertNotNull(found);
         assertEquals("Test KB", found.getName());
         assertEquals("user-1", found.getOwnerId());
 
-        // 验证列表查询
         List<KnowledgeBase> all = repo.findAllKnowledgeBases();
         assertEquals(1, all.size());
 
-        // 验证按所有者查询
         List<KnowledgeBase> byOwner = repo.findKnowledgeBasesByOwner("user-1");
         assertEquals(1, byOwner.size());
     }
@@ -99,12 +94,10 @@ public class KnowledgeRepositoryTest {
         KnowledgeBase kb = createTestKnowledgeBase("test-kb-2", "Original Name", "user-1");
         repo.saveKnowledgeBase(kb);
 
-        // 更新
         kb.setName("Updated Name");
         kb.setDescription("Updated Description");
         repo.saveKnowledgeBase(kb);
 
-        // 验证更新
         KnowledgeBase updated = repo.findKnowledgeBaseById("test-kb-2");
         assertEquals("Updated Name", updated.getName());
         assertEquals("Updated Description", updated.getDescription());
@@ -132,8 +125,6 @@ public class KnowledgeRepositoryTest {
         assertNull(repo.findKnowledgeBaseById("test-kb-3"));
     }
 
-    // ========== 文档 CRUD 测试 ==========
-
     @Test
     @DisplayName("测试文档保存和查询 - 内存存储")
     void testDocumentSaveAndFind_InMemory() {
@@ -147,21 +138,17 @@ public class KnowledgeRepositoryTest {
     }
 
     private void testDocumentSaveAndFind(KnowledgeRepository repo) {
-        // 先创建知识库
         KnowledgeBase kb = createTestKnowledgeBase("kb-doc-test", "KB for Docs", "user-1");
         repo.saveKnowledgeBase(kb);
 
-        // 创建文档
         Document doc = createTestDocument("doc-1", "kb-doc-test", "Test Doc", "Test Content");
         repo.saveDocument(doc);
 
-        // 验证查询
         Document found = repo.findDocumentById("kb-doc-test", "doc-1");
         assertNotNull(found);
         assertEquals("Test Doc", found.getTitle());
         assertEquals("Test Content", found.getContent());
 
-        // 验证列表查询
         List<Document> docs = repo.findDocumentsByKnowledgeBase("kb-doc-test");
         assertEquals(1, docs.size());
     }
@@ -217,8 +204,6 @@ public class KnowledgeRepositoryTest {
         assertNull(repo.findDocumentById("kb-del-test", "doc-del"));
     }
 
-    // ========== 索引状态测试 ==========
-
     @Test
     @DisplayName("测试索引状态保存和查询 - 内存存储")
     void testIndexStatusSaveAndFind_InMemory() {
@@ -242,8 +227,6 @@ public class KnowledgeRepositoryTest {
         assertEquals(1000, found.getTotalSize());
     }
 
-    // ========== 权限管理测试 ==========
-
     @Test
     @DisplayName("测试权限保存和查询 - 内存存储")
     void testPermissionSaveAndFind_InMemory() {
@@ -260,6 +243,9 @@ public class KnowledgeRepositoryTest {
         repo.savePermission("kb-perm-test", "user-1", "admin");
         repo.savePermission("kb-perm-test", "user-2", "read");
 
+        repo.saveKnowledgeBase(createTestKnowledgeBase("kb-perm-test", "KB for Perm", "user-1"));
+
+        
         assertEquals("admin", repo.findPermission("kb-perm-test", "user-1"));
         assertEquals("read", repo.findPermission("kb-perm-test", "user-2"));
 
@@ -282,6 +268,7 @@ public class KnowledgeRepositoryTest {
     }
 
     private void testPermissionDelete(KnowledgeRepository repo) {
+        repo.saveKnowledgeBase(createTestKnowledgeBase("kb-perm-del", "KB for Perm Del", "user-1"));
         repo.savePermission("kb-perm-del", "user-1", "admin");
         assertNotNull(repo.findPermission("kb-perm-del", "user-1"));
 
@@ -289,12 +276,9 @@ public class KnowledgeRepositoryTest {
         assertNull(repo.findPermission("kb-perm-del", "user-1"));
     }
 
-    // ========== JSON 持久化专项测试 ==========
-
     @Test
     @DisplayName("测试 JSON 存储数据持久化 - 重启后数据保留")
     void testJsonPersistence() {
-        // 第一次实例：保存数据
         JsonKnowledgeRepository repo1 = new JsonKnowledgeRepository(tempDir.toString());
         repo1.initialize();
 
@@ -307,7 +291,6 @@ public class KnowledgeRepositoryTest {
 
         repo1.close();
 
-        // 第二次实例：验证数据仍然存在
         JsonKnowledgeRepository repo2 = new JsonKnowledgeRepository(tempDir.toString());
         repo2.initialize();
 
@@ -323,32 +306,24 @@ public class KnowledgeRepositoryTest {
         repo2.close();
     }
 
-    // ========== 工厂模式测试 ==========
-
     @Test
-    @DisplayName("测试 RepositoryFactory 配置切换")
+    @DisplayName("测试工厂模式配置切换")
     void testRepositoryFactorySwitch() {
-        // 重置工厂状态
         KnowledgeRepositoryFactory.reset();
 
-        // 默认应该是内存存储
         KnowledgeRepository repo1 = KnowledgeRepositoryFactory.getRepository();
-        assertEquals("in-memory", repo1.getStorageType());
+        assertEquals("json", repo1.getStorageType());
 
-        // 切换到 JSON 存储
-        KnowledgeRepositoryFactory.switchStorageType(RepositoryConfig.jsonFile(tempDir.resolve("factory-test").toString()));
+        KnowledgeRepositoryFactory.switchStorageType(RepositoryConfig.inMemory());
         KnowledgeRepository repo2 = KnowledgeRepositoryFactory.getRepository();
-        assertEquals("json-file", repo2.getStorageType());
+        assertEquals("memory", repo2.getStorageType());
 
-        // 验证数据操作
         KnowledgeBase kb = createTestKnowledgeBase("factory-kb", "Factory KB", "user-1");
         repo2.saveKnowledgeBase(kb);
         assertTrue(repo2.existsKnowledgeBase("factory-kb"));
 
         KnowledgeRepositoryFactory.reset();
     }
-
-    // ========== 辅助方法 ==========
 
     private KnowledgeBase createTestKnowledgeBase(String kbId, String name, String ownerId) {
         KnowledgeBase kb = new KnowledgeBase();
