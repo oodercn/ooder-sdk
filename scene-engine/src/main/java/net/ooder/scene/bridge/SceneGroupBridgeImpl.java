@@ -1,6 +1,7 @@
 package net.ooder.scene.bridge;
 
 import net.ooder.scene.group.SceneGroup;
+import net.ooder.scene.group.SeSceneGroup;
 import net.ooder.scene.group.SceneGroupManager;
 import net.ooder.scene.participant.Participant;
 import org.slf4j.Logger;
@@ -140,6 +141,25 @@ public class SceneGroupBridgeImpl implements SceneGroupBridge {
     @Override
     public SceneGroup getSeSceneGroup(String sceneGroupId) {
         return seSceneGroupManager.getSceneGroup(sceneGroupId);
+    }
+    
+    @Override
+    public SeSceneGroup getSeSceneGroupRef(String sceneGroupId) {
+        SceneGroup group = seSceneGroupManager.getSceneGroup(sceneGroupId);
+        if (group == null) {
+            return null;
+        }
+        return seSceneGroupManager.getSeSceneGroupRef(sceneGroupId);
+    }
+    
+    @Override
+    public SeSceneGroup getOrCreateSeSceneGroup(String sdkSceneGroupId, String sceneId) {
+        String seId = sdkToSeMapping.get(sdkSceneGroupId);
+        if (seId == null) {
+            seId = sdkSceneGroupId;
+            registerMapping(sdkSceneGroupId, seId);
+        }
+        return seSceneGroupManager.getOrCreateSeSceneGroup(seId, sceneId);
     }
     
     @Override

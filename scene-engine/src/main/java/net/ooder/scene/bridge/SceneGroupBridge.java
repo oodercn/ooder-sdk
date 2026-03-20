@@ -1,6 +1,7 @@
 package net.ooder.scene.bridge;
 
 import net.ooder.scene.group.SceneGroup;
+import net.ooder.scene.group.SeSceneGroup;
 import net.ooder.scene.participant.Participant;
 
 import java.util.List;
@@ -17,6 +18,12 @@ import java.util.Map;
  *   <li>SDK 侧：双向同步、事件监听、熔断降级（由 BidirectionalSyncCoordinator 提供）</li>
  * </ul>
  * 
+ * <h3>架构说明：</h3>
+ * <ul>
+ *   <li>SDK SceneGroup: Agent 集群管理、用户场景组、技能/能力/知识库绑定</li>
+ *   <li>SE SceneGroup: 业务上下文、工作流状态、审计日志</li>
+ * </ul>
+ * 
  * @author SE Team
  * @version 2.3.1
  * @since 2.3.1
@@ -31,9 +38,25 @@ public interface SceneGroupBridge {
     
     void syncFromSeToSdk(String sceneGroupId);
     
+    /**
+     * 获取 SDK SceneGroup
+     */
     Object getSdkSceneGroup(String sceneGroupId);
     
+    /**
+     * 获取 SE SceneGroup（原有接口，保留兼容）
+     */
     SceneGroup getSeSceneGroup(String sceneGroupId);
+    
+    /**
+     * 获取 SE 简化版 SceneGroup
+     */
+    SeSceneGroup getSeSceneGroupRef(String sceneGroupId);
+    
+    /**
+     * 获取或创建 SE 简化版 SceneGroup
+     */
+    SeSceneGroup getOrCreateSeSceneGroup(String sdkSceneGroupId, String sceneId);
     
     void registerEventListener(SceneGroupEventListener listener);
     

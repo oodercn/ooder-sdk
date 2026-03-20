@@ -32,14 +32,16 @@ public class Participant {
     
     /**
      * 参与者角色
+     * 
+     * <p>与 SDK Participant.Role 保持一致</p>
      */
     public enum Role {
         OWNER,          // 所有者
         MANAGER,        // 管理员
-        EMPLOYEE,       // 员工
-        LLM_ASSISTANT,  // LLM助手
         COORDINATOR,    // 协调者
-        OBSERVER        // 观察者
+        EMPLOYEE,       // 员工
+        OBSERVER,       // 观察者
+        LLM_ASSISTANT   // LLM助手
     }
     
     /**

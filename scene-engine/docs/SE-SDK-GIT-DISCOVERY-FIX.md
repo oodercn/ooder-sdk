@@ -126,7 +126,7 @@ public ResultModel<GitDiscoveryResultDTO> discoverFromGitee(...) {
 
 - [x] 问题分析完成
 - [x] 解决方案确认
-- [ ] SE SDK 实现修复
+- [x] SE SDK 实现修复
 - [ ] MVP 验证
 
 ## 联系人

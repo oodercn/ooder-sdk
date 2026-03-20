@@ -257,6 +257,38 @@ public class SceneGroupManager {
         return sceneGroup.getParticipant(participantId);
     }
     
+    /**
+     * 获取场景组事件日志
+     * 
+     * @param sceneGroupId 场景组ID
+     * @param limit 限制条数
+     * @return 事件日志列表
+     */
+    public List<SceneGroupEvent> getEventLog(String sceneGroupId, int limit) {
+        SceneGroup sceneGroup = sceneGroups.get(sceneGroupId);
+        if (sceneGroup == null) {
+            return new ArrayList<>();
+        }
+        return sceneGroup.getEventLog(limit);
+    }
+    
+    /**
+     * 获取用户参与的所有场景组
+     * 
+     * @param userId 用户ID
+     * @return 场景组列表
+     */
+    public List<SceneGroup> getUserSceneGroups(String userId) {
+        List<SceneGroup> result = new ArrayList<>();
+        for (SceneGroup group : sceneGroups.values()) {
+            Participant participant = group.getParticipant(userId);
+            if (participant != null) {
+                result.add(group);
+            }
+        }
+        return result;
+    }
+    
     // ========== 私有方法 ==========
     
     /**
@@ -295,5 +327,31 @@ public class SceneGroupManager {
                 }
             }
         }
+    }
+    
+    // ========== SeSceneGroup 管理 ==========
+    
+    private final Map<String, SeSceneGroup> seSceneGroups = new ConcurrentHashMap<>();
+    
+    /**
+     * 获取 SE 简化版 SceneGroup
+     */
+    public SeSceneGroup getSeSceneGroupRef(String sceneGroupId) {
+        return seSceneGroups.get(sceneGroupId);
+    }
+    
+    /**
+     * 获取或创建 SE 简化版 SceneGroup
+     */
+    public SeSceneGroup getOrCreateSeSceneGroup(String sdkSceneGroupId, String sceneId) {
+        return seSceneGroups.computeIfAbsent(sdkSceneGroupId, 
+            id -> new SeSceneGroup(id, sceneId));
+    }
+    
+    /**
+     * 移除 SE 简化版 SceneGroup
+     */
+    public void removeSeSceneGroup(String sceneGroupId) {
+        seSceneGroups.remove(sceneGroupId);
     }
 }

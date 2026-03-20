@@ -113,6 +113,12 @@ public class SceneGroup {
     /** 快照ID索引 */
     private final Map<String, SceneSnapshot> snapshotIndex = new ConcurrentHashMap<>();
     
+    /** 事件日志列表 */
+    private final List<SceneGroupEvent> eventLog = new CopyOnWriteArrayList<>();
+    
+    /** 事件日志最大条数 */
+    private static final int MAX_EVENT_LOG_SIZE = 1000;
+    
     // ========== 统计信息 ==========
     
     /** 成员数量 */
@@ -487,6 +493,91 @@ public class SceneGroup {
      */
     public List<SceneSnapshot> getAllSnapshots() {
         return new ArrayList<>(snapshots);
+    }
+    
+    // ========== 事件日志管理 ==========
+    
+    /**
+     * 添加事件日志
+     */
+    public void addEvent(SceneGroupEvent event) {
+        if (event == null) {
+            return;
+        }
+        
+        eventLog.add(0, event); // 最新事件放前面
+        
+        // 限制日志大小
+        while (eventLog.size() > MAX_EVENT_LOG_SIZE) {
+            eventLog.remove(eventLog.size() - 1);
+        }
+    }
+    
+    /**
+     * 获取事件日志
+     */
+    public List<SceneGroupEvent> getEventLog(int limit) {
+        int size = Math.min(limit, eventLog.size());
+        return new ArrayList<>(eventLog.subList(0, size));
+    }
+    
+    /**
+     * 获取所有事件日志
+     */
+    public List<SceneGroupEvent> getAllEventLog() {
+        return new ArrayList<>(eventLog);
+    }
+    
+    /**
+     * 记录参与者加入事件
+     */
+    public void logParticipantJoined(Participant participant) {
+        SceneGroupEvent event = new SceneGroupEvent(
+            sceneGroupId,
+            SceneGroupEvent.Type.PARTICIPANT_JOINED,
+            participant.getParticipantId(),
+            "Participant joined: " + participant.getName()
+        );
+        addEvent(event);
+    }
+    
+    /**
+     * 记录参与者离开事件
+     */
+    public void logParticipantLeft(Participant participant) {
+        SceneGroupEvent event = new SceneGroupEvent(
+            sceneGroupId,
+            SceneGroupEvent.Type.PARTICIPANT_LEFT,
+            participant.getParticipantId(),
+            "Participant left: " + participant.getName()
+        );
+        addEvent(event);
+    }
+    
+    /**
+     * 记录能力绑定事件
+     */
+    public void logCapabilityBound(CapabilityBinding binding) {
+        SceneGroupEvent event = new SceneGroupEvent(
+            sceneGroupId,
+            SceneGroupEvent.Type.CAPABILITY_BOUND,
+            binding.getBindingId(),
+            "Capability bound: " + binding.getCapName()
+        );
+        addEvent(event);
+    }
+    
+    /**
+     * 记录状态变更事件
+     */
+    public void logStatusChanged(Status oldStatus, Status newStatus) {
+        SceneGroupEvent event = new SceneGroupEvent(
+            sceneGroupId,
+            SceneGroupEvent.Type.STATUS_CHANGED,
+            null,
+            "Status changed: " + oldStatus + " -> " + newStatus
+        );
+        addEvent(event);
     }
     
     // ========== 配置管理 ==========
