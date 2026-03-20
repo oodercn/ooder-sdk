@@ -222,6 +222,24 @@ public interface UnifiedSceneService {
     List<SceneInfo> getScenes(String sessionId);
 
     /**
+     * 获取单个场景详情
+     * 
+     * @param sessionId 会话ID
+     * @param sceneId 场景ID
+     * @return 场景信息，不存在返回null
+     */
+    SceneInfo getScene(String sessionId, String sceneId);
+
+    /**
+     * 删除场景
+     * 
+     * @param sessionId 会话ID
+     * @param sceneId 场景ID
+     * @return 是否成功
+     */
+    boolean deleteScene(String sessionId, String sceneId);
+
+    /**
      * 激活场景
      * 
      * @param sessionId 会话ID
@@ -546,8 +564,11 @@ public interface UnifiedSceneService {
         private String sceneId;
         private String name;
         private String description;
+        private String type;
         private boolean active;
         private List<String> skills;
+        private List<String> collaborativeScenes;
+        private Map<String, Object> config;
         private long createTime;
 
         public String getSceneId() { return sceneId; }
@@ -556,10 +577,16 @@ public interface UnifiedSceneService {
         public void setName(String name) { this.name = name; }
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
         public boolean isActive() { return active; }
         public void setActive(boolean active) { this.active = active; }
         public List<String> getSkills() { return skills; }
         public void setSkills(List<String> skills) { this.skills = skills; }
+        public List<String> getCollaborativeScenes() { return collaborativeScenes; }
+        public void setCollaborativeScenes(List<String> collaborativeScenes) { this.collaborativeScenes = collaborativeScenes; }
+        public Map<String, Object> getConfig() { return config; }
+        public void setConfig(Map<String, Object> config) { this.config = config; }
         public long getCreateTime() { return createTime; }
         public void setCreateTime(long createTime) { this.createTime = createTime; }
     }
