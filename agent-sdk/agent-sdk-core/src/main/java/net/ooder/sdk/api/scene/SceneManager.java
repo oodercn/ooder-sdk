@@ -8,6 +8,7 @@ import net.ooder.sdk.api.scene.model.SceneConfig;
 import net.ooder.sdk.api.scene.model.SceneLifecycleStats;
 import net.ooder.sdk.api.scene.model.SceneState;
 import net.ooder.sdk.api.capability.Capability;
+import net.ooder.skills.sync.UserSceneGroup;
 
 /**
  * 场景管理器接口
@@ -315,6 +316,39 @@ public interface SceneManager {
      * @param listener 生命周期监听器
      */
     void removeLifecycleListener(SceneLifecycleListener listener);
+    
+    /**
+     * 获取场景的运行时实例 (SceneGroup)
+     * 
+     * <p>场景激活后，返回 SceneGroup 实例。</p>
+     * 
+     * @param sceneId 场景ID
+     * @return SceneGroup 实例，未激活返回 null
+     */
+    default CompletableFuture<SceneGroup> getSceneGroup(String sceneId) {
+        return CompletableFuture.completedFuture(null);
+    }
+    
+    /**
+     * 获取用户场景组
+     * 
+     * @param sceneGroupId 场景组ID
+     * @param userId 用户ID
+     * @return UserSceneGroup 实例
+     */
+    default CompletableFuture<UserSceneGroup> getUserSceneGroup(String sceneGroupId, String userId) {
+        return CompletableFuture.completedFuture(null);
+    }
+    
+    /**
+     * 获取用户参与的所有场景组
+     * 
+     * @param userId 用户ID
+     * @return UserSceneGroup 列表
+     */
+    default CompletableFuture<List<UserSceneGroup>> getUserSceneGroups(String userId) {
+        return CompletableFuture.completedFuture(java.util.Collections.emptyList());
+    }
     
     /**
      * 场景生命周期监听器接口

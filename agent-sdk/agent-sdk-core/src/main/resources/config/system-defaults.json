@@ -1,0 +1,180 @@
+{
+  "version": "2.4.0",
+  "systemSkills": {
+    "skill-db-sqlite": {
+      "enabled": true,
+      "autoStart": true,
+      "config": {
+        "url": "jdbc:sqlite:./data/system.db",
+        "poolSize": 5,
+        "connectionTimeout": 30000
+      }
+    },
+    "skill-db-mysql": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "url": "",
+        "username": "",
+        "password": "",
+        "poolSize": 10
+      }
+    },
+    "skill-llm-openai": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "apiKey": "",
+        "model": "gpt-4",
+        "baseUrl": "https://api.openai.com/v1"
+      }
+    },
+    "skill-llm-deepseek": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "apiKey": "",
+        "model": "deepseek-chat",
+        "baseUrl": "https://api.deepseek.com/v1"
+      }
+    },
+    "skill-llm-anthropic": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "apiKey": "",
+        "model": "claude-3-opus-20240229",
+        "baseUrl": "https://api.anthropic.com"
+      }
+    },
+    "skill-llm-azure": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "apiKey": "",
+        "endpoint": "",
+        "deploymentName": ""
+      }
+    },
+    "skill-embedding": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "provider": "openai",
+        "model": "text-embedding-ada-002",
+        "dimension": 1536
+      }
+    },
+    "skill-rerank": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "provider": "cohere",
+        "model": "rerank-english-v2.0"
+      }
+    },
+    "skill-knowledge-base": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "storageType": "vector",
+        "chunkSize": 512,
+        "overlap": 50
+      }
+    },
+    "skill-vector-store": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "provider": "milvus",
+        "host": "localhost",
+        "port": 19530,
+        "collection": "default"
+      }
+    },
+    "skill-cache-redis": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "host": "localhost",
+        "port": 6379,
+        "password": "",
+        "database": 0
+      }
+    },
+    "skill-storage-oss": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "endpoint": "",
+        "accessKeyId": "",
+        "accessKeySecret": "",
+        "bucketName": ""
+      }
+    },
+    "skill-storage-minio": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "endpoint": "http://localhost:9000",
+        "accessKey": "",
+        "secretKey": "",
+        "bucketName": ""
+      }
+    },
+    "skill-notification": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "channels": ["email", "webhook"],
+        "email": {
+          "smtpHost": "",
+          "smtpPort": 587,
+          "username": "",
+          "password": ""
+        }
+      }
+    },
+    "skill-logging": {
+      "enabled": true,
+      "autoStart": true,
+      "config": {
+        "level": "INFO",
+        "format": "json",
+        "output": ["console", "file"],
+        "filePath": "./logs/sdk.log",
+        "maxFileSize": "10MB",
+        "maxBackupIndex": 5
+      }
+    },
+    "skill-metrics": {
+      "enabled": true,
+      "autoStart": true,
+      "config": {
+        "enabled": true,
+        "interval": 60,
+        "exporters": ["prometheus"],
+        "prometheusPort": 9090
+      }
+    },
+    "skill-tracing": {
+      "enabled": false,
+      "autoStart": false,
+      "config": {
+        "provider": "jaeger",
+        "endpoint": "http://localhost:14268/api/traces",
+        "sampleRate": 1.0
+      }
+    }
+  },
+  "defaultInterfaceBindings": {
+    "DatabaseDriver": "skill-db-sqlite",
+    "LlmService": "skill-llm-deepseek",
+    "EmbeddingService": "skill-embedding",
+    "VectorStore": "skill-vector-store",
+    "CacheService": "skill-cache-redis",
+    "StorageService": "skill-storage-oss",
+    "LoggingService": "skill-logging",
+    "MetricsService": "skill-metrics"
+  }
+}

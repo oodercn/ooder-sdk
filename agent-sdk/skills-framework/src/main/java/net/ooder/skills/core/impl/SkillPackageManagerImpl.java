@@ -452,6 +452,34 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
         this.skillRootPath = path;
     }
     
+    public void setGitHubDiscoverer(SkillDiscoverer discoverer) {
+        if (discoverer != null) {
+            discoverers.put(DiscoveryMethod.GITHUB, discoverer);
+            log.info("Injected GitHub discoverer: {}", discoverer.getClass().getSimpleName());
+        }
+    }
+    
+    public void setGiteeDiscoverer(SkillDiscoverer discoverer) {
+        if (discoverer != null) {
+            discoverers.put(DiscoveryMethod.GITEE, discoverer);
+            log.info("Injected Gitee discoverer: {}", discoverer.getClass().getSimpleName());
+        }
+    }
+    
+    public void setGitRepositoryDiscoverer(SkillDiscoverer discoverer) {
+        if (discoverer != null) {
+            discoverers.put(DiscoveryMethod.GIT_REPOSITORY, discoverer);
+            log.info("Injected Git Repository discoverer: {}", discoverer.getClass().getSimpleName());
+        }
+    }
+    
+    public void setDiscoverer(DiscoveryMethod method, SkillDiscoverer discoverer) {
+        if (method != null && discoverer != null) {
+            discoverers.put(method, discoverer);
+            log.info("Injected discoverer for {}: {}", method, discoverer.getClass().getSimpleName());
+        }
+    }
+    
     @Override
     public CompletableFuture<Void> updateConfig(String skillId, Map<String, String> config) {
         return CompletableFuture.runAsync(() -> {

@@ -5,6 +5,8 @@ import net.ooder.skills.api.InterfaceDefinition;
 import net.ooder.skills.api.SkillPackageManager;
 import net.ooder.sdk.infra.config.interfaceconf.InterfaceConfigManager;
 import net.ooder.sdk.infra.config.interfaceconf.impl.InterfaceConfigManagerImpl;
+import net.ooder.sdk.infra.config.ConfigMergeStrategy;
+import net.ooder.sdk.infra.config.SystemDefaultsLoader;
 import net.ooder.sdk.core.driver.loader.InterfaceDriverLoader;
 import net.ooder.sdk.core.driver.loader.impl.InterfaceDriverLoaderImpl;
 import net.ooder.sdk.core.driver.discovery.DriverDiscovery;
@@ -16,9 +18,11 @@ import net.ooder.sdk.resolver.InterfaceResolver;
 import net.ooder.sdk.resolver.impl.InterfaceResolverImpl;
 import net.ooder.sdk.api.scene.SceneInterfaceManager;
 import net.ooder.sdk.api.scene.SceneManager;
+import net.ooder.skills.config.ConfigNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class OoderSdkImpl implements OoderSdk {
     
     private static final Logger log = LoggerFactory.getLogger(OoderSdkImpl.class);
-    private static final String VERSION = "0.8.3";
+    private static final String VERSION = "2.4.0";
     
     private final String sdkId;
     private final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -48,6 +52,9 @@ public class OoderSdkImpl implements OoderSdk {
     private SceneManager sceneManager;
     private FallbackStrategy fallbackStrategy;
     private DriverDiscovery driverDiscovery;
+    
+    private SystemDefaultsLoader systemDefaultsLoader;
+    private ConfigMergeStrategy configMergeStrategy;
 
     public OoderSdkImpl() {
         this("ooder-sdk-" + System.currentTimeMillis());
@@ -67,9 +74,53 @@ public class OoderSdkImpl implements OoderSdk {
             interfaceResolver = new InterfaceResolverImpl(interfaceRegistry, driverLoader);
             configManager = new InterfaceConfigManagerImpl();
             fallbackStrategy = new DefaultFallbackStrategy();
+            sceneManager = new SceneManagerImpl();
             
-            log.info("OODER SDK initialized: {}", sdkId);
+            systemDefaultsLoader = new SystemDefaultsLoader();
+            configMergeStrategy = new ConfigMergeStrategy();
+            
+            initializeSystemSkills();
+            
+            log.info("OODER SDK v{} initialized: {}", VERSION, sdkId);
         }
+    }
+    
+    private void initializeSystemSkills() {
+        log.info("Initializing system skills...");
+        
+        systemDefaultsLoader.load();
+        
+        List<String> autoStartSkills = systemDefaultsLoader.getAutoStartSkills();
+        log.info("Auto-start skills: {}", autoStartSkills);
+        
+        registerDefaultInterfaceBindings();
+        
+        log.info("System skills initialized successfully");
+    }
+    
+    private void registerDefaultInterfaceBindings() {
+        Map<String, String> bindings = systemDefaultsLoader.getDefaultInterfaceBindings();
+        for (Map.Entry<String, String> entry : bindings.entrySet()) {
+            String interfaceId = entry.getKey();
+            String skillId = entry.getValue();
+            log.debug("Default binding: {} -> {}", interfaceId, skillId);
+            components.put("defaultBinding:" + interfaceId, skillId);
+        }
+        log.info("Registered {} default interface bindings", bindings.size());
+    }
+    
+    public ConfigNode getSkillMergedConfig(String skillId, ConfigNode profileConfig, 
+                                            ConfigNode sceneConfig, ConfigNode pushConfig) {
+        ConfigNode systemConfig = systemDefaultsLoader.getSkillConfig(skillId);
+        return configMergeStrategy.mergeWithPriority(systemConfig, profileConfig, sceneConfig, pushConfig);
+    }
+    
+    public SystemDefaultsLoader getSystemDefaultsLoader() {
+        return systemDefaultsLoader;
+    }
+    
+    public ConfigMergeStrategy getConfigMergeStrategy() {
+        return configMergeStrategy;
     }
     
     @Override

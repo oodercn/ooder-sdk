@@ -5,6 +5,7 @@ import java.util.Map;
 
 import net.ooder.sdk.common.enums.MemberRole;
 import net.ooder.sdk.common.enums.SceneType;
+import net.ooder.skills.sync.UserSceneGroup;
 
 /**
  * 场景组类
@@ -453,5 +454,61 @@ public class SceneGroup {
             .filter(m -> agentId.equals(m.getAgentId()))
             .findFirst()
             .orElse(null);
+    }
+    
+    private Map<String, UserSceneGroup> userSceneGroups;
+    
+    public Map<String, UserSceneGroup> getUserSceneGroups() {
+        return userSceneGroups;
+    }
+    
+    public void setUserSceneGroups(Map<String, UserSceneGroup> userSceneGroups) {
+        this.userSceneGroups = userSceneGroups;
+    }
+    
+    public UserSceneGroup getOrCreateUserSceneGroup(String userId) {
+        if (userSceneGroups == null) {
+            userSceneGroups = new java.util.concurrent.ConcurrentHashMap<>();
+        }
+        UserSceneGroup existing = userSceneGroups.get(userId);
+        if (existing != null) {
+            return existing;
+        }
+        return null;
+    }
+    
+    @Deprecated
+    public UserSceneGroup getOrCreateUserSceneGroup(String userId, 
+            java.util.function.BiFunction<String, String, UserSceneGroup> factory) {
+        if (userSceneGroups == null) {
+            userSceneGroups = new java.util.concurrent.ConcurrentHashMap<>();
+        }
+        return userSceneGroups.computeIfAbsent(userId, 
+            uid -> factory.apply(sceneGroupId, uid));
+    }
+    
+    public void putUserSceneGroup(String userId, UserSceneGroup userSceneGroup) {
+        if (userSceneGroups == null) {
+            userSceneGroups = new java.util.concurrent.ConcurrentHashMap<>();
+        }
+        userSceneGroups.put(userId, userSceneGroup);
+    }
+    
+    public List<UserSceneGroup> getAllUserSceneGroups() {
+        if (userSceneGroups == null || userSceneGroups.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return new java.util.ArrayList<>(userSceneGroups.values());
+    }
+    
+    public void removeUserSceneGroup(String userId) {
+        if (userSceneGroups != null) {
+            userSceneGroups.remove(userId);
+        }
+    }
+    
+    public UserSceneGroup getUserSceneGroup(String userId) {
+        if (userSceneGroups == null) return null;
+        return userSceneGroups.get(userId);
     }
 }
