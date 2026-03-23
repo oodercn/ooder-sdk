@@ -1,7 +1,11 @@
 package net.ooder.skills.md.impl;
 
-import net.ooder.skills.*;
 import net.ooder.skills.md.SkillExecutionEngine;
+import net.ooder.skills.md.SkillExecutionEngine.SkillExecutor;
+import net.ooder.skills.md.SkillExecutionEngine.SkillExecutionListener;
+import net.ooder.skills.md.SkillExecutionEngine.SkillExecutionResult;
+import net.ooder.skills.md.SkillExecutionEngine.SkillExecutionStats;
+import net.ooder.skills.md.SkillExecutionEngine.SkillExecutionRecord;
 import net.ooder.skills.md.SkillMdDocument;
 import net.ooder.skills.md.SkillMdRegistry;
 

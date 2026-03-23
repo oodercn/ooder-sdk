@@ -1,10 +1,10 @@
 package net.ooder.skills.md.impl;
 
-import net.ooder.skills.*;
 import net.ooder.skills.md.SkillMdDocument;
 import net.ooder.skills.md.SkillMdParameter;
 import net.ooder.skills.md.SkillMdParser;
 import net.ooder.skills.md.SkillMdRegistry;
+import net.ooder.skills.md.SkillMdRegistry.SkillRegistryListener;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

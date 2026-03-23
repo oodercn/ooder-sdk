@@ -1,7 +1,10 @@
 package net.ooder.skills.md.impl;
 
-import net.ooder.skills.*;
-import net.ooder.skills.md.*;
+import net.ooder.skills.md.SkillMdDocument;
+import net.ooder.skills.md.SkillMdExample;
+import net.ooder.skills.md.SkillMdParameter;
+import net.ooder.skills.md.SkillMdParser;
+import net.ooder.skills.md.SkillMdSection;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
