@@ -15,13 +15,13 @@
 
     <organization>
         <name>ooder</name>
-        <url>http://net.ooder</url>
+        <url>https://ooder.cn</url>
     </organization>
 
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <url>https://www.opensource.org/licenses/mit-license.php</url>
             <distribution>repo</distribution>
             <comments>MIT License</comments>
         </license>
@@ -32,7 +32,7 @@
             <name>IhyTdX</name>
             <email>18683731@qq.com</email>
             <organization>ooder</organization>
-            <organizationUrl>http://net.ooder</organizationUrl>
+            <organizationUrl>https://ooder.cn</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -44,150 +44,25 @@
         <url>https://github.com/oodercn/ooder-sdk</url>
         <connection>scm:git:https://github.com/oodercn/ooder-sdk.git</connection>
         <developerConnection>scm:git:https://github.com/oodercn/ooder-sdk.git</developerConnection>
-        <tag>v1.0.0</tag>
+        <tag>v3.0.0</tag>
     </scm>
 
     <properties>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.javadoc.skip>false</maven.javadoc.skip>
+        <maven.source.skip>false</maven.source.skip>
         
         <ooder.version>3.0.0</ooder.version>
         <agent-sdk.version>3.0.0</agent-sdk.version>
         <scene-engine.version>3.0.0</scene-engine.version>
         <llm-sdk.version>3.0.0</llm-sdk.version>
         <spring-boot.version>3.2.5</spring-boot.version>
-        
-        <!-- 打包模式配置: local(本地快速) / release(完整发布) -->
-        <build.mode>local</build.mode>
-        
-        <!-- 本地模式: 跳过测试和文档，保留源码 -->
-        <skipTests>true</skipTests>
-        <maven.test.skip>true</maven.test.skip>
-        <maven.javadoc.skip>true</maven.javadoc.skip>
-        <maven.source.skip>false</maven.source.skip>
-        <gpg.skip>true</gpg.skip>
+        <lombok.version>1.18.36</lombok.version>
     </properties>
-    
-    <!-- 打包模式 Profile -->
-    <profiles>
-        <!-- 本地快速打包模式 (默认) - 保留源码，跳过测试和文档 -->
-        <profile>
-            <id>local</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <build.mode>local</build.mode>
-                <!-- 跳过测试 -->
-                <skipTests>true</skipTests>
-                <maven.test.skip>true</maven.test.skip>
-                <!-- 跳过 Javadoc -->
-                <maven.javadoc.skip>true</maven.javadoc.skip>
-                <!-- 保留源码打包 -->
-                <maven.source.skip>false</maven.source.skip>
-                <!-- 跳过 GPG 签名 -->
-                <gpg.skip>true</gpg.skip>
-            </properties>
-            <build>
-                <plugins>
-                    <!-- 跳过测试编译 -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.12.1</version>
-                        <executions>
-                            <execution>
-                                <id>default-testCompile</id>
-                                <phase>none</phase>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    
-                    <!-- Source Plugin - 保留源码打包 -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>3.2.1</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        
-        <!-- 发布模式: 完整编译、测试、文档、签名 -->
-        <profile>
-            <id>release</id>
-            <properties>
-                <build.mode>release</build.mode>
-                <skipTests>false</skipTests>
-                <maven.test.skip>false</maven.test.skip>
-                <maven.javadoc.skip>false</maven.javadoc.skip>
-                <maven.source.skip>false</maven.source.skip>
-                <gpg.skip>false</gpg.skip>
-            </properties>
-            <build>
-                <plugins>
-                    <!-- Source Plugin -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>3.2.1</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    
-                    <!-- Javadoc Plugin -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.3.2</version>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    
-                    <!-- GPG Plugin - 仅在发布时启用 -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <modules>
         <!-- 基础层 -->
@@ -326,32 +201,101 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <distributionManagement>
+        <!-- Maven Central 发布配置 -->
+        <repository>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
+        </repository>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher/deployments/upload/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.12.1</version>
-                    <configuration>
-                        <source>21</source>
-                        <target>21</target>
-                        <encoding>UTF-8</encoding>
-                    </configuration>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.1</version>
-                </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.3.2</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <encoding>UTF-8</encoding>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+            
+            <!-- Source Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <skipSource>${maven.source.skip}</skipSource>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Javadoc Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <skip>${maven.javadoc.skip}</skip>
+                    <source>21</source>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                    <failOnError>false</failOnError>
+                    <charset>UTF-8</charset>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Maven Central Publishing Plugin -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.4.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <tokenAuth>true</tokenAuth>
+                </configuration>
+            </plugin>
+            
+            <!-- GPG Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

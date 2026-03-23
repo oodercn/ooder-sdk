@@ -1,10 +1,10 @@
 package net.ooder.scene.test;
 
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
 
@@ -17,15 +17,15 @@ import java.util.*;
  */
 public class SceneConfigTest {
     
-    @Before
+    @BeforeEach
     public void setUp() {
         System.out.println("========================================");
         System.out.println("Scene Configuration Validation Test");
-        System.out.println("Version: 0.7.3");
+        System.out.println("Version: 3.0.0");
         System.out.println("========================================");
     }
     
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -44,7 +44,7 @@ public class SceneConfigTest {
         assertEquals("dev-scene", sceneConfig.get("id"));
         assertEquals("开发环境场景", sceneConfig.get("name"));
         assertEquals("用于本地开发和单元测试", sceneConfig.get("description"));
-        assertEquals("0.7.3", sceneConfig.get("version"));
+        assertEquals("3.0.0", sceneConfig.get("version"));
         
         System.out.println("Scene ID: " + sceneConfig.get("id"));
         System.out.println("Scene Name: " + sceneConfig.get("name"));
@@ -71,9 +71,9 @@ public class SceneConfigTest {
         assertEquals(true, orgConfig.get("cacheEnabled"));
         
         Map<String, Object> capabilities = (Map<String, Object>) orgConfig.get("capabilities");
-        assertTrue("Should have org-query capability", capabilities.containsKey("org-query"));
-        assertTrue("Should have org-admin capability", capabilities.containsKey("org-admin"));
-        assertTrue("Should have user-auth capability", capabilities.containsKey("user-auth"));
+        assertTrue(capabilities.containsKey("org-query"), "Should have org-query capability");
+        assertTrue(capabilities.containsKey("org-admin"), "Should have org-admin capability");
+        assertTrue(capabilities.containsKey("user-auth"), "Should have user-auth capability");
         
         System.out.println("Org SceneId: " + orgConfig.get("sceneId"));
         System.out.println("DB Driver: " + orgConfig.get("dbDriver"));
@@ -99,8 +99,8 @@ public class SceneConfigTest {
         assertEquals("*", vfsConfig.get("allowedTypes"));
         
         Map<String, Object> capabilities = (Map<String, Object>) vfsConfig.get("capabilities");
-        assertTrue("Should have vfs-client capability", capabilities.containsKey("vfs-client"));
-        assertTrue("Should have vfs-store capability", capabilities.containsKey("vfs-store"));
+        assertTrue(capabilities.containsKey("vfs-client"), "Should have vfs-client capability");
+        assertTrue(capabilities.containsKey("vfs-store"), "Should have vfs-store capability");
         
         System.out.println("VFS SceneId: " + vfsConfig.get("sceneId"));
         System.out.println("Storage Type: " + vfsConfig.get("storageType"));
@@ -126,9 +126,9 @@ public class SceneConfigTest {
         assertEquals(false, msgConfig.get("retainMessages"));
         
         Map<String, Object> capabilities = (Map<String, Object>) msgConfig.get("capabilities");
-        assertTrue("Should have msg-push capability", capabilities.containsKey("msg-push"));
-        assertTrue("Should have msg-p2p capability", capabilities.containsKey("msg-p2p"));
-        assertTrue("Should have msg-topic capability", capabilities.containsKey("msg-topic"));
+        assertTrue(capabilities.containsKey("msg-push"), "Should have msg-push capability");
+        assertTrue(capabilities.containsKey("msg-p2p"), "Should have msg-p2p capability");
+        assertTrue(capabilities.containsKey("msg-topic"), "Should have msg-topic capability");
         
         System.out.println("Msg SceneId: " + msgConfig.get("sceneId"));
         System.out.println("MQTT Broker: " + msgConfig.get("mqttBroker"));
@@ -158,12 +158,12 @@ public class SceneConfigTest {
         assertEquals(false, mqttConfig.get("persistent"));
         
         Map<String, Object> capabilities = (Map<String, Object>) mqttConfig.get("capabilities");
-        assertTrue("Should have mqtt-broker capability", capabilities.containsKey("mqtt-broker"));
-        assertTrue("Should have mqtt-publish capability", capabilities.containsKey("mqtt-publish"));
-        assertTrue("Should have mqtt-subscribe capability", capabilities.containsKey("mqtt-subscribe"));
-        assertTrue("Should have mqtt-p2p capability", capabilities.containsKey("mqtt-p2p"));
-        assertTrue("Should have mqtt-topic capability", capabilities.containsKey("mqtt-topic"));
-        assertTrue("Should have mqtt-command capability", capabilities.containsKey("mqtt-command"));
+        assertTrue(capabilities.containsKey("mqtt-broker"), "Should have mqtt-broker capability");
+        assertTrue(capabilities.containsKey("mqtt-publish"), "Should have mqtt-publish capability");
+        assertTrue(capabilities.containsKey("mqtt-subscribe"), "Should have mqtt-subscribe capability");
+        assertTrue(capabilities.containsKey("mqtt-p2p"), "Should have mqtt-p2p capability");
+        assertTrue(capabilities.containsKey("mqtt-topic"), "Should have mqtt-topic capability");
+        assertTrue(capabilities.containsKey("mqtt-command"), "Should have mqtt-command capability");
         
         System.out.println("MQTT SceneId: " + mqttConfig.get("sceneId"));
         System.out.println("Provider: " + mqttConfig.get("providerId"));
@@ -184,14 +184,14 @@ public class SceneConfigTest {
         
         Map<String, Object> protocolsConfig = getDevProtocolsConfig();
         
-        assertTrue("Should have mqtt protocol", protocolsConfig.containsKey("mqtt"));
+        assertTrue(protocolsConfig.containsKey("mqtt"), "Should have mqtt protocol");
         
         Map<String, Object> mqttProtocol = (Map<String, Object>) protocolsConfig.get("mqtt");
         assertEquals(true, mqttProtocol.get("enabled"));
         assertEquals("lightweight-mqtt", mqttProtocol.get("defaultProvider"));
         
         List<Map<String, Object>> providers = (List<Map<String, Object>>) mqttProtocol.get("providers");
-        assertEquals("Should have 5 providers", 5, providers.size());
+        assertEquals(5, providers.size(), "Should have 5 providers");
         
         Set<String> providerIds = new HashSet<>();
         for (Map<String, Object> provider : providers) {
@@ -199,11 +199,11 @@ public class SceneConfigTest {
             System.out.println("  - Provider: " + provider.get("id") + " (" + provider.get("type") + ", priority: " + provider.get("priority") + ")");
         }
         
-        assertTrue("Should have lightweight-mqtt", providerIds.contains("lightweight-mqtt"));
-        assertTrue("Should have emqx-enterprise", providerIds.contains("emqx-enterprise"));
-        assertTrue("Should have mosquitto-enterprise", providerIds.contains("mosquitto-enterprise"));
-        assertTrue("Should have aliyun-iot", providerIds.contains("aliyun-iot"));
-        assertTrue("Should have tencent-iot", providerIds.contains("tencent-iot"));
+        assertTrue(providerIds.contains("lightweight-mqtt"), "Should have lightweight-mqtt");
+        assertTrue(providerIds.contains("emqx-enterprise"), "Should have emqx-enterprise");
+        assertTrue(providerIds.contains("mosquitto-enterprise"), "Should have mosquitto-enterprise");
+        assertTrue(providerIds.contains("aliyun-iot"), "Should have aliyun-iot");
+        assertTrue(providerIds.contains("tencent-iot"), "Should have tencent-iot");
         
         System.out.println("Protocols config verified: PASS");
     }
@@ -273,7 +273,7 @@ public class SceneConfigTest {
         assertEquals("prod-org", orgConfig.get("sceneId"));
         assertEquals("org", orgConfig.get("configName"));
         assertEquals("com.mysql.cj.jdbc.Driver", orgConfig.get("dbDriver"));
-        assertTrue("DB URL should contain mysql", ((String)orgConfig.get("dbUrl")).contains("mysql"));
+        assertTrue(((String)orgConfig.get("dbUrl")).contains("mysql"), "DB URL should contain mysql");
         assertEquals("${DB_PASSWORD}", orgConfig.get("dbPassword"));
         assertEquals(true, orgConfig.get("cacheEnabled"));
         
@@ -337,7 +337,7 @@ public class SceneConfigTest {
         scene.put("id", "dev-scene");
         scene.put("name", "开发环境场景");
         scene.put("description", "用于本地开发和单元测试");
-        scene.put("version", "0.7.3");
+        scene.put("version", "3.0.0");
         return scene;
     }
     
