@@ -1,7 +1,6 @@
 package net.ooder.annotation.fchart;
 
 import net.ooder.annotation.NotNull;
-import org.omg.CORBA.portable.ValueOutputStream;
 
 import java.lang.annotation.*;
 

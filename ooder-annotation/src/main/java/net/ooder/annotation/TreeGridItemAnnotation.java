@@ -3,8 +3,6 @@ package net.ooder.annotation;
 
 import net.ooder.annotation.ui.ComponentType;
 import net.ooder.annotation.ui.SelModeType;
-import net.ooder.annotation.NotNull;
-import javafx.scene.control.TreeItem;
 
 import java.lang.annotation.*;
 
