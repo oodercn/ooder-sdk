@@ -7,35 +7,34 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.0</version>
+        <version>3.4.1</version>
         <relativePath/>
     </parent>
 
     <groupId>net.ooder</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>2.3.1</version>
+    <version>3.0.0</version>
     <packaging>pom</packaging>
 
-    <modules>
+  <modules>
         <!-- agent-sdk-api 已合并到 agent-sdk-core -->
         <module>llm-sdk</module>
         <module>skills-framework</module>
         <module>agent-sdk-core</module>
     </modules>
-
     <name>Ooder Agent SDK</name>
     <description>Agent SDK for Southbound Protocol Implementation</description>
-    <url>https://github.com/oodercn/super-Agent</url>
+    <url>https://github.com/oodercn/ooder-sdk</url>
 
     <organization>
         <name>ooder</name>
-        <url>http://net.ooder</url>
+        <url>https://ooder.cn</url>
     </organization>
 
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <url>https://www.opensource.org/licenses/mit-license.php</url>
             <distribution>repo</distribution>
             <comments>MIT License</comments>
         </license>
@@ -46,7 +45,7 @@
             <name>IhyTdX</name>
             <email>18683731@qq.com</email>
             <organization>ooder</organization>
-            <organizationUrl>http://net.ooder</organizationUrl>
+            <organizationUrl>https://ooder.cn</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -55,106 +54,92 @@
     </developers>
 
     <scm>
-        <url>https://github.com/oodercn/super-Agent</url>
-        <connection>scm:git:https://github.com/oodercn/super-Agent.git</connection>
-        <developerConnection>scm:git:https://github.com/oodercn/super-Agent.git</developerConnection>
-        <tag>v0.7.0</tag>
+        <url>https://github.com/oodercn/ooder-sdk</url>
+        <connection>scm:git:https://github.com/oodercn/ooder-sdk.git</connection>
+        <developerConnection>scm:git:https://github.com/oodercn/ooder-sdk.git</developerConnection>
+        <tag>v3.0.0</tag>
     </scm>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <maven.source.skip>false</maven.source.skip>
+        <spring-boot.version>3.4.1</spring-boot.version>
+        <lombok.version>1.18.36</lombok.version>
+        <fastjson2.version>2.0.52</fastjson2.version>
+        <jackson.version>2.18.2</jackson.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <junit.version>5.11.4</junit.version>
+        <mockito.version>5.15.2</mockito.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>2.7.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.7.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
-            <version>2.7.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
-            <version>2.7.0</version>
         </dependency>
 
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.83</version>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>${fastjson2.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.13.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.33</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>${slf4j.version}</version>
         </dependency>
-
-        <!-- scene-engine 依赖已移除，核心接口已迁移到 agent-sdk -->
-        <!-- 依赖方向：scene-engine -> agent-sdk (单向) -->
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>2.7.0</version>
             <scope>test</scope>
         </dependency>
         
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>5.10.0</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.12.4</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         
@@ -205,7 +190,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.7.0</version>
                 <executions>
                     <execution>
                         <id>repackage</id>
@@ -222,19 +206,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>21</source>
+                    <target>21</target>
                     <encoding>UTF-8</encoding>
+                    <release>21</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.24</version>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -244,7 +229,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.1</version>
                 <configuration>
                     <skipSource>${maven.source.skip}</skipSource>
                 </configuration>
@@ -262,10 +247,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>3.6.3</version>
                 <configuration>
                     <skip>${maven.javadoc.skip}</skip>
-                    <source>8</source>
+                    <source>21</source>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
                     <failOnError>false</failOnError>
                     <charset>UTF-8</charset>

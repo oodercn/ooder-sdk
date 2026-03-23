@@ -7,7 +7,7 @@
     <parent>
         <groupId>net.ooder</groupId>
         <artifactId>agent-sdk</artifactId>
-        <version>2.3.1</version>
+        <version>3.0.0</version>
     </parent>
 
     <artifactId>agent-sdk-core</artifactId>
@@ -17,45 +17,87 @@
     <description>Core Agent SDK implementation</description>
 
     <dependencies>
-        <!-- agent-sdk-api 已合并到本模块 -->
-
-        <!-- Skills框架 -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>skills-framework</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- LLM SDK (已合并 llm-sdk-api) -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>llm-sdk</artifactId>
-            <version>2.3.1</version>
+            <version>${project.version}</version>
         </dependency>
 
-        <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>2.7.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.7.0</version>
         </dependency>
 
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.83</version>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>${fastjson2.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>${slf4j.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                    <failOnError>false</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
