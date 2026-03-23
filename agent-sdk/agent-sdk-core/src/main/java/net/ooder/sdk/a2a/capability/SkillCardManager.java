@@ -1,7 +1,7 @@
 package net.ooder.sdk.a2a.capability;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.sdk.discovery.SkillDiscoveryService;
 import net.ooder.sdk.plugin.SkillMetadata;
 import org.slf4j.Logger;
@@ -190,7 +190,7 @@ public class SkillCardManager {
      * @return JSON字符串
      */
     public String toJson(SkillCard skillCard) {
-        return JSON.toJSONString(skillCard, SerializerFeature.PrettyFormat);
+        return JSON.toJSONString(skillCard, JSONWriter.Feature.PrettyFormat);
     }
 
     /**
@@ -209,7 +209,7 @@ public class SkillCardManager {
      * @return JSON字符串
      */
     public String getAllSkillCardsJson() {
-        return JSON.toJSONString(skillCards.values(), SerializerFeature.PrettyFormat);
+        return JSON.toJSONString(skillCards.values(), JSONWriter.Feature.PrettyFormat);
     }
 
     // ==================== 转换方法 ====================

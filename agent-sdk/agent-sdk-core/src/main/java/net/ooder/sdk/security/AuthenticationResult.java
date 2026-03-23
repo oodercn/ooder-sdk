@@ -1,6 +1,6 @@
 package net.ooder.sdk.security;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 
 import java.util.Map;
 

@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>ooder-sdk-parent</artifactId>
-    <version>2.3.1</version>
+    <version>3.0.0</version>
     <packaging>pom</packaging>
 
     <name>Ooder SDK Parent</name>
@@ -49,15 +49,15 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         
-        <ooder.version>2.3.1</ooder.version>
-        <agent-sdk.version>2.3.1</agent-sdk.version>
-        <scene-engine.version>2.3.1</scene-engine.version>
-        <llm-sdk.version>2.3.1</llm-sdk.version>
-        <spring-boot.version>2.7.0</spring-boot.version>
+        <ooder.version>3.0.0</ooder.version>
+        <agent-sdk.version>3.0.0</agent-sdk.version>
+        <scene-engine.version>3.0.0</scene-engine.version>
+        <llm-sdk.version>3.0.0</llm-sdk.version>
+        <spring-boot.version>3.2.5</spring-boot.version>
         
         <!-- 打包模式配置: local(本地快速) / release(完整发布) -->
         <build.mode>local</build.mode>
@@ -96,7 +96,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.8.1</version>
+                        <version>3.12.1</version>
                         <executions>
                             <execution>
                                 <id>default-testCompile</id>
@@ -224,8 +224,6 @@
                 <version>${ooder.version}</version>
             </dependency>
             
-
-
             <dependency>
                 <groupId>net.ooder</groupId>
                 <artifactId>agent-sdk-core</artifactId>
@@ -334,10 +332,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.12.1</version>
                     <configuration>
-                        <source>8</source>
-                        <target>8</target>
+                        <source>21</source>
+                        <target>21</target>
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>

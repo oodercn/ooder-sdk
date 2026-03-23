@@ -10,7 +10,7 @@ import java.util.Optional;
  * <p>提供场景实例的持久化操作</p>
  *
  * @author Ooder Team
- * @version 2.3.1
+ * @version 3.0.0
  * @since 2.3.1
  */
 public interface SceneInstanceRepository {

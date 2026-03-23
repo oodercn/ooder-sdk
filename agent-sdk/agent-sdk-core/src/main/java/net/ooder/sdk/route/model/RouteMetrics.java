@@ -1,6 +1,6 @@
 package net.ooder.sdk.route.model;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 
 public class RouteMetrics {
     @JSONField(name = "latency")
