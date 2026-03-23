@@ -398,6 +398,89 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
         }
     }
     
+    // ========== 统计聚合 ==========
+    
+    @Override
+    public KnowledgeBaseStats getStats() {
+        log.debug("Getting knowledge base statistics");
+        
+        KnowledgeBaseStats stats = new KnowledgeBaseStats();
+        
+        List<KnowledgeBase> allKbs = listAll();
+        stats.setTotalKb(allKbs.size());
+        
+        int totalDocs = 0;
+        long totalSize = 0;
+        int totalChunks = 0;
+        Map<String, Integer> layerStats = new HashMap<>();
+        Map<String, Integer> visibilityStats = new HashMap<>();
+        Map<String, Integer> statusStats = new HashMap<>();
+        String defaultEmbeddingModel = null;
+        
+        for (KnowledgeBase kb : allKbs) {
+            totalDocs += kb.getDocumentCount();
+            totalSize += kb.getTotalSize();
+            
+            if (kb.getEmbeddingModel() != null && defaultEmbeddingModel == null) {
+                defaultEmbeddingModel = kb.getEmbeddingModel();
+            }
+            
+            String visibility = kb.getVisibility();
+            visibilityStats.merge(visibility, 1, Integer::sum);
+            
+            String indexStatus = kb.getIndexStatus();
+            if (indexStatus != null) {
+                statusStats.merge(indexStatus, 1, Integer::sum);
+            }
+            
+            if (repository != null) {
+                List<Document> docs = repository.findDocumentsByKnowledgeBase(kb.getKbId());
+                for (Document doc : docs) {
+                    totalChunks += doc.getChunkCount();
+                }
+            }
+        }
+        
+        stats.setTotalDocs(totalDocs);
+        stats.setTotalSize(totalSize);
+        stats.setTotalChunks(totalChunks);
+        stats.setEmbeddingModel(defaultEmbeddingModel != null ? defaultEmbeddingModel : embeddingService.getModel());
+        stats.setVisibilityStats(visibilityStats);
+        stats.setStatusStats(statusStats);
+        
+        layerStats.put("GENERAL", 0);
+        layerStats.put("PROFESSIONAL", 0);
+        layerStats.put("SCENE", 0);
+        stats.setLayerStats(layerStats);
+        
+        int totalBindings = 0;
+        for (KnowledgeBase kb : allKbs) {
+            totalBindings += getBindingCount(kb.getKbId());
+        }
+        stats.setTotalBindings(totalBindings);
+        
+        log.debug("Knowledge base statistics: totalKb={}, totalDocs={}, totalBindings={}", 
+                  stats.getTotalKb(), stats.getTotalDocs(), stats.getTotalBindings());
+        
+        return stats;
+    }
+    
+    @Override
+    public List<KnowledgeBase> listAll() {
+        if (repository != null) {
+            return repository.findAllKnowledgeBases();
+        }
+        return new ArrayList<>();
+    }
+    
+    @Override
+    public int getBindingCount(String kbId) {
+        if (repository != null) {
+            return repository.countSceneBindings(kbId);
+        }
+        return 0;
+    }
+    
     // ========== 私有方法 ==========
     
     private void indexDocumentAsync(KnowledgeBase kb, Document doc) {

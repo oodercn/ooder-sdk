@@ -6,6 +6,12 @@ import java.util.Map;
 
 /**
  * 技能状态信息
+ * 
+ * <p>记录技能在特定场景中的状态信息</p>
+ *
+ * @author Ooder Team
+ * @version 2.3.1
+ * @since 2.3.1
  */
 public class SkillStateInfo {
     private String sceneId;
@@ -18,6 +24,8 @@ public class SkillStateInfo {
     private long lastActiveTime;
     private Map<String, Object> config;
     private String errorMessage;
+    private String previousState;
+    private long stateChangedAt;
 
     public String getSceneId() { return sceneId; }
     public void setSceneId(String sceneId) { this.sceneId = sceneId; }
@@ -39,6 +47,10 @@ public class SkillStateInfo {
     public void setConfig(Map<String, Object> config) { this.config = config; }
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+    public String getPreviousState() { return previousState; }
+    public void setPreviousState(String previousState) { this.previousState = previousState; }
+    public long getStateChangedAt() { return stateChangedAt; }
+    public void setStateChangedAt(long stateChangedAt) { this.stateChangedAt = stateChangedAt; }
 
     public boolean isActivated() {
         return state == SkillLifecycleState.ACTIVATED;
@@ -48,5 +60,21 @@ public class SkillStateInfo {
         return state == SkillLifecycleState.INSTALLED || 
                state == SkillLifecycleState.ACTIVATED ||
                state == SkillLifecycleState.DEACTIVATED;
+    }
+    
+    public boolean isInInstallFlow() {
+        return state != null && state.isInInstallFlow();
+    }
+    
+    public boolean isInActivationFlow() {
+        return state != null && state.isInActivationFlow();
+    }
+    
+    public boolean isActive() {
+        return state != null && state.isActive();
+    }
+    
+    public boolean canTransitionTo(SkillLifecycleState targetState) {
+        return state != null && state.canTransitionTo(targetState);
     }
 }

@@ -15,9 +15,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +38,7 @@ public class SpringMvcContextImpl extends JDSActionContext {
         if (ognlContext == null && request != null) {
             Map<String, Object> objectMap = this.getContext();
             OgnlRuntime.clearCache();
-            ognlContext = new OgnlContext(OgnlValueStack.getAccessor(), JDSConverter.getInstance(), null, objectMap);
+            ognlContext = new OgnlContext(null, OgnlValueStack.getAccessor(), JDSConverter.getInstance(), objectMap);
 
         }
         return ognlContext;
@@ -166,7 +166,7 @@ public class SpringMvcContextImpl extends JDSActionContext {
                 sessionMap = ((Map) session.getAttribute("sessionMap"));
                 if (sessionMap == null) {
                     sessionMap = new HashMap();
-                    session.putValue("sessionMap", sessionMap);
+                    session.setAttribute("sessionMap", sessionMap);
                 }
             }
         }

@@ -1,0 +1,166 @@
+# ============================================
+# Gitee 仓库技能索引文件示例
+# 版本: SE v1.2.0 / Schema v2.4.0
+# ============================================
+#
+# 此文件应放置在 Gitee 仓库的 skills/ 目录下
+# 文件名: skill-index.yaml
+#
+# 发现器会自动扫描此文件来发现可用的技能
+#
+# ============================================
+
+apiVersion: skill.ooder.net/v1
+kind: SkillIndex
+
+metadata:
+  id: skill-example-scene
+  name: 示例场景技能
+  version: 1.0.0
+  description: 这是一个示例场景技能，展示 skill-index.yaml 的标准格式
+  author: ooder-team
+  license: Apache-2.0
+  homepage: https://gitee.com/ooder/skills
+  repository: https://gitee.com/ooder/skills.git
+
+spec:
+  skillForm: SCENE
+  sceneType: AUTO
+  visibility: public
+  businessCategory: PRODUCTIVITY
+  subCategory: 示例分类
+  category: TASK_MANAGEMENT
+  capabilityCategory: BASIC_SERVICE
+
+  tags:
+    - 示例
+    - 场景
+    - 自动化
+
+  capabilityAddresses:
+    required:
+      - name: llm-service
+        address: cap://llm/default
+        description: LLM服务
+    optional:
+      - name: storage-service
+        address: cap://storage/local
+        description: 本地存储服务
+
+  roles:
+    - name: admin
+      displayName: 管理员
+      minCount: 1
+      maxCount: 1
+      permissions: [MANAGE, CONFIGURE, VIEW]
+    - name: user
+      displayName: 用户
+      minCount: 0
+      maxCount: 100
+      permissions: [VIEW, USE]
+
+  participants:
+    leader:
+      required: true
+      defaultToCurrentUser: true
+      permissions: [ACTIVATE, CONFIGURE, INVITE, DELETE]
+    collaborators:
+      minCount: 0
+      maxCount: 10
+      selectionType: USER
+    pushType: INVITE
+
+  driverConditions:
+    supportedTypes: [MANUAL, SCHEDULE]
+    defaultType: MANUAL
+    scheduleConfig:
+      cronExpression: "0 9 * * *"
+      timezone: "Asia/Shanghai"
+
+  install:
+    dependencies: []
+    postInstallScript: null
+    configSchema: null
+
+---
+
+# ============================================
+# DRIVER 形态技能示例
+# ============================================
+
+apiVersion: skill.ooder.net/v1
+kind: SkillIndex
+
+metadata:
+  id: skill-example-driver
+  name: 示例驱动器技能
+  version: 1.0.0
+  description: 这是一个示例驱动器技能，用于定时任务或事件触发
+  author: ooder-team
+  license: Apache-2.0
+
+spec:
+  skillForm: DRIVER
+  visibility: developer
+  businessCategory: DATA
+  category: DATA_INTEGRATION
+  capabilityCategory: DATABASE_SERVICE
+
+  tags:
+    - 驱动器
+    - 定时任务
+    - 数据同步
+
+  capabilityAddresses:
+    required:
+      - name: database
+        address: cap://database/default
+        description: 数据库服务
+
+  driverConditions:
+    supportedTypes: [SCHEDULE, WEBHOOK]
+    defaultType: SCHEDULE
+    scheduleConfig:
+      cronExpression: "0 */6 * * *"
+      timezone: "Asia/Shanghai"
+
+---
+
+# ============================================
+# PROVIDER 形态技能示例
+# ============================================
+
+apiVersion: skill.ooder.net/v1
+kind: SkillIndex
+
+metadata:
+  id: skill-example-provider
+  name: 示例提供者技能
+  version: 1.0.0
+  description: 这是一个示例提供者技能，提供特定能力
+  author: ooder-team
+  license: Apache-2.0
+
+spec:
+  skillForm: PROVIDER
+  visibility: public
+  businessCategory: PRODUCTIVITY
+  category: AI_APPLICATION
+  capabilityCategory: LLM_SERVICE
+
+  tags:
+    - 提供者
+    - AI
+    - 服务
+
+  capabilityAddresses:
+    required: []
+    optional: []
+
+  providedCapabilities:
+    - name: text-generation
+      address: cap://llm/example
+      description: 文本生成能力
+    - name: embedding
+      address: cap://embedding/example
+      description: 向量嵌入能力

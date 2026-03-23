@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import net.ooder.skills.api.SceneGroupManager;
+import net.ooder.skills.api.CollaborativeSceneGroupManager;
 import net.ooder.skills.common.enums.MemberRole;
 import net.ooder.skills.sync.CapabilityBinding;
 import net.ooder.skills.sync.CollaborationSession;
@@ -38,7 +38,7 @@ public class UserSceneGroupImpl implements UserSceneGroup, UserSceneGroupAgentPr
     private final Map<String, CollaborationSession> collaborationSessions;
     private final Map<String, Object> personalContext;
     
-    private final SceneGroupManager sdkSceneGroupManager;
+    private final CollaborativeSceneGroupManager sdkSceneGroupManager;
     private final SyncEventPublisher eventPublisher;
     private final BidirectionalSyncCoordinator syncCoordinator;
     
@@ -46,13 +46,13 @@ public class UserSceneGroupImpl implements UserSceneGroup, UserSceneGroupAgentPr
     private FailoverStatusInfo failoverStatus;
     
     public UserSceneGroupImpl(String sceneGroupId, String sceneId, 
-                              SceneGroupManager sdkSceneGroupManager,
+                              CollaborativeSceneGroupManager sdkSceneGroupManager,
                               SyncEventPublisher eventPublisher) {
         this(sceneGroupId, sceneId, null, Participant.Role.EMPLOYEE, sdkSceneGroupManager, eventPublisher);
     }
     
     public UserSceneGroupImpl(String sceneGroupId, String sceneId, String userId, Participant.Role role,
-                              SceneGroupManager sdkSceneGroupManager,
+                              CollaborativeSceneGroupManager sdkSceneGroupManager,
                               SyncEventPublisher eventPublisher) {
         this.sceneGroupId = sceneGroupId;
         this.sceneId = sceneId;

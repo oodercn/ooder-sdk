@@ -1,5 +1,8 @@
 package net.ooder.scene.asset;
 
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.SceneEventType;
+import net.ooder.scene.event.asset.AssetAuditEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,15 @@ public class AssetGovernanceImpl implements AssetGovernance {
     private final Map<String, AssetHealth> healthStatus = new ConcurrentHashMap<>();
     private final List<AssetListener> listeners = new CopyOnWriteArrayList<>();
     private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final SceneEventPublisher eventPublisher;
+    
+    public AssetGovernanceImpl() {
+        this(null);
+    }
+    
+    public AssetGovernanceImpl(SceneEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
     
     @Override
     public void registerAsset(DigitalAsset asset) {
@@ -37,6 +49,9 @@ public class AssetGovernanceImpl implements AssetGovernance {
         
         log.info("Asset registered: {} type={} category={}", 
             asset.getAssetId(), asset.getType(), asset.getCategory());
+        
+        publishAuditEvent(SceneEventType.ASSET_REGISTERED, asset.getAssetId(), 
+            asset.getName(), asset.getType().name(), asset.getOwnerId(), true);
     }
     
     @Override
@@ -90,6 +105,10 @@ public class AssetGovernanceImpl implements AssetGovernance {
             return;
         }
         
+        String assetName = asset.getName();
+        String ownerId = asset.getOwnerId();
+        String assetType = asset.getType().name();
+        
         DigitalAsset decommissioned = DigitalAsset.builder()
             .assetId(asset.getAssetId())
             .type(asset.getType())
@@ -116,6 +135,8 @@ public class AssetGovernanceImpl implements AssetGovernance {
         notifyAssetDecommissioned(assetId);
         
         log.info("Asset decommissioned: {}", assetId);
+        
+        publishAuditEvent(SceneEventType.ASSET_DECOMMISSIONED, assetId, assetName, assetType, ownerId, true);
     }
     
     @Override
@@ -403,6 +424,22 @@ public class AssetGovernanceImpl implements AssetGovernance {
             } catch (Exception e) {
                 log.warn("Listener error", e);
             }
+        }
+    }
+    
+    private void publishAuditEvent(SceneEventType eventType, String assetId, String assetName, 
+                                   String assetType, String ownerId, boolean success) {
+        if (eventPublisher != null) {
+            AssetAuditEvent event = AssetAuditEvent.builder()
+                .source(this)
+                .eventType(eventType)
+                .assetId(assetId)
+                .assetName(assetName)
+                .assetType(assetType)
+                .ownerId(ownerId)
+                .success(success)
+                .build();
+            eventPublisher.publish(event);
         }
     }
 }

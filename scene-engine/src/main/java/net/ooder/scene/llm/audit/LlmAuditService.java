@@ -7,6 +7,7 @@ import net.ooder.scene.llm.stats.LlmUserStats;
 import net.ooder.scene.llm.stats.LlmDepartmentStats;
 import net.ooder.scene.llm.stats.LlmCompanyStats;
 import net.ooder.scene.llm.stats.LlmModuleStats;
+import net.ooder.scene.llm.stats.LlmTrendStats;
 
 /**
  * LLM 调用审计服务
@@ -48,4 +49,16 @@ public interface LlmAuditService {
      * 获取模块 LLM 统计
      */
     CompletableFuture<LlmModuleStats> getModuleLlmStats(String moduleId, String userId, long startTime, long endTime);
+    
+    /**
+     * 获取趋势统计
+     * 
+     * <p>计算当前周期与上一周期的对比趋势。</p>
+     * 
+     * @param companyId 公司ID
+     * @param startTime 当前周期开始时间
+     * @param endTime 当前周期结束时间
+     * @return 趋势统计数据
+     */
+    CompletableFuture<LlmTrendStats> getTrendStats(String companyId, long startTime, long endTime);
 }

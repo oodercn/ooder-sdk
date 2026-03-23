@@ -4,8 +4,27 @@ import java.util.List;
 
 /**
  * 工具调用 API
+ *
+ * @version 2.3.1
+ * @since 2.3.1
  */
 public interface ToolCallingApi {
+
+    /**
+     * 工具调用对话
+     *
+     * @param request 工具调用请求
+     * @return 工具调用结果列表
+     */
+    List<ToolCallResult> chatWithToolCalling(ToolCallingRequest request);
+
+    /**
+     * 执行工具调用并返回结果
+     *
+     * @param request 工具调用请求
+     * @return 工具调用响应
+     */
+    ToolCallingResponse executeToolCalling(ToolCallingRequest request);
 
     /**
      * 注册工具

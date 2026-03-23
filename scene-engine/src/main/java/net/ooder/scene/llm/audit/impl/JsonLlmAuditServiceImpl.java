@@ -6,6 +6,7 @@ import net.ooder.scene.llm.audit.*;
 import net.ooder.scene.llm.stats.LlmCompanyStats;
 import net.ooder.scene.llm.stats.LlmDepartmentStats;
 import net.ooder.scene.llm.stats.LlmModuleStats;
+import net.ooder.scene.llm.stats.LlmTrendStats;
 import net.ooder.scene.llm.stats.LlmUserStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,6 +323,95 @@ public class JsonLlmAuditServiceImpl implements LlmAuditService {
             stats.setTotalTokens(totalInputTokens + totalOutputTokens);
             stats.setTotalCost(totalCost);
             stats.setAvgLatency(totalCalls > 0 ? (double) totalLatency / totalCalls : 0);
+            stats.setProviderDistribution(providerDist);
+            stats.setModelDistribution(modelDist);
+            
+            return stats;
+        });
+    }
+    
+    @Override
+    public CompletableFuture<LlmTrendStats> getTrendStats(String companyId, long startTime, long endTime) {
+        return CompletableFuture.supplyAsync(() -> {
+            LlmTrendStats stats = new LlmTrendStats();
+            stats.setCompanyId(companyId);
+            stats.setStartTime(startTime);
+            stats.setEndTime(endTime);
+            stats.setStatsTime(System.currentTimeMillis());
+            
+            long periodDuration = endTime - startTime;
+            long previousStartTime = startTime - periodDuration;
+            long previousEndTime = startTime;
+            
+            long currentCalls = 0, currentSuccessCalls = 0;
+            long currentInputTokens = 0, currentOutputTokens = 0;
+            double currentCost = 0;
+            long currentLatency = 0;
+            Map<String, Long> providerDist = new HashMap<>();
+            Map<String, Long> modelDist = new HashMap<>();
+            
+            for (LlmCallLog logEntry : callLogs) {
+                if (!companyId.equals(logEntry.getCompanyId())) continue;
+                if (logEntry.getTimestamp() < startTime || logEntry.getTimestamp() > endTime) continue;
+                
+                currentCalls++;
+                if ("success".equalsIgnoreCase(logEntry.getStatus())) {
+                    currentSuccessCalls++;
+                }
+                currentInputTokens += logEntry.getInputTokens();
+                currentOutputTokens += logEntry.getOutputTokens();
+                currentCost += logEntry.getCost();
+                currentLatency += logEntry.getLatency();
+                
+                providerDist.merge(logEntry.getProviderName(), 1L, Long::sum);
+                modelDist.merge(logEntry.getModel(), 1L, Long::sum);
+            }
+            
+            long previousCalls = 0, previousSuccessCalls = 0;
+            long previousInputTokens = 0, previousOutputTokens = 0;
+            double previousCost = 0;
+            long previousLatency = 0;
+            
+            for (LlmCallLog logEntry : callLogs) {
+                if (!companyId.equals(logEntry.getCompanyId())) continue;
+                if (logEntry.getTimestamp() < previousStartTime || logEntry.getTimestamp() >= previousEndTime) continue;
+                
+                previousCalls++;
+                if ("success".equalsIgnoreCase(logEntry.getStatus())) {
+                    previousSuccessCalls++;
+                }
+                previousInputTokens += logEntry.getInputTokens();
+                previousOutputTokens += logEntry.getOutputTokens();
+                previousCost += logEntry.getCost();
+                previousLatency += logEntry.getLatency();
+            }
+            
+            stats.setTotalCalls(currentCalls);
+            stats.setPreviousCalls(previousCalls);
+            stats.setCallsTrend(LlmTrendStats.calculateTrend(currentCalls, previousCalls));
+            
+            stats.setTotalTokens(currentInputTokens + currentOutputTokens);
+            stats.setPreviousTokens(previousInputTokens + previousOutputTokens);
+            stats.setTokensTrend(LlmTrendStats.calculateTrend(
+                currentInputTokens + currentOutputTokens, 
+                previousInputTokens + previousOutputTokens));
+            
+            stats.setTotalCost(currentCost);
+            stats.setPreviousCost(previousCost);
+            stats.setCostTrend(LlmTrendStats.calculateTrend(currentCost, previousCost));
+            
+            double currentAvgLatency = currentCalls > 0 ? (double) currentLatency / currentCalls : 0;
+            double previousAvgLatency = previousCalls > 0 ? (double) previousLatency / previousCalls : 0;
+            stats.setAvgLatency(currentAvgLatency);
+            stats.setPreviousAvgLatency(previousAvgLatency);
+            stats.setLatencyTrend(LlmTrendStats.calculateTrend(currentAvgLatency, previousAvgLatency));
+            
+            double currentSuccessRate = currentCalls > 0 ? (double) currentSuccessCalls / currentCalls : 0;
+            double previousSuccessRate = previousCalls > 0 ? (double) previousSuccessCalls / previousCalls : 0;
+            stats.setSuccessRate(currentSuccessRate);
+            stats.setPreviousSuccessRate(previousSuccessRate);
+            stats.setSuccessRateTrend(LlmTrendStats.calculateTrend(currentSuccessRate, previousSuccessRate));
+            
             stats.setProviderDistribution(providerDist);
             stats.setModelDistribution(modelDist);
             

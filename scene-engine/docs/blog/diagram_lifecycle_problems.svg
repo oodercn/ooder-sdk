@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" width="700px" height="350px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-problem { fill: #fef2f2; stroke: #dc2626; stroke-width: 2; rx: 8; }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; font-size: 13px; fill: #334155; }
+        .text-title { font-size: 14px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+    </style>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+<!-- Title -->
+<rect class="title-box" x="20" y="15" width="660" height="35" rx="4"/>
+<text class="text-header" x="350" y="38" text-anchor="middle">传统软件能力生命周期问题</text>
+
+<!-- Problem 1 -->
+<rect class="box-problem" x="50" y="80" width="180" height="80"/>
+<text class="text-title" x="140" y="105" text-anchor="middle">问题1：状态不可观测</text>
+<text class="text" x="65" y="130">• 某功能是否可用？</text>
+<text class="text" x="65" y="150">• 依赖服务是否正常？</text>
+
+<!-- Problem 2 -->
+<rect class="box-problem" x="260" y="80" width="180" height="80"/>
+<text class="text-title" x="350" y="105" text-anchor="middle">问题2：升级影响不可控</text>
+<text class="text" x="275" y="130">• 哪些调用方受影响？</text>
+<text class="text" x="275" y="150">• 如何灰度发布？</text>
+
+<!-- Problem 3 -->
+<rect class="box-problem" x="470" y="80" width="180" height="80"/>
+<text class="text-title" x="560" y="105" text-anchor="middle">问题3：故障传播</text>
+<text class="text" x="485" y="130">• 影响范围难评估</text>
+<text class="text" x="485" y="150">• 缺乏熔断降级</text>
+
+<!-- Consequences -->
+<rect class="box" x="100" y="200" width="500" height="100"/>
+<text class="text-title" x="350" y="225" text-anchor="middle">导致的后果</text>
+<text class="text" x="150" y="255">• 运维人员无法快速定位问题</text>
+<text class="text" x="150" y="280">• 发布风险高，回滚困难</text>
+<text class="text" x="400" y="255">• 故障恢复依赖人工干预</text>
+<text class="text" x="400" y="280">• 系统可靠性难以保障</text>
+
+</svg>

@@ -6,7 +6,7 @@ import net.ooder.scene.event.security.LogoutEvent;
 import net.ooder.scene.protocol.*;
 import net.ooder.scene.session.SessionInfo;
 import net.ooder.scene.session.SessionManager;
-import net.ooder.scene.session.TokenManager;
+import net.ooder.scene.session.AuthManager;
 import net.ooder.scene.session.TokenInfo;
 
 import java.util.HashMap;
@@ -23,16 +23,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
 
     private final SessionManager sessionManager;
-    private final TokenManager tokenManager;
+    private final AuthManager authManager;
     private final Map<String, Session> sessionCache = new ConcurrentHashMap<>();
     private final Map<String, String> tokenToSessionMap = new ConcurrentHashMap<>();
 
     private long sessionTimeout = 1800000L;
     private SceneEventPublisher eventPublisher;
 
-    public LoginProtocolAdapterImpl(SessionManager sessionManager, TokenManager tokenManager) {
+    public LoginProtocolAdapterImpl(SessionManager sessionManager, AuthManager authManager) {
         this.sessionManager = sessionManager;
-        this.tokenManager = tokenManager;
+        this.authManager = authManager;
     }
     
     public void setEventPublisher(SceneEventPublisher eventPublisher) {
@@ -84,7 +84,7 @@ public class LoginProtocolAdapterImpl implements LoginProtocolAdapter {
                     request.getUserAgent()
                 );
                 
-                TokenInfo tokenInfo = tokenManager.generateToken(userId, createClaims(userId, username));
+                TokenInfo tokenInfo = authManager.generateToken(userId, createClaims(userId, username));
                 
                 Session session = convertToSession(sessionInfo, tokenInfo);
                 sessionCache.put(session.getSessionId(), session);

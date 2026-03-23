@@ -34,11 +34,14 @@ import net.ooder.skills.api.SkillPackageObserver;
 import net.ooder.skills.api.TemplateInstallResult;
 import net.ooder.skills.api.UninstallResult;
 import net.ooder.skills.api.UpdateResult;
+import net.ooder.skills.api.VersionCompatibilityChecker;
+import net.ooder.skills.api.VersionRange;
 import net.ooder.skills.api.impl.DependencyInfoImpl;
 import net.ooder.skills.core.discovery.GitRepositoryDiscovererAdapter;
 import net.ooder.skills.core.discovery.LocalDiscoverer;
 import net.ooder.skills.core.discovery.SkillCenterDiscoverer;
 import net.ooder.skills.core.discovery.UdpDiscoverer;
+import net.ooder.skills.core.version.VersionCompatibilityCheckerImpl;
 
 public class SkillPackageManagerImpl implements SkillPackageManager {
     
@@ -48,6 +51,7 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
     private final Map<DiscoveryMethod, SkillDiscoverer> discoverers;
     private final List<SkillPackageObserver> observers;
     private final Map<String, InstallProgress> activeInstalls;
+    private final VersionCompatibilityChecker versionChecker;
     private String skillRootPath;
     
     public SkillPackageManagerImpl() {
@@ -56,6 +60,7 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
         this.observers = new CopyOnWriteArrayList<SkillPackageObserver>();
         this.activeInstalls = new ConcurrentHashMap<String, InstallProgress>();
         this.skillRootPath = "/skills/";
+        this.versionChecker = new VersionCompatibilityCheckerImpl(new LocalSkillRegistryAdapter(registry));
         
         initializeDiscoverers();
     }
@@ -643,14 +648,107 @@ public class SkillPackageManagerImpl implements SkillPackageManager {
     @Override
     public CompletableFuture<DependencyResult> updateDependencies(String skillId) {
         return CompletableFuture.supplyAsync(() -> {
+            long startTime = System.currentTimeMillis();
             DependencyResult result = new DependencyResult(skillId);
-            result.setSuccess(true);
-            result.setTotalCount(0);
-            result.setInstalledCount(0);
-            result.setProcessingTime(0);
-            log.info("Dependencies updated for skill: {}", skillId);
+            
+            SkillPackage pkg = registry.get(skillId);
+            if (pkg == null || pkg.getManifest() == null) {
+                result.setSuccess(false);
+                result.setErrorMessage("Skill not found: " + skillId);
+                result.setProcessingTime(System.currentTimeMillis() - startTime);
+                return result;
+            }
+            
+            List<SkillManifest.Dependency> dependencies = pkg.getManifest().getDependencies();
+            if (dependencies == null || dependencies.isEmpty()) {
+                result.setSuccess(true);
+                result.setTotalCount(0);
+                result.setInstalledCount(0);
+                result.setProcessingTime(System.currentTimeMillis() - startTime);
+                log.info("No dependencies to update for skill: {}", skillId);
+                return result;
+            }
+            
+            result.setTotalCount(dependencies.size());
+            
+            for (SkillManifest.Dependency dep : dependencies) {
+                String depSkillId = dep.getSkillId();
+                DependencyResult.DependencyItemResult itemResult = new DependencyResult.DependencyItemResult();
+                itemResult.setDependencyId(depSkillId);
+                itemResult.setName(depSkillId);
+                itemResult.setVersion(dep.getVersionRange());
+                
+                try {
+                    SkillPackage installedDep = registry.get(depSkillId);
+                    
+                    if (installedDep == null) {
+                        itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.FAILED);
+                        itemResult.setSuccess(false);
+                        itemResult.setMessage("Dependency not installed, cannot update");
+                        result.incrementFailed();
+                        log.warn("Dependency not installed for update: {}", depSkillId);
+                    } else {
+                        String currentVersion = installedDep.getVersion();
+                        String requiredVersion = dep.getVersionRange();
+                        
+                        if (requiresUpdate(currentVersion, requiredVersion)) {
+                            log.info("Updating dependency {} from {} to satisfy {}", depSkillId, currentVersion, requiredVersion);
+                            
+                            InstallRequest updateRequest = new InstallRequest();
+                            updateRequest.setSkillId(depSkillId);
+                            updateRequest.setMode(InstallRequest.InstallMode.FORCE);
+                            
+                            InstallResult updateResult = install(updateRequest).join();
+                            
+                            if (updateResult != null && updateResult.isSuccess()) {
+                                itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.UPDATED);
+                                itemResult.setSuccess(true);
+                                itemResult.setMessage("Updated to satisfy " + requiredVersion);
+                                result.incrementInstalled();
+                            } else {
+                                itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.FAILED);
+                                itemResult.setSuccess(false);
+                                itemResult.setMessage("Update failed: " + (updateResult != null ? updateResult.getError() : "Unknown error"));
+                                result.incrementFailed();
+                            }
+                        } else {
+                            itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.SKIPPED);
+                            itemResult.setSuccess(true);
+                            itemResult.setMessage("Already satisfies " + requiredVersion + " (" + currentVersion + ")");
+                            result.incrementSkipped();
+                        }
+                    }
+                } catch (Exception e) {
+                    itemResult.setAction(DependencyResult.DependencyItemResult.DependencyAction.FAILED);
+                    itemResult.setSuccess(false);
+                    itemResult.setMessage(e.getMessage());
+                    itemResult.setError(e);
+                    result.incrementFailed();
+                    log.error("Error updating dependency: {}", depSkillId, e);
+                }
+                
+                result.addItem(itemResult);
+            }
+            
+            result.setProcessingTime(System.currentTimeMillis() - startTime);
+            log.info("Dependencies updated for skill: {} - updated: {}, skipped: {}, failed: {}",
+                skillId, result.getInstalledCount(), result.getSkippedCount(), result.getFailedCount());
+            
             return result;
         });
+    }
+    
+    private boolean requiresUpdate(String currentVersion, String requiredVersion) {
+        if (currentVersion == null || requiredVersion == null) {
+            return false;
+        }
+        
+        if (requiredVersion.equals("*") || requiredVersion.isEmpty()) {
+            return false;
+        }
+        
+        VersionRange range = versionChecker.parseVersionRange(requiredVersion);
+        return !range.satisfies(currentVersion);
     }
     
     @Override

@@ -18,8 +18,6 @@ import net.ooder.annotation.RequestType;
 import net.ooder.jds.core.esb.EsbUtil;
 import net.ooder.jds.core.esb.util.ActionContext;
 import net.ooder.server.context.MinServerActionContextImpl;
-import net.ooder.server.httpproxy.handler.multipart.CommonsMultipartFile;
-import net.ooder.server.httpproxy.handler.multipart.SimpleRequestContext;
 import net.ooder.template.JDSFreemarkerResult;
 import net.ooder.web.APIConfigFactory;
 import net.ooder.web.BaseParamsEnums;
@@ -31,9 +29,6 @@ import freemarker.template.TemplateException;
 import ognl.OgnlContext;
 import ognl.OgnlException;
 import ognl.OgnlRuntime;
-import org.apache.commons.fileupload.*;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.portlet.PortletFileUpload;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,7 +40,6 @@ import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public abstract class AbstractHandler implements Handler {
@@ -333,38 +327,10 @@ public abstract class AbstractHandler implements Handler {
             }
         }
         List<Object> paramObjs = new ArrayList<>();
-        // 是否包含多文件操作
+        // 文件上传功能暂时禁用 - 需要 Jakarta EE 兼容的 FileUpload 库
+        // TODO: 迁移到 Apache Commons FileUpload 2.x 或 Spring 的 Multipart 解析器
         if (isMulti) {
-            RequestContext requestContext = new SimpleRequestContext(StandardCharsets.UTF_8, this.getContentType(request), new ByteArrayInputStream(request.getPostData()));
-            // 解析器创建
-            FileUploadBase fileUploadBase = new PortletFileUpload();
-            FileItemFactory fileItemFactory = new DiskFileItemFactory();
-            fileUploadBase.setFileItemFactory(fileItemFactory);
-            fileUploadBase.setHeaderEncoding("utf-8");
-
-
-            // 解析出所有的部件
-            List<FileItem> fileItems = null;
-            try {
-                fileItems = fileUploadBase.parseRequest(requestContext);
-            } catch (FileUploadException e) {
-                e.printStackTrace();
-            }
-
-            for (RequestParamBean paramBean : paramBeanSet) {
-                Object obj = null;
-                for (FileItem f : fileItems) {
-                    if (f.getFieldName().equals(paramBean.getParamName())) {
-                        if (f.isFormField()) {
-                            obj = new String(f.getString().getBytes("iso8859-1"), "UTF-8");
-                        } else {
-                            CommonsMultipartFile commonsMultipartFile = new CommonsMultipartFile(f);
-                            obj = commonsMultipartFile;
-                        }
-                    }
-                }
-                paramObjs.add(obj);
-            }
+            logger.warn("File upload functionality is temporarily disabled in Jakarta EE version");
         }
 
 

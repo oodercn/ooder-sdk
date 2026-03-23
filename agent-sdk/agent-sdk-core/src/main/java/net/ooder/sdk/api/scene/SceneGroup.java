@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.ooder.sdk.common.enums.MemberRole;
-import net.ooder.sdk.common.enums.SceneType;
+import net.ooder.skills.api.SceneType;
 import net.ooder.skills.sync.UserSceneGroup;
 
 /**
@@ -510,5 +510,74 @@ public class SceneGroup {
     public UserSceneGroup getUserSceneGroup(String userId) {
         if (userSceneGroups == null) return null;
         return userSceneGroups.get(userId);
+    }
+
+    private String defaultAgentId;
+    private String llmConfigId;
+    private List<String> knowledgeBaseIds;
+    private Map<String, Object> extensions;
+
+    public String getDefaultAgentId() {
+        return defaultAgentId;
+    }
+
+    public void setDefaultAgentId(String defaultAgentId) {
+        this.defaultAgentId = defaultAgentId;
+    }
+
+    public String getLlmConfigId() {
+        return llmConfigId;
+    }
+
+    public void setLlmConfigId(String llmConfigId) {
+        this.llmConfigId = llmConfigId;
+    }
+
+    public List<String> getKnowledgeBaseIds() {
+        return knowledgeBaseIds;
+    }
+
+    public void setKnowledgeBaseIds(List<String> knowledgeBaseIds) {
+        this.knowledgeBaseIds = knowledgeBaseIds;
+    }
+
+    public Map<String, Object> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(Map<String, Object> extensions) {
+        this.extensions = extensions;
+    }
+
+    public void addKnowledgeBaseId(String knowledgeBaseId) {
+        if (knowledgeBaseIds == null) {
+            knowledgeBaseIds = new java.util.ArrayList<>();
+        }
+        if (!knowledgeBaseIds.contains(knowledgeBaseId)) {
+            knowledgeBaseIds.add(knowledgeBaseId);
+        }
+    }
+
+    public void removeKnowledgeBaseId(String knowledgeBaseId) {
+        if (knowledgeBaseIds != null) {
+            knowledgeBaseIds.remove(knowledgeBaseId);
+        }
+    }
+
+    public boolean hasKnowledgeBase(String knowledgeBaseId) {
+        return knowledgeBaseIds != null && knowledgeBaseIds.contains(knowledgeBaseId);
+    }
+
+    public void addExtension(String key, Object value) {
+        if (extensions == null) {
+            extensions = new java.util.HashMap<>();
+        }
+        extensions.put(key, value);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getExtension(String key) {
+        if (extensions == null) return null;
+        return (T) extensions.get(key);
     }
 }

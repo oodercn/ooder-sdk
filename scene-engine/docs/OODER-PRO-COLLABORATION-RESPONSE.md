@@ -2,35 +2,35 @@
 
 ## 1. 协作概述
 
-**发起方**: ooder-pro 团队  
-**接收方**: SE 团队  
-**主题**: SceneEngineAutoConfiguration 与 Spring Boot 集成  
-**日期**: 2026-03-20  
+**发起方**: ooder-pro 团队\
+**接收方**: SE 团队\
+**主题**: SceneEngineAutoConfiguration 与 Spring Boot 集成\
+**日期**: 2026-03-20\
 **状态**: 🟢 已完成
 
----
+***
 
 ## 2. 需求分析
 
 ### 2.1 ooder-pro 需求
 
-| 需求 | 说明 |
-|------|------|
-| SceneEngineAutoConfiguration | Spring Boot 自动配置 |
-| SceneEngine Bean 注入 | 提供 SceneEngine 核心接口 |
-| 服务提供者接口 | 提供 SPI 服务访问 |
-| 能力发现与注册 | 支持从 skill-index 发现能力 |
+| 需求                           | 说明                   |
+| ---------------------------- | -------------------- |
+| SceneEngineAutoConfiguration | Spring Boot 自动配置     |
+| SceneEngine Bean 注入          | 提供 SceneEngine 核心接口  |
+| 服务提供者接口                      | 提供 SPI 服务访问          |
+| 能力发现与注册                      | 支持从 skill-index 发现能力 |
 
 ### 2.2 SE SDK 现状
 
-| 功能 | 状态 | 文件 |
-|------|------|------|
+| 功能                           | 状态    | 文件                                  |
+| ---------------------------- | ----- | ----------------------------------- |
 | SceneEngineAutoConfiguration | ✅ 已实现 | `SceneEngineAutoConfiguration.java` |
-| SceneEngine 接口 | ✅ 已实现 | `SceneEngine.java` |
-| SceneEngineServiceProvider | ✅ 已实现 | `SceneEngineServiceProvider.java` |
-| SceneEngineIntegration | ✅ 已实现 | `SceneEngineIntegration.java` |
+| SceneEngine 接口               | ✅ 已实现 | `SceneEngine.java`                  |
+| SceneEngineServiceProvider   | ✅ 已实现 | `SceneEngineServiceProvider.java`   |
+| SceneEngineIntegration       | ✅ 已实现 | `SceneEngineIntegration.java`       |
 
----
+***
 
 ## 3. 接口说明
 
@@ -116,7 +116,7 @@ public class SceneEngineIntegration {
 }
 ```
 
----
+***
 
 ## 4. 使用方式
 
@@ -187,7 +187,7 @@ System.out.println("成功: " + result.getSuccessCount());
 System.out.println("失败: " + result.getFailedCount());
 ```
 
----
+***
 
 ## 5. 配置项
 
@@ -210,7 +210,7 @@ scene:
     max-sessions: 1000
 ```
 
----
+***
 
 ## 6. 能力发现目录结构
 
@@ -226,33 +226,33 @@ skill-index/
     └── scene2.yaml
 ```
 
----
+***
 
 ## 7. 验收状态
 
-| 序号 | 验收项 | 状态 |
-|------|--------|------|
-| 1 | SceneEngineAutoConfiguration 存在 | ✅ |
-| 2 | SceneEngine Bean 可注入 | ✅ |
-| 3 | SceneEngineServiceProvider SPI 可用 | ✅ |
-| 4 | SceneEngineIntegration 发现服务可用 | ✅ |
-| 5 | 能力注册功能正常 | ✅ |
+| 序号 | 验收项                               | 状态 |
+| -- | --------------------------------- | -- |
+| 1  | SceneEngineAutoConfiguration 存在   | ✅  |
+| 2  | SceneEngine Bean 可注入              | ✅  |
+| 3  | SceneEngineServiceProvider SPI 可用 | ✅  |
+| 4  | SceneEngineIntegration 发现服务可用     | ✅  |
+| 5  | 能力注册功能正常                          | ✅  |
 
----
+***
 
 ## 8. 结论
 
 **SE SDK 2.3.1 已完整支持 ooder-pro 的协作需求**：
 
-- ✅ `SceneEngineAutoConfiguration` - Spring Boot 自动配置
-- ✅ `SceneEngine` - 核心接口
+- ✅ `SceneEngineAutoConfiguration` - Spring Boot 自动配
 - ✅ `SceneEngineServiceProvider` - SPI 服务提供者
-- ✅ `SceneEngineIntegration` - 能力发现与注册
+- ✅ `SceneEngineIntegration` - 能力发现与注册置
+- ✅ `SceneEngine` - 核心接口
 
 ooder-pro 可以直接使用 SE SDK 2.3.1 进行集成开发。
 
----
+***
 
-**文档版本**: 1.0  
-**创建日期**: 2026-03-20  
+**文档版本**: 1.0\
+**创建日期**: 2026-03-20\
 **SE 团队**: SceneEngine Team

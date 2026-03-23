@@ -35,8 +35,8 @@ import net.ooder.esb.util.ESBConstants;
 import net.ooder.thread.JDSThreadFactory;
 import net.ooder.web.util.AnnotationUtil;
 
-import javax.persistence.Column;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.*;

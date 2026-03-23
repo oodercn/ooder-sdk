@@ -11,12 +11,12 @@ public class AuthManager {
     
     private static final Logger log = LoggerFactory.getLogger(AuthManager.class);
     
-    private final TokenManager tokenManager;
+    private final AuthTokenManager tokenManager;
     private final Map<String, AuthProvider> providers;
     private final Map<String, AuthSession> sessions;
     
     public AuthManager() {
-        this.tokenManager = new TokenManager();
+        this.tokenManager = new AuthTokenManager();
         this.providers = new ConcurrentHashMap<>();
         this.sessions = new ConcurrentHashMap<>();
     }

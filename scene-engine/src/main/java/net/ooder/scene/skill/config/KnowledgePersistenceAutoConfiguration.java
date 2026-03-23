@@ -5,6 +5,7 @@ import net.ooder.scene.skill.knowledge.persistence.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +24,16 @@ import javax.annotation.PreDestroy;
  *
  * <p>架构层级：基础设施层 - 自动配置</p>
  *
+ * <p>默认禁用，需要通过配置显式启用：</p>
+ * <pre>
+ * scene.knowledge.persistence.enabled: true
+ * </pre>
+ *
  * @author ooder
  * @since 2.3
  */
 @Configuration
+@ConditionalOnProperty(name = "scene.knowledge.persistence.enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(SceneEngineProperties.class)
 public class KnowledgePersistenceAutoConfiguration {
 

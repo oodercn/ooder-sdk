@@ -1,6 +1,6 @@
 package net.ooder.skills.core.group;
 
-import net.ooder.skills.api.SceneGroupManager;
+import net.ooder.skills.api.CollaborativeSceneGroupManager;
 import net.ooder.skills.api.SkillRegistry;
 
 import java.util.*;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * @version 2.3
  * @since 2.3.0
  */
-public class SceneGroupManagerImpl implements SceneGroupManager {
+public class SceneGroupManagerImpl implements CollaborativeSceneGroupManager {
     
     private final Map<String, SceneGroupInfo> groups = new ConcurrentHashMap<>();
     private final SkillRegistry skillRegistry;

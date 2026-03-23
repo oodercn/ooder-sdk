@@ -195,4 +195,22 @@ public interface KnowledgeRepository {
      * @param kbId 知识库ID
      */
     void deletePermissionsByKnowledgeBase(String kbId);
+
+    // ========== 场景绑定操作 ==========
+
+    /**
+     * 统计知识库被场景绑定的数量
+     *
+     * @param kbId 知识库ID
+     * @return 绑定数量
+     */
+    int countSceneBindings(String kbId);
+
+    /**
+     * 查找知识库绑定的场景列表
+     *
+     * @param kbId 知识库ID
+     * @return 场景ID列表
+     */
+    List<String> findBoundScenes(String kbId);
 }

@@ -1,7 +1,7 @@
 package net.ooder.skills.core.communication;
 
 import net.ooder.skills.api.SceneCommunication;
-import net.ooder.skills.api.SceneGroupManager;
+import net.ooder.skills.api.CollaborativeSceneGroupManager;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -17,13 +17,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class SceneCommunicationImpl implements SceneCommunication {
 
-    private final SceneGroupManager groupManager;
+    private final CollaborativeSceneGroupManager groupManager;
     private final Map<String, MessageHandler> handlers = new ConcurrentHashMap<>();
     private final Map<String, MessageHandler> groupHandlers = new ConcurrentHashMap<>();
     private final Map<String, Map<String, Object>> groupStates = new ConcurrentHashMap<>();
     private final List<CommunicationListener> listeners = new CopyOnWriteArrayList<>();
 
-    public SceneCommunicationImpl(SceneGroupManager groupManager) {
+    public SceneCommunicationImpl(CollaborativeSceneGroupManager groupManager) {
         this.groupManager = groupManager;
     }
 
@@ -73,15 +73,14 @@ public class SceneCommunicationImpl implements SceneCommunication {
 
             try {
                 // 获取场景组信息
-                SceneGroupManager.SceneGroupInfo groupInfo = groupManager.getGroupInfo(groupId).get();
+                CollaborativeSceneGroupManager.SceneGroupInfo groupInfo = groupManager.getGroupInfo(groupId).get();
                 if (groupInfo == null) {
                     result.setSuccess(false);
                     result.setMessage("场景组不存在: " + groupId);
                     return result;
                 }
 
-                // 获取所有协作场景
-                List<SceneGroupManager.CollaborativeCapabilityInfo> collaborativeScenes = groupInfo.getCollaborativeCapabilities();
+                List<CollaborativeSceneGroupManager.CollaborativeCapabilityInfo> collaborativeScenes = groupInfo.getCollaborativeCapabilities();
                 if (collaborativeScenes == null || collaborativeScenes.isEmpty()) {
                     result.setSuccess(true);
                     result.setMessage("场景组中没有协作场景");
@@ -90,8 +89,7 @@ public class SceneCommunicationImpl implements SceneCommunication {
 
                 result.setTotalTargets(collaborativeScenes.size());
 
-                // 向每个协作场景发送消息
-                for (SceneGroupManager.CollaborativeCapabilityInfo scene : collaborativeScenes) {
+                for (CollaborativeSceneGroupManager.CollaborativeCapabilityInfo scene : collaborativeScenes) {
                     String sceneId = scene.getCapabilityId();
 
                     // 跳过发送方自己
@@ -182,7 +180,7 @@ public class SceneCommunicationImpl implements SceneCommunication {
                 groupManager.syncGroupState(groupId, state).get();
 
                 // 获取场景组信息
-                SceneGroupManager.SceneGroupInfo groupInfo = groupManager.getGroupInfo(groupId).get();
+                CollaborativeSceneGroupManager.SceneGroupInfo groupInfo = groupManager.getGroupInfo(groupId).get();
                 if (groupInfo != null && groupInfo.getCollaborativeCapabilities() != null) {
                     result.setSyncedScenes(groupInfo.getCollaborativeCapabilities().size());
                 }

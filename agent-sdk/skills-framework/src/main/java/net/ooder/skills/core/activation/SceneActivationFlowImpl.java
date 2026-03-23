@@ -17,7 +17,7 @@ public class SceneActivationFlowImpl implements SceneActivationFlow {
 
     private final SkillRegistry skillRegistry;
     private final CapabilityBindingService bindingService;
-    private final SceneGroupManager groupManager;
+    private final CollaborativeSceneGroupManager groupManager;
     private final MainFirstService mainFirstService;
     private final Map<String, SceneState> sceneStates = new HashMap<>();
     private final List<ActivationListener> listeners = new CopyOnWriteArrayList<>();
@@ -25,7 +25,7 @@ public class SceneActivationFlowImpl implements SceneActivationFlow {
     public SceneActivationFlowImpl(
             SkillRegistry skillRegistry,
             CapabilityBindingService bindingService,
-            SceneGroupManager groupManager,
+            CollaborativeSceneGroupManager groupManager,
             MainFirstService mainFirstService) {
         this.skillRegistry = skillRegistry;
         this.bindingService = bindingService;
@@ -142,12 +142,12 @@ public class SceneActivationFlowImpl implements SceneActivationFlow {
                     groupStep.setStartTime(System.currentTimeMillis());
                     notifyActivationStep(sceneId, "CREATE_SCENE_GROUP", ActivationStep.StepStatus.RUNNING);
 
-                    SceneGroupManager.SceneGroupRequest groupRequest = new SceneGroupManager.SceneGroupRequest();
+                    CollaborativeSceneGroupManager.SceneGroupRequest groupRequest = new CollaborativeSceneGroupManager.SceneGroupRequest();
                     groupRequest.setMainCapabilityId(sceneId);
                     groupRequest.setCollaborativeCapabilityIds(collaborativeCapabilities);
                     groupRequest.setSharedState(config.getInitParams());
 
-                    SceneGroupManager.SceneGroupInfo groupInfo = groupManager.createGroup(groupRequest).get();
+                    CollaborativeSceneGroupManager.SceneGroupInfo groupInfo = groupManager.createGroup(groupRequest).get();
                     result.setGroupId(groupInfo.getGroupId());
 
                     groupStep.setStatus(ActivationStep.StepStatus.COMPLETED);
@@ -250,8 +250,8 @@ public class SceneActivationFlowImpl implements SceneActivationFlow {
                 }
 
                 // 3. 解散场景组
-                List<SceneGroupManager.SceneGroupInfo> groups = groupManager.listGroupsByMainCapability(sceneId).get();
-                for (SceneGroupManager.SceneGroupInfo group : groups) {
+                List<CollaborativeSceneGroupManager.SceneGroupInfo> groups = groupManager.listGroupsByMainCapability(sceneId).get();
+                for (CollaborativeSceneGroupManager.SceneGroupInfo group : groups) {
                     groupManager.disbandGroup(group.getGroupId()).get();
                 }
 

@@ -1,8 +1,17 @@
 
 package net.ooder.skills.api;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SkillPackage {
     
@@ -22,6 +31,7 @@ public class SkillPackage {
     private String category;
     private String subCategory;
     private List<String> tags;
+    private String resourcePath;
     
     public String getSkillId() {
         return skillId;
@@ -149,5 +159,75 @@ public class SkillPackage {
     
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+    
+    public String getResourcePath() {
+        return resourcePath;
+    }
+    
+    public void setResourcePath(String resourcePath) {
+        this.resourcePath = resourcePath;
+    }
+    
+    public InputStream getResource(String relativePath) {
+        if (resourcePath == null || relativePath == null) {
+            return null;
+        }
+        
+        try {
+            Path fullPath = Paths.get(resourcePath, relativePath);
+            if (Files.exists(fullPath)) {
+                return new FileInputStream(fullPath.toFile());
+            }
+            
+            String classpathResource = "/" + skillId + "/" + relativePath;
+            InputStream is = getClass().getResourceAsStream(classpathResource);
+            if (is != null) {
+                return is;
+            }
+            
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            return loader.getResourceAsStream(skillId + "/" + relativePath);
+            
+        } catch (IOException e) {
+            return null;
+        }
+    }
+    
+    public boolean hasResource(String relativePath) {
+        if (resourcePath == null || relativePath == null) {
+            return false;
+        }
+        
+        Path fullPath = Paths.get(resourcePath, relativePath);
+        if (Files.exists(fullPath)) {
+            return true;
+        }
+        
+        try (InputStream is = getResource(relativePath)) {
+            return is != null;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+    
+    public List<String> listResources(String directory) {
+        if (resourcePath == null || directory == null) {
+            return Collections.emptyList();
+        }
+        
+        try {
+            Path dirPath = Paths.get(resourcePath, directory);
+            if (Files.isDirectory(dirPath)) {
+                return Files.list(dirPath)
+                    .filter(Files::isRegularFile)
+                    .map(p -> p.getFileName().toString())
+                    .collect(Collectors.toList());
+            }
+        } catch (IOException e) {
+            // ignore
+        }
+        
+        return Collections.emptyList();
     }
 }

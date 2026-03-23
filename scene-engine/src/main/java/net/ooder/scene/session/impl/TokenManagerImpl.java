@@ -3,7 +3,7 @@ package net.ooder.scene.session.impl;
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.security.TokenEvent;
 import net.ooder.scene.session.TokenInfo;
-import net.ooder.scene.session.TokenManager;
+import net.ooder.scene.session.AuthManager;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>提供Token生成、验证、刷新等功能</p>
  */
-public class TokenManagerImpl implements TokenManager {
+public class TokenManagerImpl implements AuthManager {
 
     private final Map<String, TokenInfo> tokenStore = new ConcurrentHashMap<>();
     private final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();

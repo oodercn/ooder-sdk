@@ -8,6 +8,9 @@ import java.util.concurrent.*;
 
 /**
  * 工具调用 API 实现
+ *
+ * @version 2.3.1
+ * @since 2.3.1
  */
 @Slf4j
 public class ToolCallingApiImpl implements ToolCallingApi {
@@ -24,6 +27,98 @@ public class ToolCallingApiImpl implements ToolCallingApi {
     public ToolCallingApiImpl(ExecutorService executorService, long defaultTimeout) {
         this.executorService = executorService;
         this.defaultTimeout = defaultTimeout;
+    }
+
+    @Override
+    public List<ToolCallResult> chatWithToolCalling(ToolCallingRequest request) {
+        ToolCallingResponse response = executeToolCalling(request);
+        
+        if (!response.hasToolCalls()) {
+            return Collections.emptyList();
+        }
+
+        List<ToolCallResult> results = new ArrayList<>();
+        for (ToolCallingResponse.ToolCallInfo callInfo : response.getToolCalls()) {
+            if (callInfo.getResult() != null) {
+                results.add(callInfo.getResult());
+            }
+        }
+        return results;
+    }
+
+    @Override
+    public ToolCallingResponse executeToolCalling(ToolCallingRequest request) {
+        if (request == null) {
+            return ToolCallingResponse.builder()
+                    .responseId(UUID.randomUUID().toString())
+                    .finishReason(ToolCallingResponse.FinishReason.ERROR)
+                    .build();
+        }
+
+        long startTime = System.currentTimeMillis();
+        String responseId = UUID.randomUUID().toString();
+
+        try {
+            if (request.getToolChoice() == ToolCallingRequest.ToolChoiceStrategy.NONE) {
+                return ToolCallingResponse.stop(responseId, "Tool calling disabled", 
+                        System.currentTimeMillis() - startTime);
+            }
+
+            List<ToolCallingResponse.ToolCallInfo> toolCallInfos = new ArrayList<>();
+            
+            if (request.getTools() != null && !request.getTools().isEmpty()) {
+                int maxCalls = request.getMaxToolCalls() != null ? request.getMaxToolCalls() : 10;
+                int callCount = 0;
+
+                for (ToolDefinition toolDef : request.getTools()) {
+                    if (callCount >= maxCalls) break;
+
+                    ToolHandler handler = toolHandlers.get(toolDef.getToolId());
+                    if (handler != null) {
+                        ToolExecutionRequest execRequest = ToolExecutionRequest.builder()
+                                .toolId(toolDef.getToolId())
+                                .invocationId(UUID.randomUUID().toString())
+                                .build();
+
+                        ToolExecutionResult execResult = executeTool(execRequest);
+
+                        ToolCallResult callResult = execResult.isSuccess()
+                                ? ToolCallResult.success(toolDef.getToolId(), toolDef.getName(), 
+                                        execResult.getResult(), execResult.getExecutionTime())
+                                : ToolCallResult.failure(toolDef.getToolId(), toolDef.getName(), 
+                                        execResult.getError());
+
+                        toolCallInfos.add(ToolCallingResponse.ToolCallInfo.builder()
+                                .id(UUID.randomUUID().toString())
+                                .type("function")
+                                .name(toolDef.getName())
+                                .result(callResult)
+                                .build());
+                        
+                        callCount++;
+                    }
+                }
+            }
+
+            long latency = System.currentTimeMillis() - startTime;
+            
+            if (toolCallInfos.isEmpty()) {
+                return ToolCallingResponse.stop(responseId, "No tools executed", latency);
+            }
+
+            return ToolCallingResponse.toolCalls(responseId, toolCallInfos, latency);
+
+        } catch (Exception e) {
+            log.error("Tool calling failed", e);
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("error", e.getMessage());
+            return ToolCallingResponse.builder()
+                    .responseId(responseId)
+                    .finishReason(ToolCallingResponse.FinishReason.ERROR)
+                    .metadata(metadata)
+                    .latencyMs(System.currentTimeMillis() - startTime)
+                    .build();
+        }
     }
 
     @Override

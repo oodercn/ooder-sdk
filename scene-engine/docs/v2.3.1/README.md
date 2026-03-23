@@ -1,7 +1,7 @@
 # Scene Engine v2.3.1 官方文档
 
 **版本**: v2.3.1  
-**发布日期**: 2026-03-14  
+**发布日期**: 2026-03-22  
 **状态**: 正式发布
 
 ---
@@ -19,9 +19,10 @@
 | **07-RAG** | 向量存储、RAG Pipeline、自适应检索 | [07-rag/](07-rag/) |
 | **08-工具调用** | 工具注册、编排、Function Calling | [08-tool/](08-tool/) |
 | **09-SPI** | 服务暴露、插件开发 | [09-spi/](09-spi/) |
-| **10-集成** | Spring Boot集成、配置参考、Skill集成 | [10-integration/](10-integration/) |
-| **11-最佳实践** | 开发规范、性能优化、安全建议 | [11-best-practices/](11-best-practices/) |
-| **12-参考** | API索引、错误码、版本历史 | [12-reference/](12-reference/) |
+| **10-集成** | Spring Boot集成、配置参考、Skill集成、Gitee发现器 | [10-integration/](10-integration/) |
+| **11-场景配置** | 场景配置加载、验证、激活 | [11-scene-config/](11-scene-config/) |
+| **12-最佳实践** | 开发规范、性能优化、安全建议 | [12-best-practices/](12-best-practices/) |
+| **13-参考** | API索引、错误码、版本历史 | [13-reference/](13-reference/) |
 
 ---
 
@@ -39,11 +40,18 @@
 - [RAG检索](07-rag/01-rag-pipeline.md)
 - [工具调用](08-tool/01-tool-registry.md)
 
+### 场景配置 (v2.3.1 新增)
+- [场景配置加载](11-scene-config/01-scene-config-loader.md)
+- [场景验证](11-scene-config/02-scene-validation.md)
+- [场景激活服务](11-scene-config/03-scene-activation.md)
+- [数据初始化流程](11-scene-config/04-scene-initialization-flow.md)
+
 ### 高级特性
 - [SPI服务暴露](09-spi/01-service-provider.md)
 - [Spring Boot集成](10-integration/01-spring-boot.md)
 - [Skill控制器工厂](10-integration/03-skill-controller-factory.md)
-- [性能优化](11-best-practices/02-performance.md)
+- [Gitee技能发现器](10-integration/04-gitee-discovery.md)
+- [性能优化](12-best-practices/02-performance.md)
 
 ---
 
@@ -53,11 +61,48 @@
 
 | 特性 | 说明 | 文档 |
 |------|------|------|
+| **场景配置加载** | 从 skill.yaml 加载场景配置 | [11-scene-config/01-scene-config-loader.md](11-scene-config/01-scene-config-loader.md) |
+| **场景配置验证** | 验证场景配置完整性 | [11-scene-config/02-scene-validation.md](11-scene-config/02-scene-validation.md) |
+| **场景激活服务** | 执行激活步骤、注册菜单 | [11-scene-config/03-scene-activation.md](11-scene-config/03-scene-activation.md) |
+| **审计服务适配器** | 统一审计服务接口 | [10-integration/05-audit-adapter.md](10-integration/05-audit-adapter.md) |
 | 术语服务 | 缩写扩展、同义词管理 | [05-terminology/](05-terminology/) |
 | 交互反馈 | 自动学习、知识库更新 | [06-feedback/](06-feedback/) |
 | SPI暴露 | Skill插件访问SE服务 | [09-spi/](09-spi/) |
 | 简化API | chat/chatWithTools/chatStream | [03-conversation/](03-conversation/) |
 | Skill控制器工厂 | 解决Skill非Spring Bean问题 | [10-integration/03-skill-controller-factory.md](10-integration/03-skill-controller-factory.md) |
+
+---
+
+## 新增枚举类型
+
+### SceneType (场景类型)
+
+**包路径**: `net.ooder.scene.skill.model.SceneType`
+
+| 值 | 说明 | 特性 |
+|----|------|------|
+| `AUTO` | 自主场景 | 自驱动运行，无需外部触发 |
+| `TRIGGER` | 触发场景 | 等待外部触发，被动响应 |
+| `HYBRID` | 混合场景 | 既可主动也可被动 |
+
+### SceneRunMode (场景运行模式)
+
+**包路径**: `net.ooder.skills.api.SceneRunMode` (skills-framework)
+
+| 值 | 说明 |
+|----|------|
+| `AUTO` | 自动运行模式 |
+| `TRIGGER` | 触发运行模式 |
+| `HYBRID` | 混合运行模式 |
+
+### SceneRoleType (场景角色类型)
+
+**包路径**: `net.ooder.skills.common.enums.SceneRoleType` (skills-framework)
+
+| 值 | 说明 |
+|----|------|
+| `PRIMARY` | 主角色 |
+| `COLLABORATIVE` | 协作角色 |
 
 ---
 

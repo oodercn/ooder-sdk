@@ -2,7 +2,7 @@ package net.ooder.skills.spi;
 
 import net.ooder.skills.api.SkillCategory;
 import net.ooder.skills.api.SkillForm;
-import net.ooder.skills.api.SceneType;
+import net.ooder.skills.api.SceneRunMode;
 
 import java.util.List;
 import java.util.Map;

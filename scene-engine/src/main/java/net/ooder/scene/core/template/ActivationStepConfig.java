@@ -1,6 +1,8 @@
 package net.ooder.scene.core.template;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,12 +20,15 @@ public class ActivationStepConfig implements Serializable {
     
     private String stepId;           // 步骤ID
     private String stepName;         // 步骤名称
+    private String name;             // 步骤名称（兼容字段）
     private String description;      // 步骤描述
     private String stepType;         // 步骤类型（如：CONFIRM_JOIN, CONFIG_CAPABILITY, CONFIRM_CONDITION）
     private int order;               // 执行顺序
     private boolean skippable;       // 是否可跳过
     private boolean required;        // 是否必需
+    private boolean autoExecute;     // 是否自动执行
     private String executorType;     // 执行器类型（用于查找对应的ActivationStepExecutor）
+    private List<String> privateCapabilities;  // 私有能力列表
     private Map<String, Object> config;  // 步骤配置参数
     
     public ActivationStepConfig() {
@@ -54,6 +59,14 @@ public class ActivationStepConfig implements Serializable {
     
     public void setStepName(String stepName) {
         this.stepName = stepName;
+    }
+    
+    public String getName() {
+        return name != null ? name : stepName;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
     }
     
     public String getDescription() {
@@ -96,12 +109,28 @@ public class ActivationStepConfig implements Serializable {
         this.required = required;
     }
     
+    public boolean isAutoExecute() {
+        return autoExecute;
+    }
+    
+    public void setAutoExecute(boolean autoExecute) {
+        this.autoExecute = autoExecute;
+    }
+    
     public String getExecutorType() {
         return executorType;
     }
     
     public void setExecutorType(String executorType) {
         this.executorType = executorType;
+    }
+    
+    public List<String> getPrivateCapabilities() {
+        return privateCapabilities != null ? privateCapabilities : new ArrayList<>();
+    }
+    
+    public void setPrivateCapabilities(List<String> privateCapabilities) {
+        this.privateCapabilities = privateCapabilities;
     }
     
     public Map<String, Object> getConfig() {

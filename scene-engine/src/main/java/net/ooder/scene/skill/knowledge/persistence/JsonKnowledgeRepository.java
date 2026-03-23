@@ -478,4 +478,14 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
     public void forceSave() {
         saveAllData();
     }
+
+    @Override
+    public int countSceneBindings(String kbId) {
+        return 0;
+    }
+
+    @Override
+    public List<String> findBoundScenes(String kbId) {
+        return new ArrayList<>();
+    }
 }

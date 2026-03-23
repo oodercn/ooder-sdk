@@ -130,7 +130,22 @@ public class CollaborativeGroupManagerImpl implements CollaborativeGroupManager 
     
     @Override
     public void syncToMain(String mainServiceId) {
-        log.info("Syncing collaborative info to main: {}", mainServiceId);
+        if (mainServiceId == null || mainServiceId.isEmpty()) {
+            log.warn("Cannot sync to main: mainServiceId is null or empty");
+            return;
+        }
+        
+        Map<String, Object> syncData = new HashMap<>();
+        syncData.put("groups", new ArrayList<>(groups.values()));
+        syncData.put("links", new ArrayList<>(links.values()));
+        syncData.put("syncTime", System.currentTimeMillis());
+        
+        log.info("Syncing collaborative info to main service: {} ({} groups, {} links)", 
+            mainServiceId, groups.size(), links.size());
+        
+        // TODO: 实现实际的同步机制（如消息队列、HTTP调用等）
+        // 当前仅记录日志，实际部署时需要注入 MainServiceClient 或消息发送器
+        log.debug("Sync data prepared: {}", syncData.keySet());
     }
     
     @Override

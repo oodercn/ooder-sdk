@@ -70,6 +70,32 @@ public class ActivationProcess implements Serializable {
     }
     
     /**
+     * 暂停流程
+     */
+    public void pause() {
+        if (this.status == ProcessStatus.EXECUTING) {
+            this.status = ProcessStatus.PAUSED;
+        }
+    }
+    
+    /**
+     * 恢复流程
+     */
+    public void resume() {
+        if (this.status == ProcessStatus.PAUSED) {
+            this.status = ProcessStatus.EXECUTING;
+        }
+    }
+    
+    /**
+     * 取消流程
+     */
+    public void cancel() {
+        this.status = ProcessStatus.CANCELLED;
+        this.completedAt = System.currentTimeMillis();
+    }
+    
+    /**
      * 添加步骤执行记录
      */
     public void addStepExecution(StepExecution step) {
@@ -118,6 +144,10 @@ public class ActivationProcess implements Serializable {
     
     public void setTemplateId(String templateId) {
         this.templateId = templateId;
+    }
+    
+    public String getSceneId() {
+        return templateId;
     }
     
     public String getSceneGroupId() {
@@ -210,6 +240,7 @@ public class ActivationProcess implements Serializable {
     public enum ProcessStatus {
         CREATED,      // 已创建
         EXECUTING,    // 执行中
+        PAUSED,       // 已暂停
         COMPLETED,    // 已完成
         FAILED,       // 失败
         CANCELLED     // 已取消

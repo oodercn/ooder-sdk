@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.ooder.skills.api.SceneGroupManager;
+import net.ooder.skills.api.CollaborativeSceneGroupManager;
 import net.ooder.skills.sync.Participant;
 import net.ooder.skills.sync.SkillBinding;
 import net.ooder.skills.sync.UserSceneGroup;
@@ -17,10 +17,10 @@ public class UserSceneGroupManagerImpl implements UserSceneGroupManager {
     
     private final Map<String, UserSceneGroup> sceneGroups;
     private final List<UserSceneGroupListener> listeners;
-    private final SceneGroupManager sdkSceneGroupManager;
+    private final CollaborativeSceneGroupManager sdkSceneGroupManager;
     private final SyncEventPublisher eventPublisher;
     
-    public UserSceneGroupManagerImpl(SceneGroupManager sdkSceneGroupManager) {
+    public UserSceneGroupManagerImpl(CollaborativeSceneGroupManager sdkSceneGroupManager) {
         this.sceneGroups = new ConcurrentHashMap<>();
         this.listeners = new ArrayList<>();
         this.sdkSceneGroupManager = sdkSceneGroupManager;

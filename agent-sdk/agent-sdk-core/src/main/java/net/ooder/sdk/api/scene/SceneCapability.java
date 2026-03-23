@@ -3,7 +3,7 @@ package net.ooder.sdk.api.scene;
 import java.util.List;
 import java.util.Map;
 
-import net.ooder.sdk.common.enums.SceneType;
+import net.ooder.skills.api.SceneType;
 import net.ooder.sdk.api.capability.Capability;
 
 /**

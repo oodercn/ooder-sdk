@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700px" height="300px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; font-size: 13px; fill: #334155; }
+        .text-title { font-size: 14px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+<!-- Title -->
+<rect class="title-box" x="20" y="15" width="660" height="35" rx="4"/>
+<text class="text-header" x="350" y="38" text-anchor="middle">CAP协议设计原则</text>
+
+<!-- Principle 1 -->
+<rect class="box" x="30" y="80" width="140" height="80"/>
+<text class="text-title" x="100" y="105" text-anchor="middle">1. 底层确定性</text>
+<text class="text" x="45" y="130">地址固定</text>
+<text class="text" x="45" y="148">枚举定义</text>
+
+<!-- Principle 2 -->
+<rect class="box" x="190" y="80" width="140" height="80"/>
+<text class="text-title" x="260" y="105" text-anchor="middle">2. 需求固定</text>
+<text class="text" x="205" y="130">范围固定</text>
+<text class="text" x="205" y="148">扩充需大版本</text>
+
+<!-- Principle 3 -->
+<rect class="box" x="350" y="80" width="140" height="80"/>
+<text class="text-title" x="420" y="105" text-anchor="middle">3. 输出最小化</text>
+<text class="text" x="365" y="130">一地址</text>
+<text class="text" x="365" y="148">一原子能力</text>
+
+<!-- Principle 4 -->
+<rect class="box" x="510" y="80" width="140" height="80"/>
+<text class="text-title" x="580" y="105" text-anchor="middle">4. 地址配置分离</text>
+<text class="text" x="525" y="130">地址编译确定</text>
+<text class="text" x="525" y="148">配置运行时</text>
+
+<!-- CAP Address Format -->
+<rect class="box" x="100" y="200" width="500" height="50"/>
+<text class="text-title" x="350" y="230" text-anchor="middle">cap://skillId/capabilityName</text>
+
+</svg>

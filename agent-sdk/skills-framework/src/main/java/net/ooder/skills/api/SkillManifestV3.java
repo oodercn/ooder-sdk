@@ -25,7 +25,7 @@ public class SkillManifestV3 {
     private SkillForm form;
     private SkillCategory category;
     private Set<ServicePurpose> purposes;
-    private SceneType sceneType;              // 可选，仅SCENE时
+    private SceneRunMode sceneType;              // 可选，仅SCENE时
     
     // ========== 能力声明 ==========
     private List<CapabilityDeclaration> capabilities;
@@ -68,8 +68,8 @@ public class SkillManifestV3 {
     public Set<ServicePurpose> getPurposes() { return purposes; }
     public void setPurposes(Set<ServicePurpose> purposes) { this.purposes = purposes; }
     
-    public SceneType getSceneType() { return sceneType; }
-    public void setSceneType(SceneType sceneType) { this.sceneType = sceneType; }
+    public SceneRunMode getSceneType() { return sceneType; }
+    public void setSceneType(SceneRunMode sceneType) { this.sceneType = sceneType; }
     
     public List<CapabilityDeclaration> getCapabilities() { return capabilities; }
     public void setCapabilities(List<CapabilityDeclaration> capabilities) { this.capabilities = capabilities; }

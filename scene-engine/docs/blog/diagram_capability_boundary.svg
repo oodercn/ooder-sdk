@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800px" height="500px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #64748b; stroke-width: 2; rx: 8; }
+        .box-erp { fill: #f1f5f9; stroke: #94a3b8; stroke-width: 2; rx: 8; }
+        .box-new { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-cap { fill: #dcfce7; stroke: #22c55e; stroke-width: 2; rx: 8; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .arrow-blue { fill: none; stroke: #2563eb; stroke-width: 2; marker-end: url(#arrowhead-blue); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; font-size: 12px; fill: #334155; }
+        .text-title { font-size: 14px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .text-small { font-size: 11px; fill: #64748b; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+        .title-box-gray { fill: #64748b; stroke: none; rx: 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+<!-- Title -->
+<rect class="title-box" x="20" y="15" width="760" height="35" rx="4"/>
+<text class="text-header" x="400" y="38" text-anchor="middle">传统软件功能边界 vs 技能化能力单元</text>
+
+<!-- Left: Traditional ERP -->
+<rect class="title-box-gray" x="30" y="65" width="350" height="30" rx="4"/>
+<text class="text-header" x="205" y="85" text-anchor="middle">传统ERP系统</text>
+
+<rect class="box-erp" x="30" y="100" width="80" height="70"/>
+<text class="text-title" x="70" y="125" text-anchor="middle">财务模块</text>
+<text class="text-small" x="40" y="145">• 记账</text>
+<text class="text-small" x="40" y="160">• 结算</text>
+
+<rect class="box-erp" x="120" y="100" width="80" height="70"/>
+<text class="text-title" x="160" y="125" text-anchor="middle">采购模块</text>
+<text class="text-small" x="130" y="145">• 询价</text>
+<text class="text-small" x="130" y="160">• 下单</text>
+
+<rect class="box-erp" x="210" y="100" width="80" height="70"/>
+<text class="text-title" x="250" y="125" text-anchor="middle">销售模块</text>
+<text class="text-small" x="220" y="145">• 报价</text>
+<text class="text-small" x="220" y="160">• 订单</text>
+
+<rect class="box-erp" x="300" y="100" width="80" height="70"/>
+<text class="text-title" x="340" y="125" text-anchor="middle">库存模块</text>
+<text class="text-small" x="310" y="145">• 入库</text>
+<text class="text-small" x="310" y="160">• 出库</text>
+
+<!-- Problem indicator -->
+<rect class="box" x="30" y="185" width="350" height="50"/>
+<text class="text-small" x="205" y="205" text-anchor="middle" fill="#dc2626">❌ 问题：功能边界交叉、重叠</text>
+<text class="text-small" x="205" y="225" text-anchor="middle" fill="#dc2626">"创建订单"属于销售还是采购？</text>
+
+<!-- Arrow -->
+<line class="arrow-blue" x1="400" y1="250" x2="450" y2="250"/>
+<text class="text-title" x="425" y="245" text-anchor="middle">技能化</text>
+
+<!-- Right: Capability Registry -->
+<rect class="title-box" x="420" y="65" width="350" height="30" rx="4"/>
+<text class="text-header" x="595" y="85" text-anchor="middle">能力注册中心</text>
+
+<rect class="box-cap" x="430" y="100" width="160" height="35"/>
+<text class="text-title" x="510" y="123" text-anchor="middle">cap://order/create</text>
+
+<rect class="box-cap" x="600" y="100" width="160" height="35"/>
+<text class="text-title" x="680" y="123" text-anchor="middle">cap://inventory/query</text>
+
+<rect class="box-cap" x="430" y="145" width="160" height="35"/>
+<text class="text-title" x="510" y="168" text-anchor="middle">cap://finance/settle</text>
+
+<rect class="box-cap" x="600" y="145" width="160" height="35"/>
+<text class="text-title" x="680" y="168" text-anchor="middle">cap://report/generate</text>
+
+<rect class="box-cap" x="430" y="190" width="160" height="35"/>
+<text class="text-title" x="510" y="213" text-anchor="middle">cap://purchase/order</text>
+
+<rect class="box-cap" x="600" y="190" width="160" height="35"/>
+<text class="text-title" x="680" y="213" text-anchor="middle">cap://stock/check</text>
+
+<!-- Solution indicator -->
+<rect class="box-new" x="420" y="240" width="350" height="50"/>
+<text class="text-small" x="595" y="260" text-anchor="middle" fill="#2563eb">✓ 每个能力有明确的边界和职责</text>
+<text class="text-small" x="595" y="280" text-anchor="middle" fill="#2563eb">✓ 能力之间通过CAP协议调用</text>
+
+<!-- Bottom comparison -->
+<text class="text-title" x="205" y="330" text-anchor="middle">传统方式</text>
+<text class="text" x="80" y="360">• 功能模块固化</text>
+<text class="text" x="80" y="385">• 边界模糊，职责不清</text>
+<text class="text" x="80" y="410">• 跨模块调用复杂</text>
+<text class="text" x="80" y="435">• 难以复用和组合</text>
+
+<text class="text-title" x="595" y="330" text-anchor="middle">技能化方式</text>
+<text class="text" x="470" y="360">• 能力原子化</text>
+<text class="text" x="470" y="385">• 边界清晰，职责单一</text>
+<text class="text" x="470" y="410">• CAP协议统一调用</text>
+<text class="text" x="470" y="435">• 可自由组合编排</text>
+
+</svg>

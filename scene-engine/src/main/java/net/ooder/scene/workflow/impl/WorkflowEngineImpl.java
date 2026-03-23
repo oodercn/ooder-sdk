@@ -3,6 +3,9 @@ package net.ooder.scene.workflow.impl;
 import net.ooder.sdk.api.agent.Agent;
 import net.ooder.sdk.api.agent.SceneAgent;
 import net.ooder.sdk.api.agent.WorkerAgent;
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.SceneEventType;
+import net.ooder.scene.event.workflow.WorkflowEvent;
 import net.ooder.scene.workflow.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,14 +22,23 @@ public class WorkflowEngineImpl implements WorkflowEngine {
     private final Map<String, WorkflowExecution> executions = new ConcurrentHashMap<>();
     private final ExecutorService executorService;
     private final AgentResolver agentResolver;
+    private final SceneEventPublisher eventPublisher;
     
     public WorkflowEngineImpl() {
-        this.executorService = Executors.newCachedThreadPool();
-        this.agentResolver = new DefaultAgentResolver();
+        this(null, null);
+    }
+    
+    public WorkflowEngineImpl(SceneEventPublisher eventPublisher) {
+        this(eventPublisher, null);
     }
     
     public WorkflowEngineImpl(AgentResolver agentResolver) {
+        this(null, agentResolver);
+    }
+    
+    public WorkflowEngineImpl(SceneEventPublisher eventPublisher, AgentResolver agentResolver) {
         this.executorService = Executors.newCachedThreadPool();
+        this.eventPublisher = eventPublisher;
         this.agentResolver = agentResolver != null ? agentResolver : new DefaultAgentResolver();
     }
     
@@ -52,6 +64,9 @@ public class WorkflowEngineImpl implements WorkflowEngine {
         
         long startTime = System.currentTimeMillis();
         log.info("Starting workflow execution: {} [{}]", definition.getName(), executionId);
+        
+        publishAuditEvent(SceneEventType.WORKFLOW_EXECUTED, definition.getWorkflowId(), 
+            definition.getName(), executionId, null, "started", null, true);
         
         try {
             context.setVariables(definition.getVariables());
@@ -86,6 +101,9 @@ public class WorkflowEngineImpl implements WorkflowEngine {
                         log.error("Step {} failed, stopping workflow: {}", 
                             step.getStepId(), stepResult.getErrorMessage());
                         execution.setEndTime(System.currentTimeMillis());
+                        publishAuditEvent(SceneEventType.WORKFLOW_FAILED, definition.getWorkflowId(), 
+                            definition.getName(), executionId, null, "failed", 
+                            stepResult.getErrorMessage(), false);
                         return WorkflowEngine.WorkflowResult.failure(executionId, definition.getWorkflowId(),
                             stepResult.getErrorMessage(), context.getStepResults(),
                             startTime, System.currentTimeMillis());
@@ -101,12 +119,16 @@ public class WorkflowEngineImpl implements WorkflowEngine {
             Map<String, Object> outputs = extractOutputs(definition, context);
             
             log.info("Workflow execution completed: {} [{}]", definition.getName(), executionId);
+            publishAuditEvent(SceneEventType.WORKFLOW_COMPLETED, definition.getWorkflowId(), 
+                definition.getName(), executionId, null, "completed", null, true);
             return WorkflowEngine.WorkflowResult.success(executionId, definition.getWorkflowId(),
                 context.getStepResults(), outputs, startTime, System.currentTimeMillis());
                 
         } catch (Exception e) {
             log.error("Workflow execution failed: {} [{}]", definition.getName(), executionId, e);
             execution.setEndTime(System.currentTimeMillis());
+            publishAuditEvent(SceneEventType.WORKFLOW_FAILED, definition.getWorkflowId(), 
+                definition.getName(), executionId, null, "failed", e.getMessage(), false);
             return WorkflowEngine.WorkflowResult.failure(executionId, definition.getWorkflowId(),
                 e.getMessage(), context.getStepResults(), startTime, System.currentTimeMillis());
         }
@@ -272,12 +294,18 @@ public class WorkflowEngineImpl implements WorkflowEngine {
     public void registerWorkflow(WorkflowDefinition definition) {
         workflows.put(definition.getWorkflowId(), definition);
         log.info("Workflow registered: {}", definition.getWorkflowId());
+        publishAuditEvent(SceneEventType.WORKFLOW_REGISTERED, definition.getWorkflowId(), 
+            definition.getName(), null, null, "registered", null, true);
     }
     
     @Override
     public void unregisterWorkflow(String workflowId) {
+        WorkflowDefinition definition = workflows.get(workflowId);
+        String workflowName = definition != null ? definition.getName() : null;
         workflows.remove(workflowId);
         log.info("Workflow unregistered: {}", workflowId);
+        publishAuditEvent(SceneEventType.WORKFLOW_UNREGISTERED, workflowId, workflowName, 
+            null, null, "unregistered", null, true);
     }
     
     @Override
@@ -293,17 +321,25 @@ public class WorkflowEngineImpl implements WorkflowEngine {
     @Override
     public void pause(String executionId) {
         log.info("Pausing workflow execution: {}", executionId);
+        WorkflowExecution execution = executions.get(executionId);
+        String workflowId = execution != null ? execution.getWorkflowId() : null;
+        publishAuditEvent(SceneEventType.WORKFLOW_PAUSED, workflowId, null, executionId, null, "paused", null, true);
     }
     
     @Override
     public void resume(String executionId) {
         log.info("Resuming workflow execution: {}", executionId);
+        WorkflowExecution execution = executions.get(executionId);
+        String workflowId = execution != null ? execution.getWorkflowId() : null;
+        publishAuditEvent(SceneEventType.WORKFLOW_RESUMED, workflowId, null, executionId, null, "resumed", null, true);
     }
     
     @Override
     public void cancel(String executionId) {
         log.info("Cancelling workflow execution: {}", executionId);
-        executions.remove(executionId);
+        WorkflowExecution execution = executions.remove(executionId);
+        String workflowId = execution != null ? execution.getWorkflowId() : null;
+        publishAuditEvent(SceneEventType.WORKFLOW_CANCELLED, workflowId, null, executionId, null, "cancelled", null, true);
     }
     
     @Override
@@ -341,6 +377,25 @@ public class WorkflowEngineImpl implements WorkflowEngine {
             }
         } catch (InterruptedException e) {
             executorService.shutdownNow();
+        }
+    }
+    
+    private void publishAuditEvent(SceneEventType eventType, String workflowId, String workflowName,
+                                   String executionId, String operatorId, String status, 
+                                   String errorMessage, boolean success) {
+        if (eventPublisher != null) {
+            WorkflowEvent event = WorkflowEvent.builder()
+                .source(this)
+                .eventType(eventType)
+                .workflowId(workflowId)
+                .workflowName(workflowName)
+                .executionId(executionId)
+                .operatorId(operatorId)
+                .status(status)
+                .errorMessage(errorMessage)
+                .success(success)
+                .build();
+            eventPublisher.publish(event);
         }
     }
 }

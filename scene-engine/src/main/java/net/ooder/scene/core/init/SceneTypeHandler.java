@@ -2,6 +2,7 @@ package net.ooder.scene.core.init;
 
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SceneGroupManager;
+import net.ooder.scene.skill.model.SceneType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,24 +136,5 @@ public class SceneTypeHandler {
         }
         
         return activated;
-    }
-    
-    /**
-     * 场景类型枚举
-     */
-    public enum SceneType {
-        AUTO("自主场景"),
-        TRIGGER("触发场景"),
-        HYBRID("混合场景");
-        
-        private final String description;
-        
-        SceneType(String description) {
-            this.description = description;
-        }
-        
-        public String getDescription() {
-            return description;
-        }
     }
 }

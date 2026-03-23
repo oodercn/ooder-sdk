@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ooder-index-web</artifactId>
-    <version>2.3.1</version>
+    <version>3.0.0</version>
     <groupId>net.ooder</groupId>
     <name>ooder-index-web</name>
     <description>Ooder index web module</description>
@@ -12,7 +12,7 @@
     <parent>
         <groupId>net.ooder</groupId>
         <artifactId>ooder-common-all</artifactId>
-        <version>2.3.1</version>
+        <version>3.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -20,17 +20,17 @@
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-common-client</artifactId>
-            <version>2.3.1</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-org-web</artifactId>
-            <version>2.3.1</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>8.11.2</version>
+            <version>9.10.0</version>
         </dependency>
     </dependencies>
 
@@ -39,9 +39,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>3.5.0</version>
                 <configuration>
-                    <source>1.8</source>
+                    <source>21</source>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
                     <failOnError>false</failOnError>
                     <charset>UTF-8</charset>

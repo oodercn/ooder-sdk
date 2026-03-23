@@ -13,6 +13,13 @@ import net.ooder.scene.event.engine.EngineEvent;
 import net.ooder.scene.event.scene.SceneAgentEvent;
 import net.ooder.scene.event.user.UserEvent;
 import net.ooder.scene.event.peer.PeerEvent;
+import net.ooder.scene.event.scenegroup.SceneGroupAuditEvent;
+import net.ooder.scene.event.org.OrganizationEvent;
+import net.ooder.scene.event.workflow.WorkflowEvent;
+import net.ooder.scene.event.asset.AssetAuditEvent;
+import net.ooder.scene.event.permission.PermissionAuditEvent;
+import net.ooder.scene.event.knowledge.KnowledgeBaseAuditEvent;
+import net.ooder.scene.event.share.ShareAuditEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -150,5 +157,92 @@ public class AuditEventListener {
                 event.getPeerId(),
                 event.getOldStatus(),
                 event.getNewStatus());
+    }
+    
+    @Async("sceneEventExecutor")
+    @EventListener
+    public void onSceneGroupAuditEvent(SceneGroupAuditEvent event) {
+        log.info("[AUDIT] {} - groupId={}, groupName={}, operatorId={}, participantId={}, success={}",
+                event.getEventType().getCode(),
+                event.getGroupId(),
+                event.getGroupName(),
+                event.getOperatorId(),
+                event.getParticipantId(),
+                event.isSuccess());
+    }
+    
+    @Async("sceneEventExecutor")
+    @EventListener
+    public void onOrganizationEvent(OrganizationEvent event) {
+        log.info("[AUDIT] {} - companyId={}, departmentId={}, userId={}, operatorId={}, success={}",
+                event.getEventType().getCode(),
+                event.getCompanyId(),
+                event.getDepartmentId(),
+                event.getUserId(),
+                event.getOperatorId(),
+                event.isSuccess());
+    }
+    
+    @Async("sceneEventExecutor")
+    @EventListener
+    public void onWorkflowEvent(WorkflowEvent event) {
+        log.info("[AUDIT] {} - workflowId={}, workflowName={}, executionId={}, operatorId={}, status={}, success={}",
+                event.getEventType().getCode(),
+                event.getWorkflowId(),
+                event.getWorkflowName(),
+                event.getExecutionId(),
+                event.getOperatorId(),
+                event.getStatus(),
+                event.isSuccess());
+    }
+    
+    @Async("sceneEventExecutor")
+    @EventListener
+    public void onAssetAuditEvent(AssetAuditEvent event) {
+        log.info("[AUDIT] {} - assetId={}, assetName={}, assetType={}, ownerId={}, success={}",
+                event.getEventType().getCode(),
+                event.getAssetId(),
+                event.getAssetName(),
+                event.getAssetType(),
+                event.getOwnerId(),
+                event.isSuccess());
+    }
+    
+    @Async("sceneEventExecutor")
+    @EventListener
+    public void onPermissionAuditEvent(PermissionAuditEvent event) {
+        log.info("[AUDIT] {} - kbId={}, userId={}, permission={}, grantedBy={}, success={}",
+                event.getEventType().getCode(),
+                event.getKbId(),
+                event.getUserId(),
+                event.getPermission(),
+                event.getGrantedBy(),
+                event.isSuccess());
+    }
+    
+    @Async("sceneEventExecutor")
+    @EventListener
+    public void onKnowledgeBaseAuditEvent(KnowledgeBaseAuditEvent event) {
+        log.info("[AUDIT] {} - kbId={}, kbName={}, ownerId={}, docId={}, action={}, success={}",
+                event.getEventType().getCode(),
+                event.getKbId(),
+                event.getKbName(),
+                event.getOwnerId(),
+                event.getDocId(),
+                event.getAction(),
+                event.isSuccess());
+    }
+    
+    @Async("sceneEventExecutor")
+    @EventListener
+    public void onShareAuditEvent(ShareAuditEvent event) {
+        log.info("[AUDIT] {} - shareId={}, shareCode={}, kbId={}, creatorId={}, action={}, success={}",
+                event.getEventType().getCode(),
+                event.getShareId(),
+                event.getShareCode(),
+                event.getKbId(),
+                event.getCreatorId(),
+                event.getAction(),
+                event.isSuccess());
     }
 }

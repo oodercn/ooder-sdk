@@ -12,14 +12,14 @@ import java.util.Map;
  */
 public class SceneConfigV3 {
 
-    private SceneType sceneType;
+    private SceneRunMode sceneType;
     private OrchestrationConfig orchestration;
     private List<String> internalCapabilities;
     private List<String> childSkills;
     private Map<String, Object> params;
 
-    public SceneType getSceneType() { return sceneType; }
-    public void setSceneType(SceneType sceneType) { this.sceneType = sceneType; }
+    public SceneRunMode getSceneType() { return sceneType; }
+    public void setSceneType(SceneRunMode sceneType) { this.sceneType = sceneType; }
 
     public OrchestrationConfig getOrchestration() { return orchestration; }
     public void setOrchestration(OrchestrationConfig orchestration) { this.orchestration = orchestration; }

@@ -226,4 +226,14 @@ public class InMemoryKnowledgeRepository implements KnowledgeRepository {
         Map<String, Document> kbDocs = documents.get(kbId);
         return kbDocs != null ? kbDocs.size() : 0;
     }
+
+    @Override
+    public int countSceneBindings(String kbId) {
+        return 0;
+    }
+
+    @Override
+    public List<String> findBoundScenes(String kbId) {
+        return new ArrayList<>();
+    }
 }

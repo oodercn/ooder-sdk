@@ -18,7 +18,10 @@ import net.ooder.common.CommonConfig;
 import net.ooder.common.JDSConstants;
 import net.ooder.common.logging.Log;
 import net.ooder.common.logging.LogFactory;
-import redis.clients.jedis.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisSentinelPool;
 
 import java.io.*;
 import java.util.HashMap;
@@ -47,7 +50,7 @@ public class RedisPoolUtil {
 
     private int TIMEOUT = 1000;
 
-    private JedisPoolAbstract POOL = null;
+    private Object POOL = null;
 
     private String REDISKEY = "REDIS";
 
@@ -126,7 +129,12 @@ public class RedisPoolUtil {
         if (POOL == null) {
             try {
                 init();
-                return POOL.getResource();
+                if (POOL instanceof JedisPool) {
+                    return ((JedisPool) POOL).getResource();
+                } else if (POOL instanceof JedisSentinelPool) {
+                    return ((JedisSentinelPool) POOL).getResource();
+                }
+                return new Jedis(SERVER_URL, 6379);
             } catch (final Exception e) {
                 e.printStackTrace();
                 System.out.println("新建redis连接");
@@ -138,7 +146,12 @@ public class RedisPoolUtil {
         //        System.out.println("当前活跃连接数：" + POOL.getNumActive());
         //        return POOL.getResource();
         //        final Jedis jedis = new Jedis(SERVER_URL,6379);
-        return POOL.getResource();
+        if (POOL instanceof JedisPool) {
+            return ((JedisPool) POOL).getResource();
+        } else if (POOL instanceof JedisSentinelPool) {
+            return ((JedisSentinelPool) POOL).getResource();
+        }
+        return new Jedis(SERVER_URL, 6379);
     }
 
     /**

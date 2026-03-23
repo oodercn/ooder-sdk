@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>ooder-common-all</artifactId>
-    <version>2.3.1</version>
+    <version>3.0.0</version>
     <packaging>pom</packaging>
 
     <name>ooder-common-all</name>
@@ -49,8 +49,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <maven.javadoc.skip>false</maven.javadoc.skip>
         <maven.source.skip>false</maven.source.skip>
@@ -58,21 +58,29 @@
 
         <!-- 依赖版本管理 -->
         <freemarker.version>2.3.32</freemarker.version>
-        <ognl.version>3.1.29</ognl.version>
+        <ognl.version>3.3.4</ognl.version>
         <jdom.version>2.0.6.1</jdom.version>
-        <jedis.version>3.9.0</jedis.version>
-        <spring.version>5.3.30</spring.version>
-        <mvel2.version>2.4.4.Final</mvel2.version>
-        <httpcomponents.version>4.5.13</httpcomponents.version>
+        <jedis.version>5.1.2</jedis.version>
+        <spring.version>6.1.5</spring.version>
+        <mvel2.version>2.5.2.Final</mvel2.version>
+        <httpcomponents.version>4.5.14</httpcomponents.version>
         <httpcore-nio.version>4.4.16</httpcore-nio.version>
         <pinyin4j.version>2.5.1</pinyin4j.version>
-        <hsqldb.version>2.5.0</hsqldb.version>
-        <javax-persistence.version>2.2</javax-persistence.version>
+        <hsqldb.version>2.7.2</hsqldb.version>
+        <jakarta-persistence.version>3.1.0</jakarta-persistence.version>
         <commons-fileupload.version>1.5</commons-fileupload.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Boot 3.2.x 依赖管理 - 处理 Jakarta EE 迁移 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.2.4</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
@@ -149,14 +157,20 @@
                 <version>${hsqldb.version}</version>
             </dependency>
             <dependency>
-                <groupId>javax.persistence</groupId>
-                <artifactId>javax.persistence-api</artifactId>
-                <version>${javax-persistence.version}</version>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>${jakarta-persistence.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-fileupload</groupId>
                 <artifactId>commons-fileupload</artifactId>
                 <version>${commons-fileupload.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>servlet-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>
@@ -230,13 +244,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.11.0</version>
                 <configuration>
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>21</source>
+                    <target>21</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -244,7 +258,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -258,9 +272,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>3.5.0</version>
                 <configuration>
-                    <source>8</source>
+                    <source>21</source>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
                     <failOnError>false</failOnError>
                     <charset>UTF-8</charset>

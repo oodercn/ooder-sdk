@@ -11,7 +11,7 @@
     <parent>
         <groupId>net.ooder</groupId>
         <artifactId>ooder-common-all</artifactId>
-        <version>2.3.1</version>
+        <version>3.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -20,12 +20,12 @@
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-common-client</artifactId>
-            <version>2.3.1</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>4.0.1</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -33,10 +33,11 @@
             <artifactId>spring-context</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!-- Apache Commons FileUpload 暂时禁用 - 需要 Jakarta EE 兼容版本 -->
+        <!--dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore-nio</artifactId>
@@ -49,9 +50,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>3.5.0</version>
                 <configuration>
-                    <source>1.8</source>
+                    <source>21</source>
                     <additionalJOption>-Xdoclint:none</additionalJOption>
                     <failOnError>false</failOnError>
                     <charset>UTF-8</charset>

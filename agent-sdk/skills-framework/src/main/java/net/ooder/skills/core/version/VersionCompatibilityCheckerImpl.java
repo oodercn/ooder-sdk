@@ -261,20 +261,121 @@ public class VersionCompatibilityCheckerImpl implements VersionCompatibilityChec
      * 检查多个版本范围是否有交集
      */
     private boolean checkVersionIntersection(List<String> versionRanges) {
-        // 简化实现：检查是否有共同的版本
-        // 实际实现可能需要更复杂的语义版本解析
-        
         if (versionRanges.size() < 2) {
             return true;
         }
         
-        // 解析所有范围
         List<VersionRange> ranges = versionRanges.stream()
             .map(this::parseVersionRange)
             .collect(Collectors.toList());
         
-        // 使用一个测试版本检查是否满足所有范围
-        // 这里简化处理，实际应该计算范围的交集
-        return true; // 假设有交集，实际实现需要更复杂的逻辑
+        String lowerBound = null;
+        String upperBound = null;
+        boolean lowerInclusive = true;
+        boolean upperInclusive = true;
+        
+        for (VersionRange range : ranges) {
+            List<VersionRange.VersionConstraint> constraints = range.getConstraints();
+            if (constraints == null || constraints.isEmpty()) {
+                continue;
+            }
+            
+            for (VersionRange.VersionConstraint constraint : constraints) {
+                String version = constraint.getVersion();
+                VersionRange.VersionConstraint.Operator op = constraint.getOperator();
+                
+                switch (op) {
+                    case EQ:
+                        if (lowerBound == null) {
+                            lowerBound = version;
+                            upperBound = version;
+                            lowerInclusive = true;
+                            upperInclusive = true;
+                        } else {
+                            if (compareVersions(version, lowerBound) < 0 || 
+                                compareVersions(version, upperBound) > 0) {
+                                return false;
+                            }
+                        }
+                        break;
+                    case GTE:
+                    case GT:
+                        boolean inclusive = (op == VersionRange.VersionConstraint.Operator.GTE);
+                        if (lowerBound == null || compareVersions(version, lowerBound) > 0 ||
+                            (compareVersions(version, lowerBound) == 0 && !lowerInclusive)) {
+                            lowerBound = version;
+                            lowerInclusive = inclusive;
+                        } else if (compareVersions(version, lowerBound) == 0 && inclusive) {
+                            lowerInclusive = true;
+                        }
+                        break;
+                    case LTE:
+                    case LT:
+                        inclusive = (op == VersionRange.VersionConstraint.Operator.LTE);
+                        if (upperBound == null || compareVersions(version, upperBound) < 0 ||
+                            (compareVersions(version, upperBound) == 0 && !upperInclusive)) {
+                            upperBound = version;
+                            upperInclusive = inclusive;
+                        } else if (compareVersions(version, upperBound) == 0 && inclusive) {
+                            upperInclusive = true;
+                        }
+                        break;
+                    case TILDE:
+                        if (lowerBound == null || compareVersions(version, lowerBound) > 0) {
+                            lowerBound = version;
+                            lowerInclusive = true;
+                        }
+                        String tildeUpper = incrementMinorVersion(version);
+                        if (upperBound == null || compareVersions(tildeUpper, upperBound) < 0) {
+                            upperBound = tildeUpper;
+                            upperInclusive = false;
+                        }
+                        break;
+                    case CARET:
+                        if (lowerBound == null || compareVersions(version, lowerBound) > 0) {
+                            lowerBound = version;
+                            lowerInclusive = true;
+                        }
+                        String caretUpper = incrementMajorVersion(version);
+                        if (upperBound == null || compareVersions(caretUpper, upperBound) < 0) {
+                            upperBound = caretUpper;
+                            upperInclusive = false;
+                        }
+                        break;
+                }
+            }
+        }
+        
+        if (lowerBound == null || upperBound == null) {
+            return true;
+        }
+        
+        int cmp = compareVersions(lowerBound, upperBound);
+        if (cmp > 0) {
+            return false;
+        }
+        if (cmp == 0 && (!lowerInclusive || !upperInclusive)) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    private String incrementMinorVersion(String version) {
+        String[] parts = version.split("\\.");
+        if (parts.length >= 2) {
+            int minor = Integer.parseInt(parts[1]) + 1;
+            return parts[0] + "." + minor + ".0";
+        }
+        return version;
+    }
+    
+    private String incrementMajorVersion(String version) {
+        String[] parts = version.split("\\.");
+        if (parts.length >= 1) {
+            int major = Integer.parseInt(parts[0]) + 1;
+            return major + ".0.0";
+        }
+        return version;
     }
 }

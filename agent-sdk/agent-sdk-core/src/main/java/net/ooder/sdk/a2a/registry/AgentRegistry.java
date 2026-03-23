@@ -47,6 +47,14 @@ public interface AgentRegistry {
     CompletableFuture<Boolean> heartbeat(String agentId);
 
     /**
+     * 获取 Agent 状态
+     *
+     * @param agentId Agent ID
+     * @return Agent 状态
+     */
+    AgentInfo.AgentStatus getAgentStatus(String agentId);
+
+    /**
      * 获取 Agent 信息
      *
      * @param agentId Agent ID

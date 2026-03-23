@@ -60,9 +60,9 @@ public class SkillYamlParserV3 {
         return SkillForm.valueOf(value.toUpperCase());
     }
 
-    private SceneType parseSceneType(String value) {
+    private SceneRunMode parseSceneType(String value) {
         if (value == null) return null;
-        return SceneType.valueOf(value.toUpperCase());
+        return SceneRunMode.valueOf(value.toUpperCase());
     }
 
     private SkillCategory parseSkillCategory(String value) {

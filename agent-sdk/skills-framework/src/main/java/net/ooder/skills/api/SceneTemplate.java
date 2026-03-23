@@ -45,6 +45,15 @@ public class SceneTemplate {
     // 能力链定义（原工作流）
     private List<CapabilityChainDef> capabilityChains;
 
+    // 角色配置列表 (v2.3.1 新增)
+    private List<RoleConfig> roles;
+
+    // 激活步骤配置列表 (v2.3.1 新增)
+    private List<ActivationStepConfig> activationSteps;
+
+    // 菜单配置列表 (v2.3.1 新增)
+    private List<MenuConfig> menus;
+
     // Getters and Setters
     public String getTemplateId() {
         return templateId;
@@ -202,6 +211,30 @@ public class SceneTemplate {
      */
     public void setCapabilityChains(List<CapabilityChainDef> capabilityChains) {
         this.capabilityChains = capabilityChains;
+    }
+
+    public List<RoleConfig> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<RoleConfig> roles) {
+        this.roles = roles;
+    }
+
+    public List<ActivationStepConfig> getActivationSteps() {
+        return activationSteps;
+    }
+
+    public void setActivationSteps(List<ActivationStepConfig> activationSteps) {
+        this.activationSteps = activationSteps;
+    }
+
+    public List<MenuConfig> getMenus() {
+        return menus;
+    }
+
+    public void setMenus(List<MenuConfig> menus) {
+        this.menus = menus;
     }
 
     /**

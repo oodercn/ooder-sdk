@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700px" height="300px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #64748b; stroke-width: 2; rx: 8; }
+        .box-core { fill: #fef2f2; stroke: #dc2626; stroke-width: 2; rx: 8; }
+        .box-api { fill: #f1f5f9; stroke: #94a3b8; stroke-width: 2; rx: 8; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; font-size: 12px; fill: #334155; }
+        .text-title { font-size: 13px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+<!-- Title -->
+<rect class="title-box" x="20" y="15" width="660" height="35" rx="4"/>
+<text class="text-header" x="350" y="38" text-anchor="middle">传统单体Agent架构</text>
+
+<!-- API Boxes -->
+<rect class="box-api" x="50" y="80" width="100" height="50"/>
+<text class="text-title" x="100" y="110" text-anchor="middle">天气API</text>
+
+<rect class="box-api" x="200" y="80" width="100" height="50"/>
+<text class="text-title" x="250" y="110" text-anchor="middle">邮件API</text>
+
+<rect class="box-api" x="350" y="80" width="100" height="50"/>
+<text class="text-title" x="400" y="110" text-anchor="middle">日历API</text>
+
+<rect class="box-api" x="500" y="80" width="100" height="50"/>
+<text class="text-title" x="550" y="110" text-anchor="middle">文档API</text>
+
+<text class="text" x="620" y="105">...</text>
+
+<!-- Arrows to core -->
+<line class="arrow" x1="100" y1="130" x2="100" y2="160"/>
+<line class="arrow" x1="250" y1="130" x2="250" y2="160"/>
+<line class="arrow" x1="400" y1="130" x2="400" y2="160"/>
+<line class="arrow" x1="550" y1="130" x2="550" y2="160"/>
+
+<!-- Core -->
+<rect class="box-core" x="100" y="170" width="450" height="60"/>
+<text class="text-title" x="325" y="195" text-anchor="middle">Agent核心 (单点故障)</text>
+<text class="text" x="200" y="215" text-anchor="middle">所有能力耦合在一个进程中</text>
+
+<!-- Problems -->
+<rect class="box" x="50" y="250" width="600" height="40"/>
+<text class="text" x="350" y="275" text-anchor="middle">问题：无法独立部署 | 资源竞争 | 扩展困难 | 故障传播</text>
+
+</svg>

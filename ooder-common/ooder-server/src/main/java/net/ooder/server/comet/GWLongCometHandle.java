@@ -11,8 +11,8 @@ import net.ooder.msg.Msg;
 import net.ooder.server.JDSClientService;
 import net.ooder.server.JDSServer;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

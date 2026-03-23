@@ -38,7 +38,7 @@ import java.util.List;
  * @version 2.3
  * @since 0.7.0
  * @see SessionInfo
- * @see TokenManager
+ * @see AuthManager
  */
 public interface SessionManager {
 

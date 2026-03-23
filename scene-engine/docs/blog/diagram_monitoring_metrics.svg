@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" width="700px" height="350px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-call { fill: #dbeafe; stroke: #1e40af; stroke-width: 2; rx: 8; }
+        .box-resource { fill: #dcfce7; stroke: #22c55e; stroke-width: 2; rx: 8; }
+        .box-error { fill: #fef2f2; stroke: #dc2626; stroke-width: 2; rx: 8; }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; font-size: 12px; fill: #334155; }
+        .text-title { font-size: 13px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+    </style>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+<!-- Title -->
+<rect class="title-box" x="20" y="15" width="660" height="35" rx="4"/>
+<text class="text-header" x="350" y="38" text-anchor="middle">能力监控指标</text>
+
+<!-- Call Metrics -->
+<rect class="box-call" x="50" y="80" width="180" height="100"/>
+<text class="text-title" x="140" y="105" text-anchor="middle">调用指标</text>
+<text class="text" x="65" y="130">• 调用次数 (call_count)</text>
+<text class="text" x="65" y="150">• 成功率 (success_rate)</text>
+<text class="text" x="65" y="170">• 平均响应时间</text>
+
+<!-- Resource Metrics -->
+<rect class="box-resource" x="260" y="80" width="180" height="100"/>
+<text class="text-title" x="350" y="105" text-anchor="middle">资源指标</text>
+<text class="text" x="275" y="130">• CPU使用率</text>
+<text class="text" x="275" y="150">• 内存使用量</text>
+<text class="text" x="275" y="170">• 连接池使用率</text>
+
+<!-- Error Metrics -->
+<rect class="box-error" x="470" y="80" width="180" height="100"/>
+<text class="text-title" x="560" y="105" text-anchor="middle">错误指标</text>
+<text class="text" x="485" y="130">• 错误次数</text>
+<text class="text" x="485" y="150">• 错误类型分布</text>
+<text class="text" x="485" y="170">• 超时次数</text>
+
+<!-- Bottom summary -->
+<rect class="box" x="50" y="220" width="600" height="80"/>
+<text class="text-title" x="350" y="245" text-anchor="middle">监控告警</text>
+<text class="text" x="80" y="270">• 实时监控能力健康状态</text>
+<text class="text" x="80" y="290">• 自动告警与故障恢复</text>
+<text class="text" x="400" y="270">• 性能趋势分析与预测</text>
+<text class="text" x="400" y="290">• 多维度指标聚合展示</text>
+
+</svg>

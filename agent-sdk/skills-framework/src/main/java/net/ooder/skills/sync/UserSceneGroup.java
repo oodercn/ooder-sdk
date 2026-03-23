@@ -10,14 +10,15 @@ public interface UserSceneGroup {
     String getSceneId();
     
     default String getUserId() {
-        return null;
+        throw new UnsupportedOperationException("getUserId() not implemented");
     }
     
     default Participant.Role getRole() {
-        return null;
+        throw new UnsupportedOperationException("getRole() not implemented");
     }
     
     default void setRole(Participant.Role role) {
+        throw new UnsupportedOperationException("setRole() not implemented");
     }
     
     Participant addCollaborator(String userId, Participant.Role role);
@@ -64,19 +65,23 @@ public interface UserSceneGroup {
     List<KnowledgeBinding> getKnowledgeBaseBindings();
     
     default Map<String, Object> getPersonalContext() {
-        return java.util.Collections.emptyMap();
+        throw new UnsupportedOperationException("getPersonalContext() not implemented");
     }
     
     default void setPersonalContext(String key, Object value) {
+        throw new UnsupportedOperationException("setPersonalContext() not implemented");
     }
     
     default void removePersonalContext(String key) {
+        throw new UnsupportedOperationException("removePersonalContext() not implemented");
     }
     
     default void syncToSceneGroup() {
+        throw new UnsupportedOperationException("syncToSceneGroup() not implemented");
     }
     
     default void syncFromSceneGroup() {
+        throw new UnsupportedOperationException("syncFromSceneGroup() not implemented");
     }
     
     void activate();

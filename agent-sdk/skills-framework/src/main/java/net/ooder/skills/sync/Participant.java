@@ -123,4 +123,45 @@ public class Participant {
     public boolean isManager() {
         return role == Role.OWNER || role == Role.MANAGER;
     }
+
+    private String sessionToken;
+    private AgentCapabilities capabilities;
+    private long sessionExpireTime;
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public void setSessionToken(String sessionToken) {
+        this.sessionToken = sessionToken;
+    }
+
+    public AgentCapabilities getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(AgentCapabilities capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    public long getSessionExpireTime() {
+        return sessionExpireTime;
+    }
+
+    public void setSessionExpireTime(long sessionExpireTime) {
+        this.sessionExpireTime = sessionExpireTime;
+    }
+
+    public boolean isSessionExpired() {
+        return sessionExpireTime > 0 && System.currentTimeMillis() > sessionExpireTime;
+    }
+
+    public boolean hasValidSession() {
+        return sessionToken != null && !sessionToken.isEmpty() && !isSessionExpired();
+    }
+
+    public void refreshSession(long newExpireTime) {
+        this.lastActiveTime = System.currentTimeMillis();
+        this.sessionExpireTime = newExpireTime;
+    }
 }

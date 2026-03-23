@@ -3,6 +3,7 @@ package net.ooder.skills.core.lifecycle;
 
 public enum SkillState {
     
+    DISCOVERED("discovered", "Skill has been discovered but not yet installed"),
     CREATED("created", "Skill has been created"),
     INITIALIZING("initializing", "Skill is initializing"),
     INITIALIZED("initialized", "Skill has been initialized"),

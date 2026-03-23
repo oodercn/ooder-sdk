@@ -16,14 +16,14 @@ public class ProtocolAdapterTest {
     private LoginProtocolAdapter loginAdapter;
     private DiscoveryProtocolAdapter discoveryAdapter;
     private SessionManagerImpl sessionManager;
-    private TokenManagerImpl tokenManager;
+    private TokenManagerImpl authManager;
 
     @BeforeEach
     public void setup() {
         sessionManager = new SessionManagerImpl();
-        tokenManager = new TokenManagerImpl();
+        authManager = new TokenManagerImpl();
         
-        loginAdapter = new LoginProtocolAdapterImpl(sessionManager, tokenManager);
+        loginAdapter = new LoginProtocolAdapterImpl(sessionManager, authManager);
         discoveryAdapter = new DiscoveryProtocolAdapterImpl();
     }
 

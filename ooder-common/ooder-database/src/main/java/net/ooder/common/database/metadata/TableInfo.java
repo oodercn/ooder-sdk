@@ -18,7 +18,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import net.ooder.common.cache.CacheSizes;
 import net.ooder.common.cache.Cacheable;
 
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
 import java.util.*;
 

@@ -1,0 +1,42 @@
+# 密钥管理配置示例
+# 将以下配置添加到 application.yml 文件中
+
+scene:
+  engine:
+    key:
+      management:
+        # 是否启用密钥管理
+        enabled: true
+        
+        # 默认是否需要审批
+        default-require-approval: false
+        
+        # 密钥默认有效期(秒)，默认1天
+        default-expires-in-seconds: 86400
+        
+        # 密钥默认最大使用次数，0表示无限制
+        default-max-use-count: 0
+        
+        # 密钥值加密密钥（生产环境请修改）
+        encryption-key: ooder-default-encryption-key
+        
+        # 存储配置
+        storage:
+          # 存储根目录
+          root: data/keys
+          # 锁清理间隔(秒)
+          lock-cleanup-interval: 3600
+          # 数据过期天数
+          data-expiration-days: 30
+          
+        # 审批配置
+        approval:
+          # 审批超时时间(小时)
+          timeout-hours: 24
+          # 是否发送审批通知
+          enable-notification: true
+
+# 日志配置
+logging:
+  level:
+    net.ooder.scene.security: DEBUG

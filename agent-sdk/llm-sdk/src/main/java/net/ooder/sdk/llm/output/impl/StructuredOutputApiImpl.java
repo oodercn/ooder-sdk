@@ -12,11 +12,44 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 结构化输出 API 实现
+ *
+ * @version 2.3.1
+ * @since 2.3.1
  */
 @Slf4j
 public class StructuredOutputApiImpl implements StructuredOutputApi {
 
     private final Map<String, Map<String, Object>> schemaRegistry = new ConcurrentHashMap<>();
+
+    @Override
+    public <T> T structuredOutput(StructuredChatRequest request, Class<T> responseType) {
+        if (request.getResponseSchema() == null) {
+            throw new IllegalArgumentException("ResponseSchema is required in request");
+        }
+
+        String schemaId = registerSchemaFromRequest(request.getResponseSchema());
+        StructuredResponse<T> response = executeStructuredRequest(request, schemaId, responseType, 3);
+
+        if (!response.isValid()) {
+            throw new StructuredOutputException("Failed to get valid structured output: " + response.getValidationErrors());
+        }
+
+        return response.getData();
+    }
+
+    @Override
+    public <T> T structuredOutputWithValidation(StructuredChatRequest request, ResponseSchema responseSchema, OutputValidator<T> validator) {
+        T result = structuredOutput(request, (Class<T>) Object.class);
+
+        if (validator != null) {
+            ValidationResult validationResult = validator.validate(result);
+            if (!validationResult.isValid()) {
+                throw new StructuredOutputException("Validation failed: " + validationResult.getErrors());
+            }
+        }
+
+        return result;
+    }
 
     @Override
     public void registerSchema(String schemaId, Map<String, Object> schema) {
@@ -25,6 +58,16 @@ public class StructuredOutputApiImpl implements StructuredOutputApi {
         }
         schemaRegistry.put(schemaId, new HashMap<>(schema));
         log.info("Schema registered: {}", schemaId);
+    }
+
+    @Override
+    public void registerSchema(String schemaId, ResponseSchema schema) {
+        if (schemaId == null || schema == null) {
+            throw new IllegalArgumentException("SchemaId and schema cannot be null");
+        }
+        Map<String, Object> schemaMap = convertResponseSchemaToMap(schema);
+        schemaRegistry.put(schemaId, schemaMap);
+        log.info("ResponseSchema registered: {}", schemaId);
     }
 
     @Override
@@ -286,5 +329,79 @@ public class StructuredOutputApiImpl implements StructuredOutputApi {
             default:
                 return null;
         }
+    }
+
+    private String registerSchemaFromRequest(ResponseSchema schema) {
+        String schemaId = "schema_" + UUID.randomUUID().toString().substring(0, 8);
+        registerSchema(schemaId, schema);
+        return schemaId;
+    }
+
+    private <T> StructuredResponse<T> executeStructuredRequest(StructuredChatRequest request, String schemaId, Class<T> type, int maxRetries) {
+        ToolChatRequest toolRequest = convertToToolChatRequest(request);
+        return chatStructured(toolRequest, schemaId, type, maxRetries);
+    }
+
+    private ToolChatRequest convertToToolChatRequest(StructuredChatRequest request) {
+        return ToolChatRequest.builder()
+                .sessionId(request.getConversationId())
+                .userInput(extractUserInput(request.getMessages()))
+                .modelConfig(ToolChatRequest.ModelConfig.builder()
+                        .modelId(request.getModel())
+                        .temperature(request.getTemperature())
+                        .maxTokens(request.getMaxTokens())
+                        .build())
+                .build();
+    }
+
+    private String extractUserInput(List<StructuredChatRequest.Message> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return "";
+        }
+        return messages.stream()
+                .filter(m -> m.getRole() == StructuredChatRequest.MessageRole.USER)
+                .map(StructuredChatRequest.Message::getContent)
+                .reduce("", (a, b) -> a + "\n" + b);
+    }
+
+    private Map<String, Object> convertResponseSchemaToMap(ResponseSchema schema) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", schema.getType());
+        map.put("description", schema.getDescription());
+        
+        if (schema.getProperties() != null) {
+            Map<String, Object> properties = new HashMap<>();
+            for (ResponseSchema.SchemaProperty prop : schema.getProperties()) {
+                properties.put(prop.getName(), convertSchemaPropertyToMap(prop));
+            }
+            map.put("properties", properties);
+        }
+        
+        if (schema.getRequired() != null) {
+            map.put("required", schema.getRequired());
+        }
+        
+        return map;
+    }
+
+    private Map<String, Object> convertSchemaPropertyToMap(ResponseSchema.SchemaProperty prop) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", prop.getType());
+        map.put("description", prop.getDescription());
+        map.put("default", prop.getDefaultValue());
+        
+        if (prop.getEnumValues() != null) {
+            map.put("enum", prop.getEnumValues());
+        }
+        
+        if (prop.getNestedProperties() != null) {
+            Map<String, Object> nestedProps = new HashMap<>();
+            for (ResponseSchema.SchemaProperty nested : prop.getNestedProperties()) {
+                nestedProps.put(nested.getName(), convertSchemaPropertyToMap(nested));
+            }
+            map.put("properties", nestedProps);
+        }
+        
+        return map;
     }
 }

@@ -2,6 +2,9 @@ package net.ooder.scene.org.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.SceneEventType;
+import net.ooder.scene.event.org.OrganizationEvent;
 import net.ooder.scene.org.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,15 +32,21 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     
     private final ObjectMapper objectMapper;
     private final File dataDir;
+    private final SceneEventPublisher eventPublisher;
     
     private final Map<String, OrgCompany> companies = new ConcurrentHashMap<>();
     private final Map<String, OrgDepartment> departments = new ConcurrentHashMap<>();
     private final Map<String, OrgUser> users = new ConcurrentHashMap<>();
     
     public JsonOrganizationServiceImpl(String dataPath) {
+        this(dataPath, null);
+    }
+    
+    public JsonOrganizationServiceImpl(String dataPath, SceneEventPublisher eventPublisher) {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.dataDir = new File(dataPath);
+        this.eventPublisher = eventPublisher;
         
         if (!dataDir.exists()) {
             dataDir.mkdirs();
@@ -143,6 +152,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             saveCompanies();
             
             log.info("Created company: {} ({})", company.getName(), companyId);
+            publishAuditEvent(SceneEventType.ORG_COMPANY_CREATED, companyId, company.getName(), null, null, null, true);
             return company;
         });
     }
@@ -166,6 +176,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             company.setUpdateTime(System.currentTimeMillis());
             
             saveCompanies();
+            publishAuditEvent(SceneEventType.ORG_COMPANY_UPDATED, companyId, company.getName(), null, null, null, true);
             return company;
         });
     }
@@ -173,6 +184,9 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     @Override
     public CompletableFuture<Void> deleteCompany(String companyId) {
         return CompletableFuture.runAsync(() -> {
+            OrgCompany company = companies.get(companyId);
+            String companyName = company != null ? company.getName() : null;
+            
             companies.remove(companyId);
             departments.values().removeIf(d -> companyId.equals(d.getCompanyId()));
             users.values().removeIf(u -> companyId.equals(u.getCompanyId()));
@@ -182,6 +196,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             saveUsers();
             
             log.info("Deleted company: {}", companyId);
+            publishAuditEvent(SceneEventType.ORG_COMPANY_DELETED, companyId, companyName, null, null, null, true);
         });
     }
     
@@ -205,6 +220,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             saveDepartments();
             
             log.info("Created department: {} ({})", dept.getName(), deptId);
+            publishAuditEvent(SceneEventType.ORG_DEPARTMENT_CREATED, request.getCompanyId(), null, deptId, dept.getName(), null, true);
             return dept;
         });
     }
@@ -226,6 +242,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             dept.setUpdateTime(System.currentTimeMillis());
             
             saveDepartments();
+            publishAuditEvent(SceneEventType.ORG_DEPARTMENT_UPDATED, dept.getCompanyId(), null, departmentId, dept.getName(), null, true);
             return dept;
         });
     }
@@ -233,6 +250,10 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     @Override
     public CompletableFuture<Void> deleteDepartment(String departmentId) {
         return CompletableFuture.runAsync(() -> {
+            OrgDepartment dept = departments.get(departmentId);
+            String companyId = dept != null ? dept.getCompanyId() : null;
+            String deptName = dept != null ? dept.getName() : null;
+            
             departments.remove(departmentId);
             users.values().forEach(u -> {
                 if (departmentId.equals(u.getDepartmentId())) {
@@ -244,6 +265,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             saveUsers();
             
             log.info("Deleted department: {}", departmentId);
+            publishAuditEvent(SceneEventType.ORG_DEPARTMENT_DELETED, companyId, null, departmentId, deptName, null, true);
         });
     }
     
@@ -291,6 +313,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             saveUsers();
             
             log.info("Created user: {} ({})", user.getName(), userId);
+            publishAuditEvent(SceneEventType.ORG_USER_CREATED, request.getCompanyId(), null, request.getDepartmentId(), null, userId, true);
             return user;
         });
     }
@@ -315,6 +338,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
             user.setUpdateTime(System.currentTimeMillis());
             
             saveUsers();
+            publishAuditEvent(SceneEventType.ORG_USER_UPDATED, user.getCompanyId(), null, user.getDepartmentId(), null, userId, true);
             return user;
         });
     }
@@ -322,9 +346,14 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     @Override
     public CompletableFuture<Void> deleteUser(String userId) {
         return CompletableFuture.runAsync(() -> {
+            OrgUser user = users.get(userId);
+            String companyId = user != null ? user.getCompanyId() : null;
+            String deptId = user != null ? user.getDepartmentId() : null;
+            
             users.remove(userId);
             saveUsers();
             log.info("Deleted user: {}", userId);
+            publishAuditEvent(SceneEventType.ORG_USER_DELETED, companyId, null, deptId, null, userId, true);
         });
     }
     
@@ -357,5 +386,22 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
         OrgUser user = users.get(userId);
         if (user == null) return CompletableFuture.completedFuture(null);
         return CompletableFuture.completedFuture(departments.get(user.getDepartmentId()));
+    }
+    
+    private void publishAuditEvent(SceneEventType eventType, String companyId, String companyName,
+                                   String departmentId, String departmentName, String userId, boolean success) {
+        if (eventPublisher != null) {
+            OrganizationEvent event = OrganizationEvent.builder()
+                .source(this)
+                .eventType(eventType)
+                .companyId(companyId)
+                .companyName(companyName)
+                .departmentId(departmentId)
+                .departmentName(departmentName)
+                .userId(userId)
+                .success(success)
+                .build();
+            eventPublisher.publish(event);
+        }
     }
 }

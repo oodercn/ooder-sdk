@@ -16,7 +16,7 @@ package net.ooder.index.config.type;
 
 import net.ooder.annotation.ClassMappingAnnotation;
 import net.ooder.index.config.bean.JFSDirectoryBean;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.store.FSDirectory;
 
 import java.lang.annotation.*;
 
@@ -29,7 +29,7 @@ public @interface FSDirectoryType {
     
     
 
-    Class fsDirectoryClass() default SimpleFSDirectory.class;
+    Class fsDirectoryClass() default FSDirectory.class;
     
 
     SyncListenerType syncListener() default @SyncListenerType;

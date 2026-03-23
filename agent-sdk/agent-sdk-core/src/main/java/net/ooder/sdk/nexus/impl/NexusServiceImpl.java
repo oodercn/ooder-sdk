@@ -1,5 +1,6 @@
 package net.ooder.sdk.nexus.impl;
 
+import net.ooder.sdk.api.security.*;
 import net.ooder.sdk.nexus.*;
 import net.ooder.sdk.nexus.model.*;
 import net.ooder.sdk.nexus.spi.ProtocolProvider;
@@ -11,9 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * NexusService 实现类，支持通过 ProtocolProvider 获取协议实现。
- */
 public class NexusServiceImpl implements NexusService {
     
     private static final Logger log = LoggerFactory.getLogger(NexusServiceImpl.class);
@@ -23,6 +21,9 @@ public class NexusServiceImpl implements NexusService {
     private final LoginProtocol loginProtocol;
     private final CollaborationProtocol collaborationProtocol;
     
+    private final KeyManagementService keyManagementService;
+    private final NetworkJoinService networkJoinService;
+    
     private NexusConfig config;
     private NexusStatus status;
     private UserSession currentSession;
@@ -30,18 +31,11 @@ public class NexusServiceImpl implements NexusService {
     private final List<NexusListener> listeners;
     private final ExecutorService executor;
     
-    /**
-     * 默认构造器，使用 SDK 内置协议实现
-     * @deprecated 请使用 {@link #NexusServiceImpl(ProtocolProvider)}
-     */
     @Deprecated
     public NexusServiceImpl() {
         this(new net.ooder.sdk.nexus.spi.DefaultProtocolProvider());
     }
     
-    /**
-     * 通过 ProtocolProvider 获取协议实现的构造器
-     */
     public NexusServiceImpl(ProtocolProvider provider) {
         if (provider == null) {
             throw new IllegalArgumentException("ProtocolProvider cannot be null");
@@ -52,11 +46,34 @@ public class NexusServiceImpl implements NexusService {
         this.loginProtocol = provider.getLoginProtocol();
         this.collaborationProtocol = provider.getCollaborationProtocol();
         
+        this.keyManagementService = new net.ooder.sdk.api.security.impl.KeyManagementServiceImpl();
+        this.networkJoinService = new net.ooder.sdk.api.security.impl.NetworkJoinServiceImpl(keyManagementService);
+        
         this.listeners = new CopyOnWriteArrayList<NexusListener>();
         this.executor = Executors.newCachedThreadPool();
         this.state = NexusState.STOPPED;
         
         log.info("NexusServiceImpl initialized with provider: {}", provider.getProviderName());
+    }
+    
+    public NexusServiceImpl(ProtocolProvider provider, KeyManagementService keyManagementService, NetworkJoinService networkJoinService) {
+        if (provider == null) {
+            throw new IllegalArgumentException("ProtocolProvider cannot be null");
+        }
+        
+        this.discoveryProtocol = provider.getDiscoveryProtocol();
+        this.roleProtocol = provider.getRoleProtocol();
+        this.loginProtocol = provider.getLoginProtocol();
+        this.collaborationProtocol = provider.getCollaborationProtocol();
+        
+        this.keyManagementService = keyManagementService != null ? keyManagementService : new net.ooder.sdk.api.security.impl.KeyManagementServiceImpl();
+        this.networkJoinService = networkJoinService != null ? networkJoinService : new net.ooder.sdk.api.security.impl.NetworkJoinServiceImpl(this.keyManagementService);
+        
+        this.listeners = new CopyOnWriteArrayList<NexusListener>();
+        this.executor = Executors.newCachedThreadPool();
+        this.state = NexusState.STOPPED;
+        
+        log.info("NexusServiceImpl initialized with provider: {} and custom security services", provider.getProviderName());
     }
     
     @Override
@@ -172,6 +189,64 @@ public class NexusServiceImpl implements NexusService {
     }
     
     @Override
+    public CompletableFuture<Void> joinSceneGroupWithKey(String groupId, String keyValue) {
+        return CompletableFuture.runAsync(() -> {
+            log.info("Joining scene group with key: groupId={}", groupId);
+            
+            KeyManagementService.KeyValidationResult validation = keyManagementService.validateKeyByValue(keyValue, groupId);
+            if (!validation.isValid()) {
+                throw new SecurityException("Invalid key for scene group: " + validation.getErrorMessage());
+            }
+            
+            KeyEntity key = validation.getKeyEntity();
+            if (!key.canAccessScene(groupId)) {
+                throw new SecurityException("Key does not have access to scene group: " + groupId);
+            }
+            
+            JoinRequest request = new JoinRequest();
+            request.setAgentId(config != null ? config.getNodeId() : "unknown");
+            request.setInviteCode(keyValue);
+            
+            collaborationProtocol.joinSceneGroup(groupId, request).join();
+            
+            key.incrementUsage();
+            
+            log.info("Joined scene group with key: groupId={}, keyId={}", groupId, key.getKeyId());
+        }, executor);
+    }
+    
+    @Override
+    public CompletableFuture<NetworkJoinRequest> requestJoinSceneGroup(NetworkJoinRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Requesting to join scene group: groupId={}, applicant={}", 
+                request.getSceneGroupId(), request.getApplicantId());
+            
+            request.setSceneGroupId(request.getSceneGroupId());
+            
+            NetworkJoinRequest createdRequest = networkJoinService.createRequest(request);
+            
+            if (createdRequest.isApproved()) {
+                log.info("Join request auto-approved: requestId={}", createdRequest.getRequestId());
+            } else {
+                log.info("Join request pending approval: requestId={}", createdRequest.getRequestId());
+            }
+            
+            return createdRequest;
+        }, executor);
+    }
+    
+    @Override
+    public CompletableFuture<NetworkJoinRequest> getJoinRequestStatus(String requestId) {
+        return CompletableFuture.supplyAsync(() -> {
+            NetworkJoinRequest request = networkJoinService.getRequest(requestId);
+            if (request == null) {
+                throw new IllegalArgumentException("Request not found: " + requestId);
+            }
+            return request;
+        }, executor);
+    }
+    
+    @Override
     public CompletableFuture<Void> leaveSceneGroup(String groupId) {
         return CompletableFuture.runAsync(() -> {
             log.info("Leaving scene group: {}", groupId);
@@ -199,6 +274,44 @@ public class NexusServiceImpl implements NexusService {
             
             log.debug("Listed {} scene groups", groups.size());
             return groups;
+        }, executor);
+    }
+    
+    @Override
+    public CompletableFuture<KeyEntity> getSceneGroupAccessKey(String groupId) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (currentSession == null) {
+                throw new IllegalStateException("Not logged in");
+            }
+            
+            List<KeyEntity> keys = keyManagementService.getKeysByScene(groupId);
+            if (keys.isEmpty()) {
+                return null;
+            }
+            
+            for (KeyEntity key : keys) {
+                if (key.isValid() && key.getOwnerId().equals(currentSession.getUserName())) {
+                    return key;
+                }
+            }
+            
+            return keys.get(0);
+        }, executor);
+    }
+    
+    @Override
+    public CompletableFuture<Boolean> validateSceneGroupAccess(String groupId, String keyValue) {
+        return CompletableFuture.supplyAsync(() -> {
+            KeyManagementService.KeyValidationResult result = keyManagementService.validateKeyByValue(keyValue, groupId);
+            return result.isValid();
+        }, executor);
+    }
+    
+    @Override
+    public CompletableFuture<Void> setSceneGroupApprovalRequired(String groupId, boolean required) {
+        return CompletableFuture.runAsync(() -> {
+            networkJoinService.setApprovalRequired(groupId, required);
+            log.info("Set approval required for scene group: groupId={}, required={}", groupId, required);
         }, executor);
     }
     

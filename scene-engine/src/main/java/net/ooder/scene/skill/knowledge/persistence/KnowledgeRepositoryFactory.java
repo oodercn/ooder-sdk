@@ -103,7 +103,7 @@ public class KnowledgeRepositoryFactory {
             case RepositoryConfig.TYPE_MEMORY:
                 return new InMemoryKnowledgeRepository();
             case RepositoryConfig.TYPE_SQL:
-                throw new UnsupportedOperationException("SQL repository not yet implemented. Use 'json' or 'memory'.");
+                return new SqlKnowledgeRepository(repoConfig.getBasePath());
             default:
                 log.warn("Unknown repository type: {}, defaulting to json", type);
                 return new JsonKnowledgeRepository(repoConfig.getBasePath());

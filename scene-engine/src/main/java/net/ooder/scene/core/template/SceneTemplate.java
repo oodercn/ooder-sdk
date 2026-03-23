@@ -1,5 +1,6 @@
 package net.ooder.scene.core.template;
 
+import net.ooder.scene.skill.model.SceneType;
 import net.ooder.scene.ui.MenuConfig;
 
 import java.io.Serializable;
@@ -27,6 +28,14 @@ public class SceneTemplate implements Serializable {
     private String version;              // 版本
     private String skillType;            // 技能类型（LightweightSkill, StandardSkill, HeavyweightSkill）
     private String participantMode;      // 参与者模式（single-user, multi-role）
+    
+    // 场景配置（从 skill.yaml spec.scene 加载）
+    private SceneType sceneType;          // 场景类型（AUTO, TRIGGER, HYBRID）
+    private String visibility;           // 可见性（public, internal）
+    
+    // 能力配置（从 skill.yaml spec.capability 加载）
+    private String category;             // 能力分类
+    private String capabilityCode;       // 能力代码
     
     // 角色配置
     private List<RoleConfig> roles;      // 角色列表
@@ -105,6 +114,48 @@ public class SceneTemplate implements Serializable {
     
     public void setParticipantMode(String participantMode) {
         this.participantMode = participantMode;
+    }
+    
+    public SceneType getSceneType() {
+        return sceneType;
+    }
+    
+    public void setSceneType(SceneType sceneType) {
+        this.sceneType = sceneType;
+    }
+    
+    public void setSceneType(String sceneType) {
+        if (sceneType != null) {
+            try {
+                this.sceneType = SceneType.valueOf(sceneType.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                this.sceneType = SceneType.HYBRID;
+            }
+        }
+    }
+    
+    public String getVisibility() {
+        return visibility;
+    }
+    
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
+    }
+    
+    public String getCategory() {
+        return category;
+    }
+    
+    public void setCategory(String category) {
+        this.category = category;
+    }
+    
+    public String getCapabilityCode() {
+        return capabilityCode;
+    }
+    
+    public void setCapabilityCode(String capabilityCode) {
+        this.capabilityCode = capabilityCode;
     }
     
     public List<RoleConfig> getRoles() {
@@ -223,42 +274,120 @@ public class SceneTemplate implements Serializable {
         private static final long serialVersionUID = 1L;
         
         private String skillId;
-        private String skillName;
-        private String entryPoint;  // 入口点（如：pages/index.html）
+        private String name;
+        private String description;
+        private String entryPoint;
+        private String entryComponent;
+        private String type;
+        private String theme;
+        private List<RouteConfig> routes;
+        private List<ComponentConfig> components;
         private Map<String, Object> config;
+        private List<String> dependencies;
+        private boolean enabled;
+        private int order;
         
-        // Getters and Setters
-        
-        public String getSkillId() {
-            return skillId;
+        public UiSkillConfig() {
+            this.enabled = true;
+            this.order = 0;
+            this.type = "web";
+            this.theme = "default";
         }
         
-        public void setSkillId(String skillId) {
-            this.skillId = skillId;
+        public String getSkillId() { return skillId; }
+        public void setSkillId(String skillId) { this.skillId = skillId; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public String getEntryPoint() { return entryPoint; }
+        public void setEntryPoint(String entryPoint) { this.entryPoint = entryPoint; }
+        public String getEntryComponent() { return entryComponent; }
+        public void setEntryComponent(String entryComponent) { this.entryComponent = entryComponent; }
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        public String getTheme() { return theme; }
+        public void setTheme(String theme) { this.theme = theme; }
+        public List<RouteConfig> getRoutes() { return routes; }
+        public void setRoutes(List<RouteConfig> routes) { this.routes = routes; }
+        public List<ComponentConfig> getComponents() { return components; }
+        public void setComponents(List<ComponentConfig> components) { this.components = components; }
+        public Map<String, Object> getConfig() { return config; }
+        public void setConfig(Map<String, Object> config) { this.config = config; }
+        public List<String> getDependencies() { return dependencies; }
+        public void setDependencies(List<String> dependencies) { this.dependencies = dependencies; }
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public int getOrder() { return order; }
+        public void setOrder(int order) { this.order = order; }
+        
+        /**
+         * 路由配置
+         */
+        public static class RouteConfig implements Serializable {
+            private static final long serialVersionUID = 1L;
+            
+            private String path;
+            private String component;
+            private String name;
+            private String title;
+            private String icon;
+            private boolean authRequired = true;
+            private List<String> roles;
+            private Map<String, Object> meta;
+            
+            public String getPath() { return path; }
+            public void setPath(String path) { this.path = path; }
+            public String getComponent() { return component; }
+            public void setComponent(String component) { this.component = component; }
+            public String getName() { return name; }
+            public void setName(String name) { this.name = name; }
+            public String getTitle() { return title; }
+            public void setTitle(String title) { this.title = title; }
+            public String getIcon() { return icon; }
+            public void setIcon(String icon) { this.icon = icon; }
+            public boolean isAuthRequired() { return authRequired; }
+            public void setAuthRequired(boolean authRequired) { this.authRequired = authRequired; }
+            public List<String> getRoles() { return roles; }
+            public void setRoles(List<String> roles) { this.roles = roles; }
+            public Map<String, Object> getMeta() { return meta; }
+            public void setMeta(Map<String, Object> meta) { this.meta = meta; }
         }
         
-        public String getSkillName() {
-            return skillName;
-        }
-        
-        public void setSkillName(String skillName) {
-            this.skillName = skillName;
-        }
-        
-        public String getEntryPoint() {
-            return entryPoint;
-        }
-        
-        public void setEntryPoint(String entryPoint) {
-            this.entryPoint = entryPoint;
-        }
-        
-        public Map<String, Object> getConfig() {
-            return config;
-        }
-        
-        public void setConfig(Map<String, Object> config) {
-            this.config = config;
+        /**
+         * 组件配置
+         */
+        public static class ComponentConfig implements Serializable {
+            private static final long serialVersionUID = 1L;
+            
+            private String componentId;
+            private String name;
+            private String type;
+            private String selector;
+            private String template;
+            private String style;
+            private Map<String, Object> props;
+            private List<String> slots;
+            private boolean lazy;
+            
+            public String getComponentId() { return componentId; }
+            public void setComponentId(String componentId) { this.componentId = componentId; }
+            public String getName() { return name; }
+            public void setName(String name) { this.name = name; }
+            public String getType() { return type; }
+            public void setType(String type) { this.type = type; }
+            public String getSelector() { return selector; }
+            public void setSelector(String selector) { this.selector = selector; }
+            public String getTemplate() { return template; }
+            public void setTemplate(String template) { this.template = template; }
+            public String getStyle() { return style; }
+            public void setStyle(String style) { this.style = style; }
+            public Map<String, Object> getProps() { return props; }
+            public void setProps(Map<String, Object> props) { this.props = props; }
+            public List<String> getSlots() { return slots; }
+            public void setSlots(List<String> slots) { this.slots = slots; }
+            public boolean isLazy() { return lazy; }
+            public void setLazy(boolean lazy) { this.lazy = lazy; }
         }
     }
     

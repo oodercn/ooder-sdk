@@ -8,6 +8,7 @@ import net.ooder.scene.event.scene.SceneAgentEvent;
 import net.ooder.scene.group.persistence.SceneGroupPersistence;
 import net.ooder.scene.group.persistence.SceneGroupPersistenceImpl;
 import net.ooder.scene.participant.Participant;
+import net.ooder.scene.skill.model.SceneType;
 import net.ooder.sdk.api.capability.CapRegistry;
 import net.ooder.sdk.api.capability.Capability;
 import net.ooder.sdk.api.scene.SceneMember;
@@ -414,7 +415,7 @@ public class SceneGroupInitializer {
             syncParticipants(context, seGroup);
             
             if (sceneTypeHandler != null) {
-                SceneTypeHandler.SceneType sceneType = detectSceneType(request);
+                SceneType sceneType = detectSceneType(request);
                 sceneTypeHandler.applyBehavior(seGroup, sceneType);
             }
             
@@ -469,18 +470,18 @@ public class SceneGroupInitializer {
         return participant;
     }
     
-    private SceneTypeHandler.SceneType detectSceneType(InitRequest request) {
+    private SceneType detectSceneType(InitRequest request) {
         Object sceneTypeObj = request.getProperties().get("sceneType");
         if (sceneTypeObj != null) {
             String sceneTypeStr = sceneTypeObj.toString().toUpperCase();
             try {
-                return SceneTypeHandler.SceneType.valueOf(sceneTypeStr);
+                return SceneType.valueOf(sceneTypeStr);
             } catch (IllegalArgumentException e) {
                 // Ignore
             }
         }
         
-        return SceneTypeHandler.SceneType.HYBRID;
+        return SceneType.HYBRID;
     }
 
     private void publishEvent(SceneAgentEvent event) {

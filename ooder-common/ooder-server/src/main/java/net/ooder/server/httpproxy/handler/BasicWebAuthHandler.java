@@ -5,8 +5,7 @@ import net.ooder.common.JDSConstants;
 import net.ooder.common.logging.Log;
 import net.ooder.common.logging.LogFactory;
 import net.ooder.server.httpproxy.core.*;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import java.util.Base64;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -53,8 +52,8 @@ public class BasicWebAuthHandler extends AbstractHandler implements Handler {
             return askForAuthorization(request, response);
         }
         auth = auth.substring(index + 1);
-        BASE64Decoder decoder = new BASE64Decoder();
-        auth = new String(decoder.decodeBuffer(auth));
+        Base64.Decoder decoder = Base64.getDecoder();
+        auth = new String(decoder.decode(auth));
         String[] credentials = auth.split(":");
         try {
             if (!users.containsKey(credentials[0]) || !isPasswordVerified(credentials)) {
@@ -84,8 +83,8 @@ public class BasicWebAuthHandler extends AbstractHandler implements Handler {
     private static String hashPassword(String password) throws NoSuchAlgorithmException {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
         byte[] md5password = md5.digest(password.getBytes());
-        BASE64Encoder encoder = new BASE64Encoder();
-        return encoder.encode(md5password);
+        Base64.Encoder encoder = Base64.getEncoder();
+        return encoder.encodeToString(md5password);
     }
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {

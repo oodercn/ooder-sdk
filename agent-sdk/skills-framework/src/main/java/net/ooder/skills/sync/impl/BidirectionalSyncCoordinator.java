@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import net.ooder.skills.api.SceneGroupManager;
+import net.ooder.skills.api.CollaborativeSceneGroupManager;
 import net.ooder.skills.common.enums.MemberRole;
 import net.ooder.skills.sync.CapabilityBinding;
 import net.ooder.skills.sync.CollaborationSession;
@@ -21,11 +21,11 @@ import net.ooder.skills.sync.model.HeartbeatInfo;
 public class BidirectionalSyncCoordinator {
     
     private final UserSceneGroupImpl userSceneGroup;
-    private final SceneGroupManager sdkSceneGroupManager;
+    private final CollaborativeSceneGroupManager sdkSceneGroupManager;
     private final SyncEventPublisher eventPublisher;
     
     public BidirectionalSyncCoordinator(UserSceneGroupImpl userSceneGroup,
-                                        SceneGroupManager sdkSceneGroupManager,
+                                        CollaborativeSceneGroupManager sdkSceneGroupManager,
                                         SyncEventPublisher eventPublisher) {
         this.userSceneGroup = userSceneGroup;
         this.sdkSceneGroupManager = sdkSceneGroupManager;
@@ -36,7 +36,7 @@ public class BidirectionalSyncCoordinator {
         try {
             sdkSceneGroupManager.updateGroupStatus(
                 userSceneGroup.getSceneGroupId(),
-                SceneGroupManager.SceneGroupStatus.ACTIVE
+                CollaborativeSceneGroupManager.SceneGroupStatus.ACTIVE
             );
             eventPublisher.publishSyncSuccess("activation", userSceneGroup.getSceneGroupId());
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public class BidirectionalSyncCoordinator {
         try {
             sdkSceneGroupManager.updateGroupStatus(
                 userSceneGroup.getSceneGroupId(),
-                SceneGroupManager.SceneGroupStatus.PAUSED
+                CollaborativeSceneGroupManager.SceneGroupStatus.PAUSED
             );
             eventPublisher.publishSyncSuccess("deactivation", userSceneGroup.getSceneGroupId());
         } catch (Exception e) {
@@ -276,10 +276,10 @@ public class BidirectionalSyncCoordinator {
     
     public AgentStatusInfo getAgentStatusFromSdk(String agentId) {
         try {
-            CompletableFuture<SceneGroupManager.SceneGroupInfo> future = 
+            CompletableFuture<CollaborativeSceneGroupManager.SceneGroupInfo> future = 
                 sdkSceneGroupManager.getGroupInfo(userSceneGroup.getSceneGroupId());
             
-            SceneGroupManager.SceneGroupInfo info = future.join();
+            CollaborativeSceneGroupManager.SceneGroupInfo info = future.join();
             if (info != null && info.getSharedState() != null) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> members = 
@@ -312,10 +312,10 @@ public class BidirectionalSyncCoordinator {
     public List<AgentStatusInfo> getAllAgentStatusesFromSdk() {
         List<AgentStatusInfo> statuses = new ArrayList<>();
         try {
-            CompletableFuture<SceneGroupManager.SceneGroupInfo> future = 
+            CompletableFuture<CollaborativeSceneGroupManager.SceneGroupInfo> future = 
                 sdkSceneGroupManager.getGroupInfo(userSceneGroup.getSceneGroupId());
             
-            SceneGroupManager.SceneGroupInfo info = future.join();
+            CollaborativeSceneGroupManager.SceneGroupInfo info = future.join();
             if (info != null && info.getSharedState() != null) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> members = 

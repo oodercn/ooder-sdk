@@ -2,6 +2,7 @@ package net.ooder.sdk.a2a.routing;
 
 import net.ooder.sdk.a2a.A2ACommand;
 import net.ooder.sdk.a2a.A2ACommandResponse;
+import net.ooder.sdk.a2a.AgentInfo;
 
 import java.util.List;
 
@@ -23,6 +24,14 @@ public interface CommandRouter {
     A2ACommandResponse route(A2ACommand command);
 
     /**
+     * 路由命令并返回路由结果
+     *
+     * @param command 命令
+     * @return 路由结果
+     */
+    RouteResult routeWithResult(A2ACommand command);
+
+    /**
      * 添加路由规则
      *
      * @param rule 路由规则
@@ -42,6 +51,15 @@ public interface CommandRouter {
      * @return 路由规则列表
      */
     List<RouteRule> getRouteRules();
+
+    /**
+     * 获取目标 Agent 列表
+     *
+     * @param sceneId 场景ID
+     * @param commandType 命令类型
+     * @return Agent 列表
+     */
+    List<AgentInfo> getTargetAgents(String sceneId, String commandType);
 
     /**
      * 路由规则
@@ -81,5 +99,25 @@ public interface CommandRouter {
         RANDOM,      // 随机
         WEIGHTED,    // 加权
         LEAST_LOAD   // 最小负载
+    }
+
+    /**
+     * 路由结果
+     */
+    class RouteResult {
+        private String routeId;
+        private List<AgentInfo> selectedAgents;
+        private RouteStrategy usedStrategy;
+        private java.util.Map<String, Object> routingMetadata;
+
+        // Getters and Setters
+        public String getRouteId() { return routeId; }
+        public void setRouteId(String routeId) { this.routeId = routeId; }
+        public List<AgentInfo> getSelectedAgents() { return selectedAgents; }
+        public void setSelectedAgents(List<AgentInfo> selectedAgents) { this.selectedAgents = selectedAgents; }
+        public RouteStrategy getUsedStrategy() { return usedStrategy; }
+        public void setUsedStrategy(RouteStrategy usedStrategy) { this.usedStrategy = usedStrategy; }
+        public java.util.Map<String, Object> getRoutingMetadata() { return routingMetadata; }
+        public void setRoutingMetadata(java.util.Map<String, Object> routingMetadata) { this.routingMetadata = routingMetadata; }
     }
 }

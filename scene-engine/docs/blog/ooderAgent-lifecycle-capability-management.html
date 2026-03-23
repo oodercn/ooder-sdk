@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ooderAgent 全生命周期能力管理深度解析</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f8fafc;
+            --text-color: #334155;
+            --code-bg: #f1f5f9;
+            --border-color: #e2e8f0;
+            --highlight-bg: #dbeafe;
+            --accent-color: #059669;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .header h2 {
+            font-size: 1.3rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        
+        .header .meta {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .nav {
+            background: white;
+            padding: 20px 40px;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 20px;
+        }
+        
+        .nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .nav a:hover {
+            background: var(--highlight-bg);
+            color: var(--primary-color);
+        }
+        
+        .content { padding: 40px; }
+        
+        h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin: 50px 0 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin: 35px 0 20px;
+        }
+        
+        h4 {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin: 25px 0 15px;
+        }
+        
+        p { margin: 15px 0; }
+        
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 25px 0;
+            font-family: "Consolas", "Monaco", "Fira Code", monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.85em;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        
+        tr:hover { background: var(--highlight-bg); }
+        
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding: 15px 25px;
+            margin: 25px 0;
+            background: var(--highlight-bg);
+            border-radius: 0 8px 8px 0;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li { margin: 8px 0; }
+        
+        .svg-diagram {
+            margin: 30px 0;
+            text-align: center;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .svg-diagram img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .diagram-caption {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .highlight-box h4 {
+            color: #b45309;
+            margin-top: 0;
+        }
+        
+        .screenshot-placeholder {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            border: 2px dashed #6366f1;
+            border-radius: 12px;
+            padding: 60px 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .screenshot-placeholder .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .screenshot-placeholder p {
+            color: #4338ca;
+            font-weight: 500;
+        }
+        
+        .footer {
+            background: #1e293b;
+            color: white;
+            padding: 40px;
+            text-align: center;
+            margin-top: 60px;
+        }
+        
+        .footer p { opacity: 0.8; }
+        
+        .tag {
+            display: inline-block;
+            background: var(--highlight-bg);
+            color: var(--primary-color);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+        
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            margin: 60px 0;
+            border-radius: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .content { padding: 20px; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.25rem; }
+            .header { padding: 40px 20px; }
+            .header h1 { font-size: 1.8rem; }
+            .nav ul { flex-direction: column; gap: 5px; }
+        }
+        
+        @media print {
+            .nav { display: none; }
+            .header { background: var(--primary-color); }
+            .content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>ooderAgent 全生命周期能力管理深度解析</h1>
+            <h2>软件技能化时代的能力底座构建之道</h2>
+            <div class="meta">
+                <strong>作者:</strong> Ooder Team | <strong>版本:</strong> 2.0.0 | <strong>日期:</strong> 2026-03-22
+            </div>
+        </header>
+        
+        <nav class="nav">
+            <h3>📑 目录导航</h3>
+            <ul>
+                <li><a href="#terminology">术语说明</a></li>
+                <li><a href="#introduction">引言：软件技能化的时代浪潮</a></li>
+                <li><a href="#part1">第一部分：为什么需要复杂的能力底座</a></li>
+                <li><a href="#part2">第二部分：核心能力底座详解</a></li>
+                <li><a href="#part3">第三部分：能力管理功能介绍</a></li>
+                <li><a href="#part4">第四部分：LLM Agent设计模式</a></li>
+                <li><a href="#part5">第五部分：ooderAgent MVP实践</a></li>
+                <li><a href="#appendix">附录</a></li>
+            </ul>
+        </nav>
+        
+        <main class="content">
+            <div class="highlight-box">
+                <h4>🔑 关键词</h4>
+                <p>
+                    <span class="tag">软件技能化</span>
+                    <span class="tag">能力检索</span>
+                    <span class="tag">Agent架构</span>
+                    <span class="tag">生命周期管理</span>
+                    <span class="tag">CAP协议</span>
+                </p>
+            </div>
+
+            <h2 id="terminology">术语说明</h2>
+            
+            <p>在深入探讨之前，我们需要明确本文中使用的核心术语，以避免"能力"与"技能"等概念混淆。</p>
+            
+            <h3>核心术语对照表</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>中文术语</th>
+                        <th>英文术语</th>
+                        <th>缩写</th>
+                        <th>定义</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>技能</strong></td>
+                        <td>Skill</td>
+                        <td>-</td>
+                        <td>一个独立的功能单元包，包含一组相关的能力、元数据和配置。技能是ooderAgent中的部署和分发单位。</td>
+                        <td><code>hr-assistant</code>（HR助手技能）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>能力</strong></td>
+                        <td>Capability</td>
+                        <td>Cap</td>
+                        <td>技能内部的一个原子化功能点，可被独立调用。能力通过CAP协议寻址。</td>
+                        <td><code>queryEmployeeInfo</code>（查询员工信息）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>能力提供者</strong></td>
+                        <td>Provider</td>
+                        <td>-</td>
+                        <td>提供底层服务支持的组件，如LLM服务、数据库服务等。</td>
+                        <td><code>OpenAIProvider</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>CAP地址</strong></td>
+                        <td>Capability Address</td>
+                        <td>CAP</td>
+                        <td>能力的统一寻址标识，格式为 <code>cap://skillId/capabilityName</code></td>
+                        <td><code>cap://hr-assistant/queryEmployeeInfo</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>激活</strong></td>
+                        <td>Activation</td>
+                        <td>-</td>
+                        <td>将技能从"已安装"状态转换为"已激活"状态的过程</td>
+                        <td>激活HR助手技能</td>
+                    </tr>
+                    <tr>
+                        <td><strong>场景</strong></td>
+                        <td>Scene</td>
+                        <td>-</td>
+                        <td>一组技能的集合，代表一个业务场景或应用环境</td>
+                        <td>企业办公场景</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>关键区分：技能 vs 能力</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>维度</th>
+                        <th>技能 (Skill)</th>
+                        <th>能力 (Capability)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>粒度</strong></td><td>粗粒度，功能包</td><td>细粒度，原子功能</td></tr>
+                    <tr><td><strong>部署单位</strong></td><td>是</td><td>否</td></tr>
+                    <tr><td><strong>寻址方式</strong></td><td>通过技能ID</td><td>通过CAP地址</td></tr>
+                    <tr><td><strong>生命周期</strong></td><td>独立管理</td><td>隶属于技能</td></tr>
+                    <tr><td><strong>可组合性</strong></td><td>包含多个能力</td><td>不可再分</td></tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight-box">
+                <h4>💡 类比理解</h4>
+                <p><strong>技能</strong> ≈ 手机App（如微信）</p>
+                <p><strong>能力</strong> ≈ App内的功能（如发送消息、朋友圈、支付）</p>
+            </div>
+            
+            <div class="section-divider"></div>
+
+            <h2 id="introduction">引言：软件技能化的时代浪潮</h2>
+            
+            <h3>0.1 从SaaS到技能化：软件形态的演进</h3>
+            
+            <p>软件行业正在经历一场深刻的变革。从本地部署到云计算，从单体应用到微服务，从SaaS（Software as a Service）到如今的<strong>软件技能化</strong>，每一次演进都在重新定义软件的价值边界。</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_software_evolution.svg" alt="软件形态演进历程">
+                <p class="diagram-caption">图1：软件形态演进历程</p>
+            </div>
+            
+            <p><strong>什么是软件技能化？</strong></p>
+            <p>软件技能化是指将传统软件的功能拆解为独立的、可被AI理解和调用的"技能"或"能力"单元。用户不再需要学习复杂的软件界面，而是通过自然语言直接与软件能力交互。</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>维度</th>
+                        <th>传统SaaS</th>
+                        <th>软件技能化</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>交互方式</strong></td><td>图形界面操作</td><td>自然语言对话</td></tr>
+                    <tr><td><strong>能力边界</strong></td><td>功能模块固化</td><td>能力原子化、可组合</td></tr>
+                    <tr><td><strong>学习成本</strong></td><td>需要培训和学习</td><td>零学习成本</td></tr>
+                    <tr><td><strong>调用方式</strong></td><td>人工点击操作</td><td>AI智能调度</td></tr>
+                    <tr><td><strong>扩展性</strong></td><td>版本迭代周期长</td><td>即插即用</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>0.2 行业探索：用友本体论、钉钉悟空与小龙虾</h3>
+            
+            <p>在软件技能化的探索道路上，国内多家企业已经开始了积极的尝试。</p>
+            
+            <h4>用友本体论：企业软件的语义重构</h4>
+            
+            <p>用友提出的<strong>本体论（Ontology）</strong>理念，试图构建企业软件的统一语义模型：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_yonyou_ontology.svg" alt="用友本体论架构">
+                <p class="diagram-caption">图2：用友本体论架构</p>
+            </div>
+            
+            <p><strong>用友本体论的价值</strong>：</p>
+            <ul>
+                <li>解决企业软件间的语义鸿沟</li>
+                <li>为AI理解企业业务提供基础</li>
+                <li>支撑智能化的业务流程编排</li>
+            </ul>
+            
+            <p><strong>面临的挑战</strong>：</p>
+            <ul>
+                <li>本体构建成本高昂</li>
+                <li>跨行业通用性不足</li>
+                <li>动态业务场景适应性差</li>
+            </ul>
+            
+            <h4>钉钉悟空：智能办公的能力聚合</h4>
+            
+            <p>钉钉推出的<strong>悟空平台</strong>，尝试将办公场景下的各类能力进行聚合：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_dingtalk_wukong.svg" alt="钉钉悟空平台架构">
+                <p class="diagram-caption">图3：钉钉悟空平台架构</p>
+            </div>
+            
+            <p><strong>钉钉悟空的创新</strong>：</p>
+            <ul>
+                <li>将办公场景能力化</li>
+                <li>支持自然语言调用</li>
+                <li>构建开放的能力生态</li>
+            </ul>
+            
+            <p><strong>存在的局限</strong>：</p>
+            <ul>
+                <li>能力粒度较粗</li>
+                <li>缺乏统一的能力寻址机制</li>
+                <li>生命周期管理不完善</li>
+            </ul>
+            
+            <h4>小龙虾：软件能力检索的新探索</h4>
+            
+            <p><strong>小龙虾</strong>项目代表了另一种思路——<strong>软件能力检索</strong>：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_crayfish_model.svg" alt="小龙虾能力检索模型">
+                <p class="diagram-caption">图4：小龙虾能力检索模型</p>
+            </div>
+            
+            <p><strong>小龙虾的贡献</strong>：</p>
+            <ul>
+                <li>提出了能力检索的概念</li>
+                <li>建立了能力语义描述框架</li>
+                <li>探索了意图-能力映射机制</li>
+            </ul>
+            
+            <p><strong>待解决的问题</strong>：</p>
+            <ul>
+                <li>能力的动态发现机制</li>
+                <li>能力的生命周期管理</li>
+                <li>分布式能力的协调</li>
+            </ul>
+            
+            <h3>0.3 软件能力检索：核心论点</h3>
+            
+            <p>综合以上探索，我们可以提炼出<strong>软件能力检索</strong>的核心论点：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_capability_retrieval_thesis.svg" alt="软件能力检索核心论点">
+                <p class="diagram-caption">图5：软件能力检索核心论点</p>
+            </div>
+            
+            <h3>0.4 传统软件技能化的困境</h3>
+            
+            <p>尽管行业探索丰富，但传统软件技能化仍面临诸多困境：</p>
+            
+            <h4>困境一：能力边界模糊</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_capability_boundary.svg" alt="能力边界问题对比">
+                <p class="diagram-caption">图6：传统软件功能边界 vs 技能化能力单元</p>
+            </div>
+            
+            <h4>困境二：能力发现机制缺失</h4>
+            
+            <p>传统软件的能力调用方式：</p>
+            
+            <pre><code class="language-java">// 传统方式：硬编码调用
+public class OrderService {
+    @Autowired
+    private InventoryService inventoryService;  // 编译时绑定
+    
+    @Autowired
+    private FinanceService financeService;      // 编译时绑定
+    
+    public void createOrder(Order order) {
+        // 直接调用，无法动态发现
+        inventoryService.checkStock(order.getItems());
+        financeService.calculatePrice(order);
+    }
+}</code></pre>
+            
+            <p><strong>问题</strong>：</p>
+            <ul>
+                <li>能力调用在编译时确定，无法动态发现</li>
+                <li>新增能力需要修改代码</li>
+                <li>无法实现运行时的能力替换</li>
+            </ul>
+            
+            <h4>困境三：生命周期管理混乱</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_lifecycle_problems.svg" alt="传统软件能力生命周期问题">
+                <p class="diagram-caption">图7：传统软件能力生命周期问题</p>
+            </div>
+            
+            <h4>困境四：多Agent协作困难</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_multi_agent_challenges.svg" alt="多Agent协作的挑战">
+                <p class="diagram-caption">图8：多Agent协作的挑战</p>
+            </div>
+            
+            <h3>0.5 ooderAgent的解决方案</h3>
+            
+            <p>面对这些挑战，<strong>ooderAgent</strong>提出了一套完整的解决方案：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_ooderagent_solution.svg" alt="ooderAgent解决方案全景">
+                <p class="diagram-caption">图9：ooderAgent解决方案全景</p>
+            </div>
+            
+            <p><strong>ooderAgent如何解决传统困境</strong>：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>困境</th>
+                        <th>ooderAgent解决方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>能力边界模糊</td><td>CAP协议统一寻址，能力原子化定义</td></tr>
+                    <tr><td>能力发现缺失</td><td>DiscoveryProvider动态发现，元数据驱动注册</td></tr>
+                    <tr><td>生命周期混乱</td><td>9状态模型，事务性状态转换，事件订阅机制</td></tr>
+                    <tr><td>多Agent协作困难</td><td>CAP跨Skill调用，A2A上下文传递，会话隔离</td></tr>
+                </tbody>
+            </table>
+            
+            <div class="section-divider"></div>
+            
+            <h2 id="part1">第一部分：为什么需要复杂的能力底座</h2>
+            
+            <h3>1.1 传统Agent开发的困境</h3>
+            
+            <p>在构建AI Agent应用时，开发者往往面临一系列架构层面的挑战。这些挑战不是简单的技术问题，而是随着应用规模扩大而逐渐暴露的根本性架构缺陷。</p>
+            
+            <h4>困境一：硬编码能力的局限性</h4>
+            
+            <pre><code class="language-java">// 传统方式：能力硬编码在代码中
+public class TraditionalAgent {
+    private OpenAIClient llmClient;
+    private WeatherService weatherService;
+    private EmailService emailService;
+    
+    public Response handleRequest(String query) {
+        if (query.contains("天气")) {
+            return weatherService.getWeather();
+        } else if (query.contains("邮件")) {
+            return emailService.sendEmail();
+        }
+        // 每增加一个能力，都需要修改代码
+    }
+}</code></pre>
+            
+            <p><strong>问题分析</strong>：</p>
+            <ul>
+                <li>新增能力需要修改核心代码，违反开闭原则</li>
+                <li>能力之间耦合度高，难以独立测试和维护</li>
+                <li>无法在运行时动态扩展能力</li>
+                <li>能力版本管理困难</li>
+            </ul>
+            
+            <h4>困境二：单体架构的扩展瓶颈</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_monolithic_agent.svg" alt="传统单体Agent架构">
+                <p class="diagram-caption">图10：传统单体Agent架构</p>
+            </div>
+            
+            <p><strong>问题分析</strong>：</p>
+            <ul>
+                <li>所有能力耦合在一个进程中，无法独立部署</li>
+                <li>资源竞争：一个能力的高负载影响其他能力</li>
+                <li>扩展困难：无法针对特定能力进行水平扩展</li>
+                <li>故障传播：一个能力的错误可能导致整个Agent崩溃</li>
+            </ul>
+            
+            <h4>困境三：多Agent协作的复杂性</h4>
+            
+            <p>当业务需要多个Agent协作时，问题更加突出：</p>
+            
+            <pre><code>Agent A ←──→ Agent B ←──→ Agent C
+    ↑           ↑           ↑
+    │           │           │
+    └───────────┴───────────┘
+            如何协调？
+            如何传递上下文？
+            如何管理生命周期？</code></pre>
+            
+            <p><strong>核心问题</strong>：</p>
+            <ul>
+                <li><strong>发现机制缺失</strong>：Agent如何发现其他Agent的能力？</li>
+                <li><strong>生命周期不同步</strong>：一个Agent重启，另一个Agent如何感知？</li>
+                <li><strong>上下文传递混乱</strong>：对话历史、用户偏好如何传递？</li>
+                <li><strong>能力寻址困难</strong>：如何统一标识和调用远程能力？</li>
+            </ul>
+            
+            <h3>1.2 能力驱动架构的必然性</h3>
+            
+            <p>面对这些挑战，我们需要重新思考Agent的架构设计。<strong>能力驱动架构</strong>（Capability-Driven Architecture）应运而生。</p>
+            
+            <h4>核心思维转变</h4>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>维度</th>
+                        <th>传统思维</th>
+                        <th>能力驱动思维</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>构建单元</strong></td><td>功能（Function）</td><td>能力（Capability）</td></tr>
+                    <tr><td><strong>发现方式</strong></td><td>硬编码引用</td><td>动态发现与注册</td></tr>
+                    <tr><td><strong>生命周期</strong></td><td>应用级管理</td><td>能力级独立管理</td></tr>
+                    <tr><td><strong>寻址方式</strong></td><td>内存引用</td><td>CAP协议统一寻址</td></tr>
+                    <tr><td><strong>扩展方式</strong></td><td>修改代码</td><td>插件化安装</td></tr>
+                </tbody>
+            </table>
+            
+            <h4>什么是"能力"？</h4>
+            
+            <p>在ooderAgent中，<strong>能力（Capability）</strong>是一个核心概念：</p>
+            
+            <pre><code class="language-java">public interface Capability {
+    String getId();           // 能力唯一标识
+    String getName();         // 能力名称
+    CapabilityType getType(); // 能力类型
+    String getDescription();  // 能力描述
+    
+    enum CapabilityType {
+        INTERNAL,  // 内部能力：仅供Skill内部使用
+        EXPOSED,   // 对外暴露：可被其他Skill调用
+        ENTRY      // 入口能力：作为用户交互入口
+    }
+}</code></pre>
+            
+            <p><strong>能力 vs 功能的区别</strong>：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>功能（Function）</th>
+                        <th>能力（Capability）</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>代码级别的函数</td><td>服务级别的单元</td></tr>
+                    <tr><td>编译时确定</td><td>运行时发现</td></tr>
+                    <tr><td>静态引用</td><td>动态寻址</td></tr>
+                    <tr><td>无独立生命周期</td><td>独立生命周期管理</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>1.3 为什么需要全生命周期管理</h3>
+            
+            <p>每个能力都有其独立的生命周期，就像一个微服务一样。全生命周期管理解决了以下核心问题：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_lifecycle_full.svg" alt="能力生命周期全景">
+                <p class="diagram-caption">图11：能力生命周期全景</p>
+            </div>
+            
+            <p><strong>生命周期管理的价值</strong>：</p>
+            <ol>
+                <li><strong>状态可观测</strong>：每个能力处于什么状态，一目了然</li>
+                <li><strong>操作可追溯</strong>：谁在什么时候做了什么操作，全程记录</li>
+                <li><strong>故障可恢复</strong>：状态异常时，可以回滚到稳定状态</li>
+                <li><strong>资源可管理</strong>：不用的能力可以停用或卸载，释放资源</li>
+            </ol>
+            
+            <h3>1.4 CAP协议：统一能力寻址的意义</h3>
+            
+            <p>在分布式系统中，<strong>寻址</strong>是核心问题之一。ooderAgent引入<strong>CAP协议</strong>（Capability Address Protocol）来解决能力寻址问题。</p>
+            
+            <h4>CAP地址格式</h4>
+            
+            <pre><code>cap://skillId/capabilityName
+
+示例：
+cap://weather-service/getCurrentWeather
+cap://email-service/sendEmail
+cap://hr-assistant/queryEmployeeInfo</code></pre>
+            
+            <h4>CAP协议的设计原则</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_cap_principles.svg" alt="CAP协议设计原则">
+                <p class="diagram-caption">图12：CAP协议设计原则</p>
+            </div>
+            
+            <h4>CAP地址空间规划</h4>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>分类代码</th>
+                        <th>分类名称</th>
+                        <th>地址范围</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>SYS</td><td>系统核心</td><td>0x00-0x07</td><td>系统核心服务</td></tr>
+                    <tr><td>ORG</td><td>组织服务</td><td>0x08-0x0F</td><td>组织架构、用户管理</td></tr>
+                    <tr><td>AUTH</td><td>认证服务</td><td>0x10-0x17</td><td>认证、授权</td></tr>
+                    <tr><td>LLM</td><td>大语言模型</td><td>0x28-0x2F</td><td>LLM、Embedding</td></tr>
+                    <tr><td>KNOW</td><td>知识库</td><td>0x30-0x37</td><td>知识库、向量存储</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>1.5 ooderAgent的设计哲学</h3>
+            
+            <h4>声明式 vs 命令式</h4>
+            
+            <p><strong>命令式</strong>（传统方式）：</p>
+            <pre><code class="language-java">// 告诉系统"怎么做"
+WeatherService weather = new WeatherService();
+weather.setApiKey("xxx");
+weather.setEndpoint("https://api.weather.com");
+weather.initialize();
+String result = weather.getWeather("Beijing");</code></pre>
+            
+            <p><strong>声明式</strong>（ooderAgent方式）：</p>
+            <pre><code class="language-yaml"># 告诉系统"要什么"
+skill:
+  id: weather-service
+  capabilities:
+    - name: getCurrentWeather
+      type: EXPOSED
+      address: cap://weather-service/getCurrentWeather
+  dependencies:
+    - cap://http-client/default</code></pre>
+            
+            <p>系统自动完成：</p>
+            <ul>
+                <li>依赖解析</li>
+                <li>服务发现</li>
+                <li>能力注入</li>
+                <li>生命周期管理</li>
+            </ul>
+            
+            <h4>元数据驱动的能力发现</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_metadata_driven.svg" alt="元数据驱动架构">
+                <p class="diagram-caption">图13：元数据驱动架构</p>
+            </div>
+            
+            <h4>插件化架构的核心价值</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_plugin_architecture.svg" alt="插件化能力架构">
+                <p class="diagram-caption">图14：插件化能力架构</p>
+            </div>
+            
+            <p><strong>核心价值</strong>：</p>
+            <ul>
+                <li><strong>解耦</strong>：各Skill独立开发、部署、运维</li>
+                <li><strong>可扩展</strong>：按需安装新的Skill，无需修改核心</li>
+                <li><strong>可替换</strong>：同类型Skill可以替换，不影响上层应用</li>
+                <li><strong>可组合</strong>：多个Skill可以组合成复杂业务流程</li>
+            </ul>
+            
+            <div class="section-divider"></div>
+            
+            <h2 id="part2">第二部分：核心能力底座详解</h2>
+            
+            <h3>2.1 Skill生命周期管理</h3>
+            
+            <h4>应用实例：智能客服Skill的完整生命周期</h4>
+            
+            <p>让我们通过一个智能客服Skill的实例，深入理解生命周期管理。</p>
+            
+            <pre><code class="language-yaml"># skill-index.yaml
+skill:
+  id: customer-service-bot
+  name: 智能客服助手
+  version: 1.0.0
+  skillForm: SCENE
+  
+  capabilities:
+    - name: answerQuestion
+      type: ENTRY
+      description: 回答用户问题
+    - name: transferToHuman
+      type: EXPOSED
+      description: 转人工客服
+    - name: queryOrderStatus
+      type: INTERNAL
+      description: 查询订单状态
+      
+  dependencies:
+    - skillId: llm-service
+      capability: chat
+    - skillId: order-service
+      capability: query</code></pre>
+            
+            <h4>九状态模型详解</h4>
+            
+            <pre><code class="language-java">public enum SkillLifecycleState {
+    DISCOVERED("已发现"),      // Skill已被发现，但未安装
+    INSTALLING("安装中"),      // 正在安装
+    INSTALLED("已安装"),       // 安装完成，可激活
+    ACTIVATING("激活中"),      // 正在激活
+    ACTIVATED("已激活"),       // 已激活，可接受调用
+    DEACTIVATING("停用中"),    // 正在停用
+    DEACTIVATED("已停用"),     // 已停用，可重新激活
+    UNINSTALLING("卸载中"),    // 正在卸载
+    UNINSTALLED("已卸载"),     // 已卸载
+    ERROR("错误");             // 运行出错
+}</code></pre>
+            
+            <p><strong>状态转换图</strong>：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_state_transition.svg" alt="Skill生命周期状态转换图">
+                <p class="diagram-caption">图15：Skill生命周期状态转换图</p>
+            </div>
+            
+            <h4>事务性状态转换</h4>
+            
+            <pre><code class="language-java">public interface SceneSkillLifecycle {
+    
+    /**
+     * 安装场景技能 - 事务性操作
+     */
+    CompletableFuture&lt;LifecycleInstallResult&gt; installSceneSkill(
+        String sceneId, 
+        String skillId, 
+        Map&lt;String, Object&gt; config
+    );
+    
+    /**
+     * 激活场景技能
+     */
+    CompletableFuture&lt;ActivateResult&gt; activateSceneSkill(
+        String sceneId, 
+        String skillId, 
+        String role
+    );
+    
+    /**
+     * 停用场景技能
+     */
+    CompletableFuture&lt;DeactivateResult&gt; deactivateSceneSkill(
+        String sceneId, 
+        String skillId
+    );
+    
+    /**
+     * 卸载场景技能
+     */
+    CompletableFuture&lt;UninstallResult&gt; uninstallSceneSkill(
+        String sceneId, 
+        String skillId
+    );
+}</code></pre>
+            
+            <p><strong>事务保证</strong>：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_transaction_guarantee.svg" alt="事务性状态转换">
+                <p class="diagram-caption">图16：事务性状态转换</p>
+            </div>
+            
+            <h3>2.2 能力系统与CAP协议</h3>
+            
+            <h4>应用实例：HR助手的多能力组合</h4>
+            
+            <pre><code class="language-yaml"># hr-assistant skill-index.yaml
+skill:
+  id: hr-assistant
+  name: HR智能助手
+  version: 2.0.0
+  
+  capabilities:
+    # 入口能力 - 用户交互入口
+    - name: chat
+      type: ENTRY
+      address: cap://hr-assistant/chat
+      description: HR对话入口
+      
+    # 对外暴露 - 可被其他Skill调用
+    - name: queryEmployeeInfo
+      type: EXPOSED
+      address: cap://hr-assistant/queryEmployeeInfo
+      description: 查询员工信息
+      
+    - name: submitLeaveRequest
+      type: EXPOSED
+      address: cap://hr-assistant/submitLeaveRequest
+      description: 提交请假申请
+      
+    # 内部能力 - 仅供内部使用
+    - name: validateLeaveBalance
+      type: INTERNAL
+      description: 验证假期余额
+      
+    - name: notifyManager
+      type: INTERNAL
+      description: 通知经理审批</code></pre>
+            
+            <h4>三种能力类型详解</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_capability_types.svg" alt="能力类型体系">
+                <p class="diagram-caption">图17：能力类型体系</p>
+            </div>
+            
+            <h4>CAP协议跨Skill调用</h4>
+            
+            <pre><code class="language-java">// Skill A 调用 Skill B 的能力
+public class HrAssistantSkill {
+    
+    @InjectCapability("cap://email-service/sendEmail")
+    private Capability emailCapability;
+    
+    public void notifyEmployee(String employeeId, String message) {
+        // 通过CAP协议调用邮件服务
+        CapabilityRequest request = CapabilityRequest.builder()
+            .address("cap://email-service/sendEmail")
+            .param("to", employeeId + "@company.com")
+            .param("subject", "HR通知")
+            .param("body", message)
+            .build();
+            
+        CapabilityResponse response = emailCapability.execute(request);
+        
+        if (!response.isSuccess()) {
+            // 降级处理：使用内部通知能力
+            internalNotify(employeeId, message);
+        }
+    }
+}</code></pre>
+            
+            <h3>2.3 激活流引擎</h3>
+            
+            <h4>应用实例：复杂业务场景的依赖注入</h4>
+            
+            <p>考虑一个智能工作流Skill，它依赖多个服务：</p>
+            
+            <pre><code class="language-yaml">skill:
+  id: smart-workflow
+  name: 智能工作流
+  dependencies:
+    - skillId: llm-service
+      capability: chat
+      required: true
+    - skillId: database-service
+      capability: query
+      required: true
+    - skillId: email-service
+      capability: sendEmail
+      required: false  # 可选依赖
+    - skillId: calendar-service
+      capability: schedule
+      required: false</code></pre>
+            
+            <h4>四阶段激活流程</h4>
+            
+            <pre><code class="language-java">public enum ActivationPhase {
+    INITIALIZING("初始化"),    // 阶段1：初始化
+    INSTALLING("安装中"),      // 阶段2：安装依赖
+    CONFIGURING("配置中"),     // 阶段3：配置绑定
+    ACTIVATING("激活中"),      // 阶段4：激活运行
+    COMPLETED("已完成"),       // 成功完成
+    FAILED("失败");            // 激活失败
+}</code></pre>
+            
+            <p><strong>激活流程详解</strong>：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_activation_flow.svg" alt="四阶段激活流程">
+                <p class="diagram-caption">图18：四阶段激活流程</p>
+            </div>
+            
+            <h4>依赖解析算法</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_dependency_resolution.svg" alt="依赖解析算法">
+                <p class="diagram-caption">图19：依赖解析算法</p>
+            </div>
+            
+            <pre><code>输入依赖图:
+    A → B → C
+    │    ↘
+    │     D → E
+    ↓
+    F
+
+拓扑排序结果:
+    [C, E, D, B, F, A] 或 [E, C, D, B, F, A] 等
+
+安装顺序（逆拓扑）:
+    先安装无依赖的: C, E
+    再安装依赖已满足的: D, B, F
+    最后安装: A</code></pre>
+            
+            <h4>LLM Agent的上下文构建</h4>
+            
+            <p>激活时，系统会自动构建Agent所需的上下文：</p>
+            
+            <pre><code class="language-java">public class SkillActivationContext {
+    private RoleContext roleContext;        // 角色定义
+    private KnowledgeContext knowledgeContext; // 知识库
+    private FunctionContext functionContext;   // Function Calling
+    private MemoryContext memoryContext;       // 会话记忆
+    
+    /**
+     * 激活时构建完整上下文
+     */
+    public void activate(SkillMetadata metadata) {
+        // 1. 构建角色上下文
+        this.roleContext = RoleContext.builder()
+            .name(metadata.getRoleName())
+            .description(metadata.getRoleDescription())
+            .build();
+            
+        // 2. 加载知识库（多级加载）
+        this.knowledgeContext = KnowledgeContext.builder()
+            .loadLevel(KnowledgeLoadLevel.ADVANCED)
+            .sources(metadata.getKnowledgeSources())
+            .build();
+            
+        // 3. 注册Function Calling
+        this.functionContext = FunctionContext.builder()
+            .loadFromSkill(metadata)
+            .build();
+            
+        // 4. 初始化记忆上下文
+        this.memoryContext = new MemoryContext();
+    }
+}</code></pre>
+            
+            <h3>2.4 Provider与发现机制</h3>
+            
+            <h4>应用实例：多模型Provider的热插拔</h4>
+            
+            <pre><code class="language-yaml"># llm-provider skill-index.yaml
+skill:
+  id: llm-provider
+  name: LLM服务提供者
+  skillForm: PROVIDER
+  
+  capabilities:
+    - name: chat
+      type: EXPOSED
+      address: cap://llm/default
+    - name: embedding
+      type: EXPOSED
+      address: cap://embedding/default
+      
+  implementations:
+    - provider: OpenAI
+      priority: 100
+      config:
+        model: gpt-4
+    - provider: Claude
+      priority: 90
+      config:
+        model: claude-3
+    - provider: LocalLLM
+      priority: 50
+      config:
+        endpoint: http://localhost:8080</code></pre>
+            
+            <h4>Provider生命周期</h4>
+            
+            <pre><code class="language-java">public interface BaseProvider {
+    String getProviderName();    // 提供者名称
+    String getVersion();         // 版本号
+    
+    void initialize(SceneEngine engine);  // 初始化
+    void start();               // 启动
+    void stop();                // 停止
+    
+    boolean isInitialized();    // 是否已初始化
+    boolean isRunning();        // 是否运行中
+    
+    default int getPriority() { return 100; }  // 优先级
+}</code></pre>
+            
+            <p><strong>Provider生命周期流程</strong>：</p>
+            
+            <div class="svg-diagram">
+                <img src="diagram_provider_lifecycle.svg" alt="Provider生命周期">
+                <p class="diagram-caption">图19：Provider生命周期</p>
+            </div>
+            
+            <h4>动态服务发现</h4>
+            
+            <pre><code class="language-java">public interface DiscoveryProvider {
+    String getProviderName();
+    
+    void initialize(DiscoveryConfig config);
+    void start();
+    void stop();
+    boolean isRunning();
+    
+    // 执行发现查询
+    CompletableFuture&lt;List&lt;DiscoveredItem&gt;&gt; discover(DiscoveryQuery query);
+    
+    int getPriority();
+    boolean isApplicable(DiscoveryScope scope);
+}</code></pre>
+            
+            <p><strong>发现范围（DiscoveryScope）</strong>：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scope</th>
+                        <th>说明</th>
+                        <th>发现方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>LOCAL</td><td>本地进程内</td><td>直接内存查找</td></tr>
+                    <tr><td>CLUSTER</td><td>集群内</td><td>UDP广播/mDNS</td></tr>
+                    <tr><td>REMOTE</td><td>远程服务</td><td>SkillCenter API</td></tr>
+                    <tr><td>HYBRID</td><td>混合模式</td><td>多种方式组合</td></tr>
+                </tbody>
+            </table>
+            
+            <div class="section-divider"></div>
+            
+            <h2 id="part3">第三部分：能力管理功能介绍</h2>
+            
+            <h3>3.1 能力注册中心</h3>
+            
+            <p>能力注册中心是ooderAgent的核心组件，负责管理所有能力的元数据和生命周期。</p>
+            
+            <h4>功能概览</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_capability_registry.svg" alt="能力注册中心">
+                <p class="diagram-caption">图20：能力注册中心</p>
+            </div>
+            
+            <h4>【界面截图预留位置：能力注册中心主界面】</h4>
+            
+            <div class="screenshot-placeholder">
+                <div class="icon">🖥️</div>
+                <p>能力注册中心主界面截图</p>
+                <p style="font-size: 0.85rem; margin-top: 10px; opacity: 0.7;">此处预留实际产品界面截图位置</p>
+            </div>
+            
+            <h3>3.2 能力监控与运维</h3>
+            
+            <h4>健康检查机制</h4>
+            
+            <pre><code class="language-java">public interface HealthProvider extends BaseProvider {
+    
+    /**
+     * 健康检查结果
+     */
+    class HealthStatus {
+        private String capabilityId;
+        private HealthState state;  // HEALTHY, DEGRADED, UNHEALTHY
+        private long lastCheckTime;
+        private String message;
+        private Map&lt;String, Object&gt; details;
+    }
+    
+    /**
+     * 执行健康检查
+     */
+    HealthStatus checkHealth(String capabilityId);
+    
+    /**
+     * 批量健康检查
+     */
+    Map&lt;String, HealthStatus&gt; checkAllHealth();
+}</code></pre>
+            
+            <h4>性能指标采集</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_monitoring_metrics.svg" alt="能力监控指标">
+                <p class="diagram-caption">图21：能力监控指标</p>
+            </div>
+            
+            <h4>【界面截图预留位置：能力监控仪表盘】</h4>
+            
+            <div class="screenshot-placeholder">
+                <div class="icon">📊</div>
+                <p>能力监控仪表盘截图</p>
+                <p style="font-size: 0.85rem; margin-top: 10px; opacity: 0.7;">此处预留实际产品界面截图位置</p>
+            </div>
+            
+            <h4>告警与自动恢复</h4>
+            
+            <pre><code class="language-yaml"># 告警规则配置
+alerting:
+  rules:
+    - name: 高错误率告警
+      condition: success_rate < 95%
+      duration: 5m
+      severity: warning
+      actions:
+        - notify: ops-team
+        - auto_restart: true
+        
+    - name: 响应超时告警
+      condition: p99_latency_ms > 5000
+      duration: 3m
+      severity: critical
+      actions:
+        - notify: ops-team
+        - scale_out: 2  # 自动扩容2个实例
+        
+    - name: 能力不可用告警
+      condition: health_status == UNHEALTHY
+      duration: 1m
+      severity: critical
+      actions:
+        - notify: all
+        - failover: true  # 自动故障转移</code></pre>
+            
+            <h3>3.3 能力编排</h3>
+            
+            <p>能力编排允许将多个能力组合成复杂的业务流程。</p>
+            
+            <h4>可视化流程设计</h4>
+            
+            <div class="screenshot-placeholder">
+                <div class="icon">🔀</div>
+                <p>能力编排设计器界面截图</p>
+                <p style="font-size: 0.85rem; margin-top: 10px; opacity: 0.7;">此处预留实际产品界面截图位置</p>
+            </div>
+            
+            <h4>能力组合策略</h4>
+            
+            <pre><code class="language-yaml"># 编排配置示例
+orchestration:
+  id: smart-assistant-workflow
+  name: 智能助手工作流
+  
+  steps:
+    - id: intent-recognition
+      capability: cap://llm-service/classifyIntent
+      input:
+        query: ${userInput}
+      output:
+        intent: ${result.intent}
+        
+    - id: route-by-intent
+      type: switch
+      condition: ${intent-recognition.intent}
+      cases:
+        weather:
+          next: weather-query
+        email:
+          next: email-compose
+        default:
+          next: general-chat
+          
+    - id: weather-query
+      capability: cap://weather-service/getWeather
+      input:
+        location: ${userInput.location}
+      output:
+        weather: ${result}
+        
+    - id: format-response
+      capability: cap://llm-service/formatResponse
+      input:
+        context: ${weather-query}
+        template: weather_report</code></pre>
+            
+            <div class="section-divider"></div>
+            
+            <h2 id="part4">第四部分：LLM Agent设计模式</h2>
+            
+            <h3>4.1 基于能力底座的Agent架构</h3>
+            
+            <p>ooderAgent为LLM Agent提供了完整的上下文管理体系，让Agent能够专注于业务逻辑。</p>
+            
+            <h4>四大上下文组件</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_agent_context.svg" alt="Agent上下文体系">
+                <p class="diagram-caption">图22：Agent上下文体系</p>
+            </div>
+            
+            <h4>RoleContext：角色定义</h4>
+            
+            <pre><code class="language-java">public class RoleContext {
+    private String name;           // 角色名称
+    private String description;    // 角色描述
+    private List&lt;String&gt; expertise; // 专业领域
+    private String tone;           // 交互风格
+    private List&lt;String&gt; guidelines; // 行为准则
+    
+    /**
+     * 构建系统提示语
+     */
+    public String buildPromptSection() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("你是一个").append(name).append("。\n");
+        sb.append(description).append("\n\n");
+        
+        if (expertise != null && !expertise.isEmpty()) {
+            sb.append("你的专业领域包括：\n");
+            expertise.forEach(e -> sb.append("- ").append(e).append("\n"));
+        }
+        
+        if (guidelines != null && !guidelines.isEmpty()) {
+            sb.append("\n行为准则：\n");
+            guidelines.forEach(g -> sb.append("- ").append(g).append("\n"));
+        }
+        
+        return sb.toString();
+    }
+}</code></pre>
+            
+            <p><strong>示例：HR助手角色定义</strong></p>
+            
+            <pre><code class="language-java">RoleContext hrRole = RoleContext.builder()
+    .name("HR智能助手")
+    .description("你是一个专业的HR助手，帮助员工处理人力资源相关事务")
+    .expertise(Arrays.asList(
+        "员工信息查询",
+        "请假流程办理",
+        "薪资福利咨询",
+        "培训发展指导"
+    ))
+    .tone("专业、友好、高效")
+    .guidelines(Arrays.asList(
+        "保护员工隐私，不泄露敏感信息",
+        "遇到复杂问题时，建议联系人工HR",
+        "使用简洁明了的语言回答问题"
+    ))
+    .build();</code></pre>
+            
+            <h4>KnowledgeContext：多级知识加载</h4>
+            
+            <pre><code class="language-java">public class KnowledgeContext {
+    
+    public enum KnowledgeLoadLevel {
+        BASIC,      // 基础：核心概念和常用FAQ
+        ADVANCED,   // 进阶：详细文档和案例
+        EXPERT,     // 专家：完整知识库
+        FULL        // 全量：包含历史数据
+    }
+    
+    private KnowledgeLoadLevel loadLevel;
+    private List&lt;KnowledgeSource&gt; sources;
+    private List&lt;KnowledgeChunk&gt; loadedChunks;
+    
+    /**
+     * 根据级别加载知识
+     */
+    public void loadKnowledge() {
+        for (KnowledgeSource source : sources) {
+            List&lt;KnowledgeChunk&gt; chunks = source.load(loadLevel);
+            loadedChunks.addAll(chunks);
+        }
+    }
+    
+    /**
+     * RAG检索
+     */
+    public List&lt;KnowledgeChunk&gt; retrieve(String query, int topK) {
+        // 向量检索相关知识点
+        return vectorSearch(query, loadedChunks, topK);
+    }
+}</code></pre>
+            
+            <p><strong>多级加载策略</strong>：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>级别</th>
+                        <th>加载内容</th>
+                        <th>适用场景</th>
+                        <th>Token消耗</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>BASIC</td><td>核心概念、FAQ</td><td>快速响应</td><td>~500</td></tr>
+                    <tr><td>ADVANCED</td><td>详细文档、案例</td><td>深度咨询</td><td>~2000</td></tr>
+                    <tr><td>EXPERT</td><td>完整知识库</td><td>专业问题</td><td>~5000</td></tr>
+                    <tr><td>FULL</td><td>全量数据+历史</td><td>复杂分析</td><td>~10000+</td></tr>
+                </tbody>
+            </table>
+            
+            <h4>FunctionContext：动态Function Calling</h4>
+            
+            <pre><code class="language-java">public class FunctionContext {
+    private Map&lt;String, FunctionDefinition&gt; functions;
+    private Map&lt;String, FunctionExecutor&gt; executors;
+    
+    /**
+     * 从Skill元数据加载Function定义
+     */
+    public void loadFromSkill(SkillMetadata metadata) {
+        for (Capability cap : metadata.getCapabilities()) {
+            if (cap.getType() == CapabilityType.EXPOSED 
+                || cap.getType() == CapabilityType.ENTRY) {
+                
+                FunctionDefinition func = FunctionDefinition.builder()
+                    .name(cap.getName())
+                    .description(cap.getDescription())
+                    .parameters(cap.getInputParameters())
+                    .build();
+                    
+                functions.put(func.getName(), func);
+                
+                // 绑定执行器到CAP地址
+                executors.put(func.getName(), 
+                    (params) -> executeCapability(cap.getAddress(), params));
+            }
+        }
+    }
+    
+    /**
+     * 转换为LLM Tools格式
+     */
+    public List&lt;Tool&gt; toTools() {
+        return functions.values().stream()
+            .map(this::convertToTool)
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 执行Function Call
+     */
+    public Object execute(String functionName, Map&lt;String, Object&gt; params) {
+        FunctionExecutor executor = executors.get(functionName);
+        if (executor == null) {
+            throw new IllegalArgumentException("Unknown function: " + functionName);
+        }
+        return executor.execute(params);
+    }
+}</code></pre>
+            
+            <h4>MemoryContext：会话记忆管理</h4>
+            
+            <pre><code class="language-java">public class MemoryContext {
+    private List&lt;Message&gt; history;          // 对话历史
+    private Map&lt;String, Object&gt; userPreferences; // 用户偏好
+    private Map&lt;String, Object&gt; sessionState;    // 会话状态
+    
+    /**
+     * 添加消息到历史
+     */
+    public void addMessage(MessageRole role, String content) {
+        history.add(new Message(role, content, System.currentTimeMillis()));
+        
+        // 自动管理历史长度
+        if (history.size() > MAX_HISTORY_LENGTH) {
+            // 保留系统消息和最近的对话
+            trimHistory();
+        }
+    }
+    
+    /**
+     * 获取格式化的历史
+     */
+    public List&lt;Map&lt;String, String&gt;&gt; getHistory() {
+        return history.stream()
+            .map(m -> Map.of(
+                "role", m.getRole().name().toLowerCase(),
+                "content", m.getContent()
+            ))
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 添加Tool结果消息
+     */
+    public void addToolResultMessage(String toolCallId, String result) {
+        history.add(new Message(
+            MessageRole.TOOL,
+            result,
+            Map.of("tool_call_id", toolCallId)
+        ));
+    }
+}</code></pre>
+            
+            <h3>4.2 Agent与能力的交互模式</h3>
+            
+            <h4>能力发现与选择</h4>
+            
+            <pre><code class="language-java">public class AgentCapabilitySelector {
+    
+    /**
+     * 根据用户意图选择合适的能力
+     */
+    public Capability selectCapability(String userIntent, String query) {
+        // 1. 查询能力注册中心
+        List&lt;Capability&gt; candidates = capabilityRegistry.findByIntent(userIntent);
+        
+        // 2. 根据优先级和健康状态排序
+        candidates.sort((a, b) -> {
+            int healthCompare = Boolean.compare(
+                isHealthy(a), isHealthy(b)
+            );
+            if (healthCompare != 0) return -healthCompare;
+            return Integer.compare(b.getPriority(), a.getPriority());
+        });
+        
+        // 3. 返回最优能力
+        return candidates.isEmpty() ? null : candidates.get(0);
+    }
+}</code></pre>
+            
+            <h4>上下文注入策略</h4>
+            
+            <pre><code class="language-java">public class ContextInjectionStrategy {
+    
+    /**
+     * 构建完整的LLM请求上下文
+     */
+    public ChatRequest buildRequest(SkillActivationContext context, String userQuery) {
+        ChatRequest request = new ChatRequest();
+        
+        // 1. 注入角色上下文
+        request.setSystemPrompt(context.getRoleContext().buildPromptSection());
+        
+        // 2. 注入知识上下文
+        List&lt;KnowledgeChunk&gt; relevantKnowledge = context.getKnowledgeContext()
+            .retrieve(userQuery, 5);
+        request.appendSystemPrompt(buildKnowledgePrompt(relevantKnowledge));
+        
+        // 3. 注入Function Calling
+        request.setTools(context.getFunctionContext().toTools());
+        
+        // 4. 注入记忆上下文
+        request.setMessages(context.getMemoryContext().getHistory());
+        
+        // 5. 添加当前用户输入
+        request.addMessage(MessageRole.USER, userQuery);
+        
+        return request;
+    }
+}</code></pre>
+            
+            <h4>结果处理与反馈</h4>
+            
+            <pre><code class="language-java">public class AgentResponseHandler {
+    
+    /**
+     * 处理LLM响应
+     */
+    public void handleResponse(ChatResponse response, SkillActivationContext context) {
+        // 1. 检查是否有Function Call
+        if (response.hasToolCalls()) {
+            for (ToolCall toolCall : response.getToolCalls()) {
+                // 2. 执行能力调用
+                Object result = context.getFunctionContext()
+                    .execute(toolCall.getName(), toolCall.getArguments());
+                
+                // 3. 记录到记忆上下文
+                context.getMemoryContext()
+                    .addToolResultMessage(toolCall.getId(), result.toString());
+            }
+            
+            // 4. 继续对话
+            continueConversation(context);
+        } else {
+            // 5. 直接返回文本响应
+            context.getMemoryContext()
+                .addMessage(MessageRole.ASSISTANT, response.getContent());
+            
+            sendToUser(response.getContent());
+        }
+    }
+}</code></pre>
+            
+            <div class="section-divider"></div>
+            
+            <h2 id="part5">第五部分：ooderAgent MVP实践</h2>
+            
+            <h3>5.1 MVP版本架构概览</h3>
+            
+            <h4>核心功能模块</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_mvp_architecture.svg" alt="ooderAgent MVP架构">
+                <p class="diagram-caption">图23：ooderAgent MVP架构</p>
+            </div>
+            
+            <h4>技术栈选型</h4>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>层次</th>
+                        <th>技术选型</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>应用层</td><td>Spring Boot + Vue.js</td><td>前后端分离架构</td></tr>
+                    <tr><td>引擎层</td><td>Java 17+</td><td>核心引擎实现</td></tr>
+                    <tr><td>能力层</td><td>SPI插件机制</td><td>可扩展能力体系</td></tr>
+                    <tr><td>数据层</td><td>PostgreSQL + Redis + Milvus</td><td>持久化与缓存</td></tr>
+                    <tr><td>通信层</td><td>REST + WebSocket</td><td>API与实时通信</td></tr>
+                </tbody>
+            </table>
+            
+            <h4>【架构图预留位置】</h4>
+            
+            <div class="svg-diagram">
+                <img src="diagram_mvp_product_architecture.svg" alt="ooderAgent MVP产品架构图">
+                <p class="diagram-caption">图23：ooderAgent MVP产品架构图</p>
+            </div>
+            
+            <h3>5.2 使用协议搭建应用</h3>
+            
+            <h4>Step 1：定义Skill元数据</h4>
+            
+            <pre><code class="language-yaml"># skill-index.yaml
+skill:
+  id: smart-assistant
+  name: 智能助手
+  version: 1.0.0
+  skillForm: SCENE
+  
+  spec:
+    description: 企业级智能助手，支持多场景对话
+    author: Ooder Team
+    tags:
+      - assistant
+      - enterprise
+      - ai
+      
+  capabilities:
+    - name: chat
+      type: ENTRY
+      address: cap://smart-assistant/chat
+      description: 智能对话入口
+      inputParameters:
+        - name: query
+          type: string
+          required: true
+          description: 用户问题
+        - name: context
+          type: object
+          required: false
+          description: 额外上下文
+          
+    - name: searchKnowledge
+      type: EXPOSED
+      address: cap://smart-assistant/searchKnowledge
+      description: 搜索知识库
+      
+  dependencies:
+    - skillId: llm-service
+      capability: chat
+      required: true
+      config:
+        model: gpt-4
+        temperature: 0.7
+        
+    - skillId: knowledge-base
+      capability: search
+      required: true
+      
+  llmConfig:
+    systemPrompt: |
+      你是一个企业智能助手，帮助员工解决工作中的问题。
+      你可以：
+      - 回答公司相关政策问题
+      - 查询员工信息
+      - 处理日常事务
+      
+    functions:
+      - name: search_knowledge
+        description: 搜索公司知识库
+        parameters:
+          type: object
+          properties:
+            query:
+              type: string
+              description: 搜索关键词</code></pre>
+            
+            <h4>Step 2：声明能力与依赖</h4>
+            
+            <pre><code class="language-java">// Skill实现类
+@Skill(id = "smart-assistant")
+public class SmartAssistantSkill {
+    
+    @InjectCapability("cap://llm-service/chat")
+    private LlmCapability llmCapability;
+    
+    @InjectCapability("cap://knowledge-base/search")
+    private KnowledgeCapability knowledgeCapability;
+    
+    @Capability(name = "chat", type = CapabilityType.ENTRY)
+    public ChatResponse chat(ChatRequest request) {
+        // 1. 搜索相关知识
+        List&lt;KnowledgeChunk&gt; knowledge = knowledgeCapability.search(
+            request.getQuery()
+        );
+        
+        // 2. 构建上下文
+        String context = buildContext(knowledge);
+        
+        // 3. 调用LLM
+        return llmCapability.chat(
+            request.getQuery(),
+            context,
+            request.getHistory()
+        );
+    }
+}</code></pre>
+            
+            <h4>Step 3：配置LLM驱动</h4>
+            
+            <pre><code class="language-java">// LLM驱动配置
+public class SmartAssistantLlmDriver implements SkillLlmDriver {
+    
+    @Override
+    public SkillLlmConfig loadConfig(SkillMetadata metadata) {
+        return SkillLlmConfig.builder()
+            .provider("openai")
+            .model("gpt-4")
+            .systemPrompt(metadata.getLlmConfig().getSystemPrompt())
+            .functions(loadFunctions(metadata))
+            .temperature(0.7)
+            .maxTokens(2000)
+            .build();
+    }
+    
+    private List&lt;FunctionDefinition&gt; loadFunctions(SkillMetadata metadata) {
+        return metadata.getLlmConfig().getFunctions().stream()
+            .map(this::convertToFunctionDefinition)
+            .collect(Collectors.toList());
+    }
+}</code></pre>
+            
+            <h4>Step 4：激活与运行</h4>
+            
+            <pre><code class="language-java">// 激活Skill
+public class SkillActivationExample {
+    
+    public void activateSkill() {
+        // 1. 创建激活请求
+        ActivationRequest request = ActivationRequest.builder()
+            .sceneId("enterprise-scene")
+            .userId("user-001")
+            .skillId("smart-assistant")
+            .role("assistant")
+            .build();
+            
+        // 2. 执行激活
+        CompletableFuture&lt;ActivationResult&gt; future = 
+            activationFlowEngine.startActivation(request);
+            
+        // 3. 处理激活结果
+        future.thenAccept(result -> {
+            if (result.isSuccess()) {
+                log.info("Skill activated: {}", result.getActivationId());
+                
+                // 4. 开始使用
+                startConversation(result.getActivationId());
+            } else {
+                log.error("Activation failed: {}", result.getErrorMessage());
+            }
+        });
+    }
+    
+    private void startConversation(String activationId) {
+        // 获取激活上下文
+        SkillActivationContext context = contextManager.getContext(activationId);
+        
+        // 发送用户消息
+        ChatResponse response = context.chat("你好，请问公司的年假政策是什么？");
+        
+        System.out.println(response.getContent());
+    }
+}</code></pre>
+            
+            <h3>5.3 实战案例：构建智能工作流应用</h3>
+            
+            <h4>需求分析</h4>
+            
+            <p>假设我们需要构建一个智能工作流应用，支持：</p>
+            <ul>
+                <li>自动识别用户意图</li>
+                <li>根据意图调用不同的服务</li>
+                <li>支持多轮对话</li>
+                <li>可扩展新的能力</li>
+            </ul>
+            
+            <h4>Skill设计</h4>
+            
+            <pre><code class="language-yaml"># workflow-assistant skill-index.yaml
+skill:
+  id: workflow-assistant
+  name: 智能工作流助手
+  version: 1.0.0
+  
+  capabilities:
+    # 主入口
+    - name: process
+      type: ENTRY
+      address: cap://workflow-assistant/process
+      description: 处理用户请求
+      
+    # 子能力
+    - name: createTask
+      type: EXPOSED
+      address: cap://workflow-assistant/createTask
+      description: 创建任务
+      
+    - name: queryTask
+      type: EXPOSED
+      address: cap://workflow-assistant/queryTask
+      description: 查询任务
+      
+    - name: approveRequest
+      type: EXPOSED
+      address: cap://workflow-assistant/approveRequest
+      description: 审批请求
+      
+  dependencies:
+    - skillId: llm-service
+      capability: chat
+    - skillId: task-service
+      capability: crud
+    - skillId: notification-service
+      capability: send</code></pre>
+            
+            <h4>能力组合</h4>
+            
+            <pre><code class="language-java">@Skill(id = "workflow-assistant")
+public class WorkflowAssistantSkill {
+    
+    @InjectCapability("cap://llm-service/chat")
+    private LlmCapability llm;
+    
+    @InjectCapability("cap://task-service/crud")
+    private TaskCapability taskService;
+    
+    @InjectCapability("cap://notification-service/send")
+    private NotificationCapability notificationService;
+    
+    @Capability(name = "process", type = CapabilityType.ENTRY)
+    public ProcessResponse process(ProcessRequest request) {
+        // 1. 意图识别
+        Intent intent = llm.classifyIntent(request.getQuery());
+        
+        // 2. 路由到对应能力
+        switch (intent.getType()) {
+            case CREATE_TASK:
+                return handleCreateTask(request, intent);
+            case QUERY_TASK:
+                return handleQueryTask(request, intent);
+            case APPROVE_REQUEST:
+                return handleApproveRequest(request, intent);
+            default:
+                return handleGeneralChat(request);
+        }
+    }
+    
+    private ProcessResponse handleCreateTask(ProcessRequest request, Intent intent) {
+        // 提取任务信息
+        TaskInfo taskInfo = llm.extractTaskInfo(intent);
+        
+        // 创建任务
+        Task task = taskService.create(taskInfo);
+        
+        // 发送通知
+        notificationService.send(Notification.builder()
+            .to(task.getAssignee())
+            .subject("新任务分配")
+            .content("您有一个新任务：" + task.getTitle())
+            .build());
+        
+        return ProcessResponse.success("任务创建成功，已通知相关人员");
+    }
+}</code></pre>
+            
+            <h4>Agent配置</h4>
+            
+            <pre><code class="language-java">// Agent上下文配置
+public class WorkflowAgentConfig {
+    
+    public SkillActivationContext configureAgent() {
+        return SkillActivationContext.builder()
+            // 角色配置
+            .roleContext(RoleContext.builder()
+                .name("工作流助手")
+                .description("帮助企业员工管理工作任务和审批流程")
+                .expertise(Arrays.asList(
+                    "任务管理", "审批流程", "日程安排", "团队协作"
+                ))
+                .guidelines(Arrays.asList(
+                    "确认重要操作前需用户确认",
+                    "及时通知相关人员",
+                    "保持任务状态同步"
+                ))
+                .build())
+                
+            // 知识配置
+            .knowledgeContext(KnowledgeContext.builder()
+                .loadLevel(KnowledgeLoadLevel.ADVANCED)
+                .sources(Arrays.asList(
+                    new FileKnowledgeSource("docs/workflow-guide.md"),
+                    new DatabaseKnowledgeSource("policies")
+                ))
+                .build())
+                
+            // Function配置
+            .functionContext(FunctionContext.builder()
+                .functions(Arrays.asList(
+                    FunctionDefinition.builder()
+                        .name("create_task")
+                        .description("创建新任务")
+                        .parameters(createTaskSchema())
+                        .build(),
+                    FunctionDefinition.builder()
+                        .name("query_tasks")
+                        .description("查询任务列表")
+                        .parameters(queryTaskSchema())
+                        .build(),
+                    FunctionDefinition.builder()
+                        .name("approve_request")
+                        .description("审批请求")
+                        .parameters(approveSchema())
+                        .build()
+                ))
+                .build())
+                
+            .build();
+    }
+}</code></pre>
+            
+            <h4>【界面截图预留位置：智能工作流应用界面】</h4>
+            
+            <div class="screenshot-placeholder">
+                <div class="icon">💬</div>
+                <p>智能工作流助手应用界面截图</p>
+                <p style="font-size: 0.85rem; margin-top: 10px; opacity: 0.7;">此处预留实际产品界面截图位置</p>
+            </div>
+            
+            <div class="section-divider"></div>
+            
+            <h2 id="appendix">附录</h2>
+            
+            <h3>附录A：CAP协议规范</h3>
+            
+            <h4>A.1 地址格式</h4>
+            
+            <pre><code>cap://&lt;skillId&gt;/&lt;capabilityName&gt;[?&lt;queryParameters&gt;]
+
+组成部分：
+- cap://     : 协议标识
+- skillId    : 技能唯一标识
+- capabilityName : 能力名称
+- queryParameters : 可选查询参数
+
+示例：
+cap://weather-service/getCurrentWeather?location=Beijing
+cap://email-service/sendEmail?priority=high
+cap://hr-assistant/queryEmployeeInfo?format=json</code></pre>
+            
+            <h4>A.2 能力类型定义</h4>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>类型</th>
+                        <th>值</th>
+                        <th>说明</th>
+                        <th>可见性</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>INTERNAL</td><td>0</td><td>内部能力</td><td>仅Skill内部</td></tr>
+                    <tr><td>EXPOSED</td><td>1</td><td>对外暴露</td><td>可被其他Skill调用</td></tr>
+                    <tr><td>ENTRY</td><td>2</td><td>入口能力</td><td>可作为用户入口</td></tr>
+                </tbody>
+            </table>
+            
+            <h4>A.3 操作类型约定</h4>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>操作</th>
+                        <th>说明</th>
+                        <th>HTTP映射</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>create</td><td>创建</td><td>POST</td></tr>
+                    <tr><td>read</td><td>读取</td><td>GET</td></tr>
+                    <tr><td>update</td><td>更新</td><td>PUT/PATCH</td></tr>
+                    <tr><td>delete</td><td>删除</td><td>DELETE</td></tr>
+                    <tr><td>list</td><td>列表</td><td>GET (collection)</td></tr>
+                    <tr><td>search</td><td>搜索</td><td>GET with query</td></tr>
+                    <tr><td>execute</td><td>执行</td><td>POST</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>附录B：Skill元数据Schema</h3>
+            
+            <pre><code class="language-yaml"># skill-index.yaml 完整Schema
+skill:
+  id: string                    # 必填，唯一标识
+  name: string                  # 必填，显示名称
+  version: string               # 必填，语义版本
+  skillForm: enum               # SCENE | PROVIDER | DRIVER | INTERNAL
+  
+  spec:
+    description: string         # 描述
+    author: string              # 作者
+    tags: [string]              # 标签
+    icon: string                # 图标URL
+    homepage: string            # 主页
+    
+  capabilities:
+    - name: string              # 能力名称
+      type: enum                # INTERNAL | EXPOSED | ENTRY
+      address: string           # CAP地址
+      description: string       # 描述
+      inputParameters:          # 输入参数
+        - name: string
+          type: string
+          required: boolean
+          description: string
+          defaultValue: any
+      outputParameters:         # 输出参数
+        - name: string
+          type: string
+          description: string
+          
+  dependencies:
+    - skillId: string           # 依赖的Skill
+      capability: string        # 依赖的能力
+      required: boolean         # 是否必需
+      config:                   # 配置参数
+        key: value
+        
+  llmConfig:                    # LLM配置（可选）
+    provider: string            # 提供者
+    model: string               # 模型
+    systemPrompt: string        # 系统提示
+    functions:                  # Function定义
+      - name: string
+        description: string
+        parameters: object      # JSON Schema</code></pre>
+            
+            <h3>附录C：状态转换完整图</h3>
+            
+            <div class="svg-diagram">
+                <img src="diagram_state_transition_full.svg" alt="Skill生命周期状态转换图">
+                <p class="diagram-caption">图24：Skill生命周期状态转换完整图</p>
+            </div>
+            
+            <h3>附录D：API快速参考</h3>
+            
+            <h4>D.1 生命周期API</h4>
+            
+            <pre><code class="language-java">// 安装Skill
+POST /api/v1/skills/{skillId}/install
+Request: { "config": {...} }
+Response: { "installId": "...", "status": "INSTALLING" }
+
+// 激活Skill
+POST /api/v1/skills/{skillId}/activate
+Request: { "role": "assistant" }
+Response: { "activationId": "...", "status": "ACTIVATING" }
+
+// 停用Skill
+POST /api/v1/skills/{skillId}/deactivate
+Response: { "status": "DEACTIVATED" }
+
+// 卸载Skill
+DELETE /api/v1/skills/{skillId}
+Response: { "status": "UNINSTALLED" }</code></pre>
+            
+            <h4>D.2 能力调用API</h4>
+            
+            <pre><code class="language-java">// 调用能力
+POST /api/v1/capabilities/invoke
+Request: {
+    "address": "cap://skill/capability",
+    "params": {...}
+}
+Response: {
+    "success": true,
+    "result": {...}
+}
+
+// 查询能力
+GET /api/v1/capabilities?skillId=xxx&type=EXPOSED
+Response: {
+    "capabilities": [...]
+}</code></pre>
+            
+            <h4>D.3 监控API</h4>
+            
+            <pre><code class="language-java">// 健康检查
+GET /api/v1/health/{capabilityId}
+Response: {
+    "status": "HEALTHY",
+    "lastCheck": "2024-03-22T10:00:00Z"
+}
+
+// 性能指标
+GET /api/v1/metrics/{capabilityId}
+Response: {
+    "callCount": 1234,
+    "successRate": 0.99,
+    "avgLatencyMs": 45
+}</code></pre>
+            
+            <div class="section-divider"></div>
+            
+            <h2>总结</h2>
+            
+            <p>软件技能化是软件行业发展的必然趋势。从用友本体论到钉钉悟空，从小龙虾到ooderAgent，行业正在探索如何让软件能力更加智能、更加易用。</p>
+            
+            <p><strong>ooderAgent通过全生命周期能力管理，为构建新一代AI原生应用提供了坚实的基础</strong>：</p>
+            
+            <ol>
+                <li><strong>能力驱动架构</strong>：从功能到能力的思维转变，实现了真正的解耦和可扩展</li>
+                <li><strong>CAP统一寻址</strong>：解决了分布式系统中能力寻址的核心问题</li>
+                <li><strong>全生命周期管理</strong>：每个能力独立管理，状态可观测、可恢复</li>
+                <li><strong>声明式开发</strong>：开发者只需声明"要什么"，系统自动完成"怎么做"</li>
+                <li><strong>LLM Agent友好</strong>：完整的上下文管理体系，让Agent开发更简单</li>
+            </ol>
+            
+            <p>这套架构已经在ooderAgent MVP版本中得到验证，为企业级AI应用开发提供了可靠的技术底座。</p>
+            
+            <div class="highlight-box">
+                <h4>🚀 软件技能化的未来已来，ooderAgent正在为此铺平道路。</h4>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <p><strong>文档版本:</strong> 2.0.0 | <strong>最后更新:</strong> 2026-03-22</p>
+            <p style="margin-top: 10px;"><strong>反馈渠道:</strong> GitHub Issues</p>
+        </footer>
+    </div>
+</body>
+</html>

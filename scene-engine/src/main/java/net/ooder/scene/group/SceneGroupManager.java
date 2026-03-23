@@ -1,6 +1,8 @@
 package net.ooder.scene.group;
 
 import net.ooder.scene.event.SceneEventPublisher;
+import net.ooder.scene.event.SceneEventType;
+import net.ooder.scene.event.scenegroup.SceneGroupAuditEvent;
 import net.ooder.scene.participant.Participant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,10 +124,12 @@ public class SceneGroupManager {
         SceneGroup sceneGroup = new SceneGroup(sceneGroupId, templateId, creatorId, creatorType);
         sceneGroups.put(sceneGroupId, sceneGroup);
         
-        // 更新模板索引
         templateIndex.computeIfAbsent(templateId, k -> new CopyOnWriteArrayList<>()).add(sceneGroup);
         
         logger.info("Created SceneGroup: {}", sceneGroupId);
+        
+        publishAuditEvent(SceneEventType.SCENE_GROUP_CREATED, sceneGroupId, null, creatorId, null, true);
+        
         return sceneGroup;
     }
     
@@ -162,8 +166,7 @@ public class SceneGroupManager {
         boolean success = sceneGroup.activate();
         if (success) {
             logger.info("Activated SceneGroup: {}", sceneGroupId);
-            // 发布事件
-            // eventPublisher.publish(new SceneGroupActivatedEvent(sceneGroupId));
+            publishAuditEvent(SceneEventType.SCENE_GROUP_ACTIVATED, sceneGroupId, null, null, null, true);
         }
         return success;
     }
@@ -180,6 +183,7 @@ public class SceneGroupManager {
         boolean success = sceneGroup.suspend();
         if (success) {
             logger.info("Suspended SceneGroup: {}", sceneGroupId);
+            publishAuditEvent(SceneEventType.SCENE_GROUP_SUSPENDED, sceneGroupId, null, null, null, true);
         }
         return success;
     }
@@ -195,17 +199,16 @@ public class SceneGroupManager {
         
         boolean success = sceneGroup.startDestroying();
         if (success) {
-            // 清理资源
             sceneGroup.finishDestroying();
             sceneGroups.remove(sceneGroupId);
             
-            // 更新模板索引
             List<SceneGroup> groups = templateIndex.get(sceneGroup.getTemplateId());
             if (groups != null) {
                 groups.remove(sceneGroup);
             }
             
             logger.info("Destroyed SceneGroup: {}", sceneGroupId);
+            publishAuditEvent(SceneEventType.SCENE_GROUP_DESTROYED, sceneGroupId, null, null, null, true);
         }
         return success;
     }
@@ -225,6 +228,8 @@ public class SceneGroupManager {
         if (success) {
             logger.info("Added participant {} to SceneGroup {}", 
                 participant.getParticipantId(), sceneGroupId);
+            publishAuditEvent(SceneEventType.SCENE_GROUP_PARTICIPANT_ADDED, 
+                sceneGroupId, null, null, participant.getParticipantId(), true);
         }
         return success;
     }
@@ -242,6 +247,8 @@ public class SceneGroupManager {
         if (success) {
             logger.info("Removed participant {} from SceneGroup {}", 
                 participantId, sceneGroupId);
+            publishAuditEvent(SceneEventType.SCENE_GROUP_PARTICIPANT_REMOVED, 
+                sceneGroupId, null, null, participantId, true);
         }
         return success;
     }
@@ -353,5 +360,21 @@ public class SceneGroupManager {
      */
     public void removeSeSceneGroup(String sceneGroupId) {
         seSceneGroups.remove(sceneGroupId);
+    }
+    
+    private void publishAuditEvent(SceneEventType eventType, String groupId, String groupName, 
+                                   String operatorId, String participantId, boolean success) {
+        if (eventPublisher != null) {
+            SceneGroupAuditEvent event = SceneGroupAuditEvent.builder()
+                .source(this)
+                .eventType(eventType)
+                .groupId(groupId)
+                .groupName(groupName)
+                .operatorId(operatorId)
+                .participantId(participantId)
+                .success(success)
+                .build();
+            eventPublisher.publish(event);
+        }
     }
 }

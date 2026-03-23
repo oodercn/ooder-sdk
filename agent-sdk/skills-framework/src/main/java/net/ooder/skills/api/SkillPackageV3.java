@@ -25,7 +25,7 @@ public class SkillPackageV3 {
     private SkillForm form;                    // SCENE | STANDALONE
     private SkillCategory category;            // knowledge | llm | tool | ...
     private Set<ServicePurpose> purposes;      // 服务目的组合
-    private SceneType sceneType;               // AUTO | TRIGGER | HYBRID（仅SCENE时）
+    private SceneRunMode sceneType;               // AUTO | TRIGGER | HYBRID（仅SCENE时）
     
     // ========== 场景特有（仅 form=SCENE 时有效） ==========
     private SceneStructure sceneStructure;     // 场景结构
@@ -71,8 +71,8 @@ public class SkillPackageV3 {
     public Set<ServicePurpose> getPurposes() { return purposes; }
     public void setPurposes(Set<ServicePurpose> purposes) { this.purposes = purposes; }
     
-    public SceneType getSceneType() { return sceneType; }
-    public void setSceneType(SceneType sceneType) { this.sceneType = sceneType; }
+    public SceneRunMode getSceneType() { return sceneType; }
+    public void setSceneType(SceneRunMode sceneType) { this.sceneType = sceneType; }
     
     public SceneStructure getSceneStructure() { return sceneStructure; }
     public void setSceneStructure(SceneStructure sceneStructure) { this.sceneStructure = sceneStructure; }

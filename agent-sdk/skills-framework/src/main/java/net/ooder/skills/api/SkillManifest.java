@@ -62,6 +62,8 @@ public class SkillManifest {
     private List<String> tags;
     private List<String> providedInterfaces;
     private List<String> requiredInterfaces;
+    private PromptConfig prompt;
+    private LlmConfig llmConfig;
     
     public String getSkillId() {
         return skillId;
@@ -332,6 +334,22 @@ public class SkillManifest {
         this.requiredInterfaces = requiredInterfaces;
     }
     
+    public PromptConfig getPrompt() {
+        return prompt;
+    }
+    
+    public void setPrompt(PromptConfig prompt) {
+        this.prompt = prompt;
+    }
+    
+    public LlmConfig getLlmConfig() {
+        return llmConfig;
+    }
+    
+    public void setLlmConfig(LlmConfig llmConfig) {
+        this.llmConfig = llmConfig;
+    }
+    
     public static class Dependency {
         private String skillId;
         private String versionRange;
@@ -441,5 +459,53 @@ public class SkillManifest {
         public void setRole(String role) { this.role = role; }
         public Map<String, Object> getConfig() { return config; }
         public void setConfig(Map<String, Object> config) { this.config = config; }
+    }
+    
+    public static class PromptConfig {
+        private String systemPromptFile;
+        private String rolePromptsDir;
+        private List<String> contextFiles;
+        private Map<String, String> variables;
+        
+        public String getSystemPromptFile() { return systemPromptFile; }
+        public void setSystemPromptFile(String systemPromptFile) { this.systemPromptFile = systemPromptFile; }
+        public String getRolePromptsDir() { return rolePromptsDir; }
+        public void setRolePromptsDir(String rolePromptsDir) { this.rolePromptsDir = rolePromptsDir; }
+        public List<String> getContextFiles() { return contextFiles; }
+        public void setContextFiles(List<String> contextFiles) { this.contextFiles = contextFiles; }
+        public Map<String, String> getVariables() { return variables; }
+        public void setVariables(Map<String, String> variables) { this.variables = variables; }
+    }
+    
+    public static class LlmConfig {
+        private String systemPrompt;
+        private Double temperature;
+        private Integer maxTokens;
+        private List<FunctionConfig> functions;
+        
+        public String getSystemPrompt() { return systemPrompt; }
+        public void setSystemPrompt(String systemPrompt) { this.systemPrompt = systemPrompt; }
+        public Double getTemperature() { return temperature; }
+        public void setTemperature(Double temperature) { this.temperature = temperature; }
+        public Integer getMaxTokens() { return maxTokens; }
+        public void setMaxTokens(Integer maxTokens) { this.maxTokens = maxTokens; }
+        public List<FunctionConfig> getFunctions() { return functions; }
+        public void setFunctions(List<FunctionConfig> functions) { this.functions = functions; }
+    }
+    
+    public static class FunctionConfig {
+        private String name;
+        private String description;
+        private Map<String, Object> parameters;
+        private String capability;
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public Map<String, Object> getParameters() { return parameters; }
+        public void setParameters(Map<String, Object> parameters) { this.parameters = parameters; }
+        public String getCapability() { return capability; }
+        public void setCapability(String capability) { this.capability = capability; }
     }
 }

@@ -117,26 +117,128 @@ public interface SceneSkillLifecycle {
 
     /**
      * 技能生命周期状态枚举
+     * 
+     * <h3>完整状态机流程：</h3>
+     * <pre>
+     * DISCOVERED → PREVIEWING → CONFIGURING → DEP_CHECKING → DEP_CONFIRMING
+     *                                                         ↓
+     * ACTIVATED ← ACTIVATING ← INSTALLED ←────────────────────┘
+     *     ↓
+     * DEACTIVATED → UNINSTALLING → UNINSTALLED
+     * 
+     * 任意状态可转入 ERROR 或 UPDATING
+     * </pre>
      */
     enum SkillLifecycleState {
-        DISCOVERED("已发现"),
-        INSTALLING("安装中"),
-        INSTALLED("已安装"),
-        ACTIVATING("激活中"),
-        ACTIVATED("已激活"),
-        DEACTIVATING("停用中"),
-        DEACTIVATED("已停用"),
-        UNINSTALLING("卸载中"),
-        UNINSTALLED("已卸载"),
-        ERROR("错误");
+        DISCOVERED("已发现", "技能已发现，等待预览"),
+        PREVIEWING("预览中", "正在预览技能详情"),
+        CONFIGURING("配置中", "正在配置技能参数"),
+        DEP_CHECKING("依赖检查中", "正在检查依赖项"),
+        DEP_CONFIRMING("依赖确认中", "等待用户确认依赖"),
+        INSTALLING("安装中", "正在安装技能"),
+        INSTALLED("已安装", "技能已安装，等待激活"),
+        UPDATING("更新中", "正在更新技能配置"),
+        ACTIVATING("激活中", "正在激活技能"),
+        ACTIVATED("已激活", "技能已激活，可正常使用"),
+        DEACTIVATING("停用中", "正在停用技能"),
+        DEACTIVATED("已停用", "技能已停用"),
+        UNINSTALLING("卸载中", "正在卸载技能"),
+        UNINSTALLED("已卸载", "技能已卸载"),
+        ERROR("错误", "技能状态异常");
 
+        private final String displayName;
         private final String description;
 
-        SkillLifecycleState(String description) {
+        SkillLifecycleState(String displayName, String description) {
+            this.displayName = displayName;
             this.description = description;
         }
 
+        public String getDisplayName() { return displayName; }
         public String getDescription() { return description; }
+        
+        /**
+         * 检查是否可以从当前状态转换到目标状态
+         * 
+         * @param targetState 目标状态
+         * @return 是否可以转换
+         */
+        public boolean canTransitionTo(SkillLifecycleState targetState) {
+            if (targetState == null) {
+                return false;
+            }
+            if (this == targetState) {
+                return true;
+            }
+            if (targetState == ERROR) {
+                return true;
+            }
+            
+            switch (this) {
+                case DISCOVERED:
+                    return targetState == PREVIEWING || targetState == INSTALLING;
+                case PREVIEWING:
+                    return targetState == CONFIGURING || targetState == DISCOVERED;
+                case CONFIGURING:
+                    return targetState == DEP_CHECKING || targetState == PREVIEWING;
+                case DEP_CHECKING:
+                    return targetState == DEP_CONFIRMING || targetState == CONFIGURING;
+                case DEP_CONFIRMING:
+                    return targetState == INSTALLING || targetState == DEP_CHECKING;
+                case INSTALLING:
+                    return targetState == INSTALLED;
+                case INSTALLED:
+                    return targetState == ACTIVATING || targetState == UPDATING || targetState == UNINSTALLING;
+                case UPDATING:
+                    return targetState == INSTALLED || targetState == ACTIVATED;
+                case ACTIVATING:
+                    return targetState == ACTIVATED;
+                case ACTIVATED:
+                    return targetState == DEACTIVATING || targetState == UPDATING;
+                case DEACTIVATING:
+                    return targetState == DEACTIVATED;
+                case DEACTIVATED:
+                    return targetState == ACTIVATING || targetState == UNINSTALLING;
+                case UNINSTALLING:
+                    return targetState == UNINSTALLED;
+                case UNINSTALLED:
+                    return targetState == DISCOVERED;
+                case ERROR:
+                    return targetState == DISCOVERED || targetState == INSTALLED || 
+                           targetState == ACTIVATED || targetState == UNINSTALLED;
+                default:
+                    return false;
+            }
+        }
+        
+        /**
+         * 检查是否处于活动状态（可接受调用）
+         */
+        public boolean isActive() {
+            return this == ACTIVATED || this == UPDATING;
+        }
+        
+        /**
+         * 检查是否处于安装流程中
+         */
+        public boolean isInInstallFlow() {
+            return this == DISCOVERED || this == PREVIEWING || this == CONFIGURING ||
+                   this == DEP_CHECKING || this == DEP_CONFIRMING || this == INSTALLING;
+        }
+        
+        /**
+         * 检查是否处于激活流程中
+         */
+        public boolean isInActivationFlow() {
+            return this == INSTALLED || this == ACTIVATING;
+        }
+        
+        /**
+         * 检查是否处于终止状态
+         */
+        public boolean isTerminal() {
+            return this == UNINSTALLED;
+        }
     }
 
     /**

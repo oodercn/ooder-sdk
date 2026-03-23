@@ -5,12 +5,17 @@ import net.ooder.scene.discovery.api.DiscoveryRequest;
 import net.ooder.scene.discovery.api.DiscoveryResult;
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.capability.CapabilityEvent;
+import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -61,12 +66,19 @@ public class SceneEngineIntegration {
     private final SceneEventPublisher eventPublisher;
     private final DiscoveryEventPublisher discoveryEventPublisher;
     private final List<SceneEngineDiscoveryHook> discoveryHooks = new CopyOnWriteArrayList<>();
+    private final ObjectMapper yamlMapper;
+    private UnifiedDiscoveryService unifiedDiscoveryService;
     
     public SceneEngineIntegration(SceneEngine sceneEngine, SceneEventPublisher eventPublisher, 
                                   DiscoveryEventPublisher discoveryEventPublisher) {
         this.sceneEngine = sceneEngine;
         this.eventPublisher = eventPublisher;
         this.discoveryEventPublisher = discoveryEventPublisher;
+        this.yamlMapper = new ObjectMapper(new YAMLFactory());
+    }
+    
+    public void setUnifiedDiscoveryService(UnifiedDiscoveryService service) {
+        this.unifiedDiscoveryService = service;
     }
     
     /**
@@ -180,10 +192,26 @@ public class SceneEngineIntegration {
     public List<CapabilityDTO> discoverFromRemote(String repoUrl, String branch, String basePath) {
         logger.info("从远程仓库发现能力: {}@{}/{}", repoUrl, branch, basePath);
         
-        // TODO: 实现远程目录解析
-        // 这里需要集成 GitHub/Gitee API 来获取远程目录内容
+        if (unifiedDiscoveryService == null) {
+            throw new DiscoveryException("SERVICE_NOT_CONFIGURED", 
+                "UnifiedDiscoveryService未配置，请通过setUnifiedDiscoveryService()设置");
+        }
         
-        throw new DiscoveryException("NOT_IMPLEMENTED", "远程目录发现功能尚未实现");
+        try {
+            List<SkillPackage> skills = unifiedDiscoveryService.discoverSkills(repoUrl, basePath).get();
+            
+            List<CapabilityDTO> capabilities = skills.stream()
+                .map(this::convertSkillPackageToDTO)
+                .collect(Collectors.toList());
+            
+            logger.info("从远程仓库发现 {} 个能力", capabilities.size());
+            return capabilities;
+            
+        } catch (Exception e) {
+            String error = "远程仓库发现失败: " + e.getMessage();
+            logger.error(error, e);
+            throw new DiscoveryException("REMOTE_DISCOVERY_ERROR", error, e);
+        }
     }
     
     /**
@@ -396,7 +424,6 @@ public class SceneEngineIntegration {
     
     private CapabilityDTO parseSkillFile(Path path) {
         try {
-            // TODO: 实现 YAML 解析
             logger.debug("解析技能文件: {}", path);
             
             CapabilityDTO dto = new CapabilityDTO();
@@ -405,10 +432,31 @@ public class SceneEngineIntegration {
             dto.setSource("local");
             dto.setDiscoveredAt(System.currentTimeMillis());
             
-            // 从文件名提取 ID
-            String fileName = path.getFileName().toString();
-            String id = fileName.replaceAll("\\.ya?ml$", "");
-            dto.setId(id);
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> yamlData = yamlMapper.readValue(content, Map.class);
+            
+            if (yamlData != null) {
+                dto.setId((String) yamlData.getOrDefault("id", extractIdFromPath(path)));
+                dto.setName((String) yamlData.get("name"));
+                dto.setDescription((String) yamlData.get("description"));
+                dto.setVersion((String) yamlData.getOrDefault("version", "1.0.0"));
+                dto.setCategory((String) yamlData.get("category"));
+                
+                @SuppressWarnings("unchecked")
+                List<String> tags = (List<String>) yamlData.get("tags");
+                dto.setTags(tags);
+                
+                @SuppressWarnings("unchecked")
+                List<String> dependencies = (List<String>) yamlData.get("dependencies");
+                dto.setDependencies(dependencies);
+                
+                @SuppressWarnings("unchecked")
+                Map<String, Object> metadata = (Map<String, Object>) yamlData.get("metadata");
+                dto.setMetadata(metadata);
+            } else {
+                dto.setId(extractIdFromPath(path));
+            }
             
             return dto;
         } catch (Exception e) {
@@ -419,7 +467,6 @@ public class SceneEngineIntegration {
     
     private CapabilityDTO parseSceneFile(Path path) {
         try {
-            // TODO: 实现 YAML 解析
             logger.debug("解析场景文件: {}", path);
             
             CapabilityDTO dto = new CapabilityDTO();
@@ -428,10 +475,45 @@ public class SceneEngineIntegration {
             dto.setSource("local");
             dto.setDiscoveredAt(System.currentTimeMillis());
             
-            // 从文件名提取 ID
-            String fileName = path.getFileName().toString();
-            String id = fileName.replaceAll("\\.ya?ml$", "");
-            dto.setId(id);
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> yamlData = yamlMapper.readValue(content, Map.class);
+            
+            if (yamlData != null) {
+                dto.setId((String) yamlData.getOrDefault("id", extractIdFromPath(path)));
+                dto.setName((String) yamlData.get("name"));
+                dto.setDescription((String) yamlData.get("description"));
+                dto.setVersion((String) yamlData.getOrDefault("version", "1.0.0"));
+                dto.setCategory((String) yamlData.get("category"));
+                
+                @SuppressWarnings("unchecked")
+                List<String> tags = (List<String>) yamlData.get("tags");
+                dto.setTags(tags);
+                
+                @SuppressWarnings("unchecked")
+                List<String> dependencies = (List<String>) yamlData.get("dependencies");
+                dto.setDependencies(dependencies);
+                
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> driverConditionsRaw = 
+                    (List<Map<String, Object>>) yamlData.get("driverConditions");
+                if (driverConditionsRaw != null) {
+                    List<CapabilityDTO.DriverCondition> driverConditions = driverConditionsRaw.stream()
+                        .map(dc -> new CapabilityDTO.DriverCondition(
+                            (String) dc.get("type"),
+                            (String) dc.get("expression"),
+                            (String) dc.get("description")
+                        ))
+                        .collect(Collectors.toList());
+                    dto.setDriverConditions(driverConditions);
+                }
+                
+                @SuppressWarnings("unchecked")
+                Map<String, Object> metadata = (Map<String, Object>) yamlData.get("metadata");
+                dto.setMetadata(metadata);
+            } else {
+                dto.setId(extractIdFromPath(path));
+            }
             
             return dto;
         } catch (Exception e) {
@@ -441,22 +523,42 @@ public class SceneEngineIntegration {
     }
     
     private String generateCapabilityAddress(CapabilityDTO capability) {
-        // 生成能力地址: type://category/id
         return String.format("%s://%s/%s", 
             capability.getType(), 
             capability.getCategory() != null ? capability.getCategory() : "default",
             capability.getId());
     }
     
+    private String extractIdFromPath(Path path) {
+        String fileName = path.getFileName().toString();
+        return fileName.replaceAll("\\.ya?ml$", "");
+    }
+    
     private CapabilityDTO convertToCapabilityDTO(Object skill) {
-        // TODO: 实现从 SkillPackage 到 CapabilityDTO 的转换
         if (skill instanceof CapabilityDTO) {
             return (CapabilityDTO) skill;
+        }
+        
+        if (skill instanceof SkillPackage) {
+            return convertSkillPackageToDTO((SkillPackage) skill);
         }
         
         CapabilityDTO dto = new CapabilityDTO();
         dto.setId(skill.toString());
         dto.setType("skill");
+        return dto;
+    }
+    
+    private CapabilityDTO convertSkillPackageToDTO(SkillPackage skill) {
+        CapabilityDTO dto = new CapabilityDTO();
+        dto.setId(skill.getSkillId());
+        dto.setName(skill.getName());
+        dto.setDescription(skill.getDescription());
+        dto.setVersion(skill.getVersion() != null ? skill.getVersion() : "1.0.0");
+        dto.setCategory(skill.getCategory());
+        dto.setTags(skill.getTags());
+        dto.setType("skill");
+        dto.setSource("remote");
         return dto;
     }
     

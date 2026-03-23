@@ -51,189 +51,128 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
         }
         
         loadConfigs();
-        initDefaultConfigs();
-    }
-    
-    private void loadConfigs() {
-        File file = new File(dataDir, "system-skill-configs.json");
-        if (file.exists()) {
-            try {
-                SystemSkillConfig[] array = objectMapper.readValue(file, SystemSkillConfig[].class);
-                for (SystemSkillConfig config : array) {
-                    skillConfigs.put(config.getSkillId(), config);
-                }
-                log.info("Loaded {} system skill configs", skillConfigs.size());
-            } catch (IOException e) {
-                log.warn("Failed to load system skill configs: {}", e.getMessage());
-            }
-        }
         
-        loadHistory();
-    }
-    
-    private void loadHistory() {
-        File file = new File(dataDir, "config-history.json");
-        if (file.exists()) {
-            try {
-                ConfigHistory[] array = objectMapper.readValue(file, ConfigHistory[].class);
-                for (ConfigHistory history : array) {
-                    configHistory.add(history);
-                }
-                log.info("Loaded {} config history records", configHistory.size());
-            } catch (IOException e) {
-                log.warn("Failed to load config history: {}", e.getMessage());
-            }
-        }
-    }
-    
-    private void saveConfigs() {
-        try {
-            File file = new File(dataDir, "system-skill-configs.json");
-            objectMapper.writeValue(file, skillConfigs.values());
-        } catch (IOException e) {
-            log.error("Failed to save system skill configs: {}", e.getMessage());
-        }
-    }
-    
-    private void saveHistory() {
-        try {
-            File file = new File(dataDir, "config-history.json");
-            objectMapper.writeValue(file, configHistory);
-        } catch (IOException e) {
-            log.error("Failed to save config history: {}", e.getMessage());
-        }
-    }
-    
-    private void initDefaultConfigs() {
         if (skillConfigs.isEmpty()) {
-            initDefaultSkillConfigs();
+            initDefaultSkills();
         }
     }
     
-    private void initDefaultSkillConfigs() {
+    private void initDefaultSkills() {
+        log.info("Initializing default system skill configs...");
         long now = System.currentTimeMillis();
         
         addDefaultSkill("skill-db-sqlite", "SQLite 数据库", "database", 
-            "轻量级嵌入式数据库，适用于开发和小型部署", true, true, "running", Map.of(
-                "url", "jdbc:sqlite:./data/system.db",
-                "poolSize", 5,
-                "connectionTimeout", 30000
-            ), now);
+            "轻量级嵌入式数据库，适用于开发和小型部署", true, true, "running", 
+            createMap("url", "jdbc:sqlite:./data/system.db", 
+                     "poolSize", 5,
+                     "connectionTimeout", 30000), now);
         
         addDefaultSkill("skill-db-mysql", "MySQL 数据库", "database",
-            "企业级关系型数据库，适用于生产环境", false, false, "stopped", Map.of(
-                "host", "localhost",
-                "port", 3306,
-                "database", "ooder",
-                "username", "root",
-                "password", ""
-            ), now);
+            "企业级关系型数据库，适用于生产环境", false, false, "stopped", 
+            createMap("host", "localhost",
+                     "port", 3306,
+                     "database", "ooder",
+                     "username", "root",
+                     "password", ""), now);
         
         addDefaultSkill("skill-llm-openai", "OpenAI LLM", "llm",
-            "OpenAI 大语言模型服务", false, false, "stopped", Map.of(
-                "apiKey", "",
-                "model", "gpt-4",
-                "temperature", 0.7
-            ), now);
+            "OpenAI 大语言模型服务", false, false, "stopped", 
+            createMap("apiKey", "",
+                     "model", "gpt-4",
+                     "temperature", 0.7), now);
         
         addDefaultSkill("skill-llm-deepseek", "DeepSeek LLM", "llm",
-            "DeepSeek 大语言模型服务", false, false, "stopped", Map.of(
-                "apiKey", "",
-                "model", "deepseek-chat",
-                "baseUrl", "https://api.deepseek.com"
-            ), now);
+            "DeepSeek 大语言模型服务", false, false, "stopped", 
+            createMap("apiKey", "",
+                     "model", "deepseek-chat",
+                     "baseUrl", "https://api.deepseek.com"), now);
         
         addDefaultSkill("skill-llm-anthropic", "Anthropic LLM", "llm",
-            "Anthropic Claude 大语言模型服务", false, false, "stopped", Map.of(
-                "apiKey", "",
-                "model", "claude-3-opus"
-            ), now);
+            "Anthropic Claude 大语言模型服务", false, false, "stopped", 
+            createMap("apiKey", "",
+                     "model", "claude-3-opus"), now);
         
         addDefaultSkill("skill-llm-azure", "Azure OpenAI", "llm",
-            "Azure OpenAI 服务", false, false, "stopped", Map.of(
-                "endpoint", "",
-                "apiKey", "",
-                "deploymentName", ""
-            ), now);
+            "Azure OpenAI 服务", false, false, "stopped", 
+            createMap("endpoint", "",
+                     "apiKey", "",
+                     "deploymentName", ""), now);
         
         addDefaultSkill("skill-embedding-local", "本地向量嵌入", "embedding",
-            "本地向量嵌入服务，支持中英文文本向量化", true, true, "running", Map.of(
-                "modelPath", "./models/embedding",
-                "modelType", "bge-small-zh",
-                "dimension", 512,
-                "batchSize", 32
-            ), now);
+            "本地向量嵌入服务，支持中英文文本向量化", true, true, "running", 
+            createMap("modelPath", "./models/embedding",
+                     "modelType", "bge-small-zh",
+                     "dimension", 512,
+                     "batchSize", 32), now);
         
         addDefaultSkill("skill-rerank", "重排序服务", "embedding",
-            "搜索结果重排序服务", false, false, "stopped", Map.of(
-                "modelPath", "./models/rerank",
-                "modelType", "bge-reranker"
-            ), now);
+            "搜索结果重排序服务", false, false, "stopped", 
+            createMap("modelPath", "./models/rerank",
+                     "modelType", "bge-reranker"), now);
         
         addDefaultSkill("skill-knowledge-base", "知识库服务", "embedding",
-            "知识库管理和检索服务", false, false, "stopped", Map.of(
-                "storagePath", "./data/knowledge"
-            ), now);
+            "知识库管理和检索服务", false, false, "stopped", 
+            createMap("storagePath", "./data/knowledge"), now);
         
         addDefaultSkill("skill-vector-store", "向量存储", "embedding",
-            "向量数据库存储服务", false, false, "stopped", Map.of(
-                "type", "milvus",
-                "host", "localhost",
-                "port", 19530
-            ), now);
+            "向量数据库存储服务", false, false, "stopped", 
+            createMap("type", "milvus",
+                     "host", "localhost",
+                     "port", 19530), now);
         
         addDefaultSkill("skill-cache-redis", "Redis 缓存", "storage",
-            "Redis 缓存服务", false, false, "stopped", Map.of(
-                "host", "localhost",
-                "port", 6379,
-                "database", 0
-            ), now);
+            "Redis 缓存服务", false, false, "stopped", 
+            createMap("host", "localhost",
+                     "port", 6379,
+                     "database", 0), now);
         
         addDefaultSkill("skill-storage-oss", "OSS 存储", "storage",
-            "阿里云 OSS 对象存储服务", false, false, "stopped", Map.of(
-                "endpoint", "",
-                "accessKeyId", "",
-                "accessKeySecret", "",
-                "bucketName", ""
-            ), now);
+            "阿里云 OSS 对象存储服务", false, false, "stopped", 
+            createMap("endpoint", "",
+                     "accessKeyId", "",
+                     "accessKeySecret", "",
+                     "bucketName", ""), now);
         
         addDefaultSkill("skill-storage-minio", "MinIO 存储", "storage",
-            "MinIO 对象存储服务", false, false, "stopped", Map.of(
-                "endpoint", "http://localhost:9000",
-                "accessKey", "minioadmin",
-                "secretKey", "minioadmin",
-                "bucketName", "ooder"
-            ), now);
+            "MinIO 对象存储服务", false, false, "stopped", 
+            createMap("endpoint", "http://localhost:9000",
+                     "accessKey", "minioadmin",
+                     "secretKey", "minioadmin",
+                     "bucketName", "ooder"), now);
         
         addDefaultSkill("skill-notification", "通知服务", "other",
-            "消息通知服务，支持邮件、短信、推送", false, false, "stopped", Map.of(
-                "emailEnabled", false,
-                "smsEnabled", false,
-                "pushEnabled", false
-            ), now);
+            "消息通知服务，支持邮件、短信、推送", false, false, "stopped", 
+            createMap("emailEnabled", false,
+                     "smsEnabled", false,
+                     "pushEnabled", false), now);
         
         addDefaultSkill("skill-logging", "日志服务", "monitoring",
-            "系统日志收集和管理服务", true, true, "running", Map.of(
-                "level", "INFO",
-                "format", "json",
-                "filePath", "./logs/sdk.log"
-            ), now);
+            "系统日志收集和管理服务", true, true, "running", 
+            createMap("level", "INFO",
+                     "format", "json",
+                     "filePath", "./logs/sdk.log"), now);
         
         addDefaultSkill("skill-metrics", "指标服务", "monitoring",
-            "系统指标收集和监控服务", true, true, "running", Map.of(
-                "enabled", true,
-                "interval", 60,
-                "port", 9090
-            ), now);
+            "系统指标收集和监控服务", true, true, "running", 
+            createMap("enabled", true,
+                     "interval", 60,
+                     "port", 9090), now);
         
         addDefaultSkill("skill-tracing", "链路追踪", "monitoring",
-            "分布式链路追踪服务", false, false, "stopped", Map.of(
-                "enabled", false,
-                "sampleRate", 0.1
-            ), now);
+            "分布式链路追踪服务", false, false, "stopped", 
+            createMap("enabled", false,
+                     "sampleRate", 0.1), now);
         
         saveConfigs();
         log.info("Initialized {} default system skill configs", skillConfigs.size());
+    }
+    
+    private Map<String, Object> createMap(Object... keyValues) {
+        Map<String, Object> map = new HashMap<>();
+        for (int i = 0; i < keyValues.length; i += 2) {
+            map.put((String) keyValues[i], keyValues[i + 1]);
+        }
+        return map;
     }
     
     private void addDefaultSkill(String skillId, String name, String category, 
@@ -291,7 +230,10 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
             skill.setConfig(new HashMap<>(config));
             skill.setUpdateTime(System.currentTimeMillis());
             
-            addHistory(skillId, "update_config", Map.of("oldConfig", oldConfig, "newConfig", config));
+            Map<String, Object> historyData = new HashMap<>();
+            historyData.put("oldConfig", oldConfig);
+            historyData.put("newConfig", config);
+            addHistory(skillId, "update_config", historyData);
             
             saveConfigs();
             
@@ -311,6 +253,7 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
                 throw new RuntimeException("Skill not found: " + skillId);
             }
             
+            skill.setEnabled(true);
             skill.setStatus("running");
             skill.setUpdateTime(System.currentTimeMillis());
             
@@ -322,7 +265,7 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
             runtime.setMetrics(new HashMap<>());
             runtimeStatuses.put(skillId, runtime);
             
-            addHistory(skillId, "start", Map.of());
+            addHistory(skillId, "start", new HashMap<>());
             saveConfigs();
             
             log.info("Started skill: {}", skillId);
@@ -345,7 +288,7 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
                 runtime.setStatus("stopped");
             }
             
-            addHistory(skillId, "stop", Map.of());
+            addHistory(skillId, "stop", new HashMap<>());
             saveConfigs();
             
             log.info("Stopped skill: {}", skillId);
@@ -353,54 +296,87 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
     }
     
     @Override
+    public CompletableFuture<Void> resetSkillConfig(String skillId) {
+        return CompletableFuture.runAsync(() -> {
+            SystemSkillConfig skill = skillConfigs.get(skillId);
+            if (skill == null) {
+                throw new RuntimeException("Skill not found: " + skillId);
+            }
+            
+            skill.getConfig().clear();
+            skill.setUpdateTime(System.currentTimeMillis());
+            
+            addHistory(skillId, "reset", new HashMap<>());
+            saveConfigs();
+            
+            log.info("Reset skill config: {}", skillId);
+        });
+    }
+    
+    @Override
+    public CompletableFuture<SkillRuntimeStatus> getSkillRuntimeStatus(String skillId) {
+        return CompletableFuture.completedFuture(runtimeStatuses.get(skillId));
+    }
+    
+    @Override
     public CompletableFuture<List<ConfigHistory>> getConfigHistory(String skillId, int limit) {
         List<ConfigHistory> result = configHistory.stream()
-            .filter(h -> skillId == null || skillId.equals(h.getSkillId()))
-            .limit(limit > 0 ? limit : 100)
+            .filter(h -> skillId.equals(h.getSkillId()))
+            .sorted((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()))
+            .limit(limit)
             .collect(Collectors.toList());
         return CompletableFuture.completedFuture(result);
     }
     
     @Override
-    public CompletableFuture<SkillRuntimeStatus> getSkillRuntimeStatus(String skillId) {
-        SkillRuntimeStatus status = runtimeStatuses.get(skillId);
-        if (status != null) {
-            status.setUptime(System.currentTimeMillis() - status.getStartTime());
-        }
-        return CompletableFuture.completedFuture(status);
-    }
-    
-    @Override
     public CompletableFuture<List<SkillCategory>> getCategories() {
-        return CompletableFuture.completedFuture(new ArrayList<>(DEFAULT_CATEGORIES));
+        return CompletableFuture.completedFuture(DEFAULT_CATEGORIES);
     }
     
-    @Override
-    public CompletableFuture<Void> resetSkillConfig(String skillId) {
-        return CompletableFuture.runAsync(() -> {
-            skillConfigs.clear();
-            runtimeStatuses.clear();
-            initDefaultSkillConfigs();
-            addHistory(skillId, "reset", Map.of());
-            log.info("Reset skill config to defaults: {}", skillId);
-        });
-    }
-    
-    private void addHistory(String skillId, String action, Map<String, Object> changes) {
+    private void addHistory(String skillId, String action, Map<String, Object> data) {
         ConfigHistory history = new ConfigHistory();
-        history.setId("hist-" + System.currentTimeMillis());
+        history.setId(UUID.randomUUID().toString());
         history.setSkillId(skillId);
         history.setAction(action);
+        Map<String, Map<String, Object>> changes = new HashMap<>();
+        changes.put("data", data);
         history.setChanges(changes);
-        history.setOperator("system");
         history.setTimestamp(System.currentTimeMillis());
-        
-        configHistory.add(0, history);
-        
-        while (configHistory.size() > 1000) {
-            configHistory.remove(configHistory.size() - 1);
+        configHistory.add(history);
+    }
+    
+    private void loadConfigs() {
+        File configFile = new File(dataDir, "system-skills.json");
+        if (configFile.exists()) {
+            try {
+                Map<String, Object> data = objectMapper.readValue(configFile, Map.class);
+                @SuppressWarnings("unchecked")
+                Map<String, Object> configs = (Map<String, Object>) data.get("skillConfigs");
+                if (configs != null) {
+                    for (Map.Entry<String, Object> entry : configs.entrySet()) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> configMap = (Map<String, Object>) entry.getValue();
+                        SystemSkillConfig config = objectMapper.convertValue(configMap, SystemSkillConfig.class);
+                        skillConfigs.put(entry.getKey(), config);
+                    }
+                }
+                log.info("Loaded {} skill configs from {}", skillConfigs.size(), configFile);
+            } catch (IOException e) {
+                log.error("Failed to load configs from " + configFile, e);
+            }
         }
-        
-        saveHistory();
+    }
+    
+    private void saveConfigs() {
+        File configFile = new File(dataDir, "system-skills.json");
+        try {
+            Map<String, Object> data = new HashMap<>();
+            data.put("skillConfigs", skillConfigs);
+            data.put("lastUpdate", System.currentTimeMillis());
+            objectMapper.writeValue(configFile, data);
+            log.debug("Saved {} skill configs to {}", skillConfigs.size(), configFile);
+        } catch (IOException e) {
+            log.error("Failed to save configs to " + configFile, e);
+        }
     }
 }

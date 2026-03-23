@@ -43,6 +43,14 @@ public interface A2AService {
     TransferResult transferContext(ContextTransfer transfer);
 
     /**
+     * 批量传递上下文
+     *
+     * @param transfers 上下文传递列表
+     * @return 批量传递结果
+     */
+    BatchTransferResult batchTransferContext(List<ContextTransfer> transfers);
+
+    /**
      * 注册 Agent
      *
      * @param agentInfo Agent 信息
@@ -124,6 +132,32 @@ public interface A2AService {
         public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
         public long getTransferTime() { return transferTime; }
         public void setTransferTime(long transferTime) { this.transferTime = transferTime; }
+    }
+
+    /**
+     * 批量传递结果
+     */
+    class BatchTransferResult {
+        private boolean success;
+        private int totalCount;
+        private int successCount;
+        private int failedCount;
+        private List<TransferResult> results;
+        private String errorMessage;
+
+        // Getters and Setters
+        public boolean isSuccess() { return success; }
+        public void setSuccess(boolean success) { this.success = success; }
+        public int getTotalCount() { return totalCount; }
+        public void setTotalCount(int totalCount) { this.totalCount = totalCount; }
+        public int getSuccessCount() { return successCount; }
+        public void setSuccessCount(int successCount) { this.successCount = successCount; }
+        public int getFailedCount() { return failedCount; }
+        public void setFailedCount(int failedCount) { this.failedCount = failedCount; }
+        public List<TransferResult> getResults() { return results; }
+        public void setResults(List<TransferResult> results) { this.results = results; }
+        public String getErrorMessage() { return errorMessage; }
+        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
     }
 
     /**

@@ -2,6 +2,7 @@ package net.ooder.scene.core.spi;
 
 import net.ooder.scene.core.template.DependenciesConfig;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,11 +43,16 @@ public interface DependencyChecker {
      * 检查结果
      */
     class CheckResult {
-        private boolean satisfied;       // 是否满足
-        private String message;          // 检查消息
-        private Map<String, Object> details; // 详细信息
+        private boolean satisfied;
+        private String message;
+        private Map<String, Object> details;
+        
+        public CheckResult() {
+            this.details = new HashMap<>();
+        }
         
         public CheckResult(boolean satisfied, String message) {
+            this();
             this.satisfied = satisfied;
             this.message = message;
         }
@@ -58,8 +64,6 @@ public interface DependencyChecker {
         public static CheckResult unsatisfied(String message) {
             return new CheckResult(false, message);
         }
-        
-        // Getters and Setters
         
         public boolean isSatisfied() {
             return satisfied;
@@ -82,7 +86,12 @@ public interface DependencyChecker {
         }
         
         public void setDetails(Map<String, Object> details) {
-            this.details = details;
+            this.details = details != null ? details : new HashMap<>();
+        }
+        
+        public CheckResult addDetail(String key, Object value) {
+            this.details.put(key, value);
+            return this;
         }
     }
     
@@ -90,9 +99,19 @@ public interface DependencyChecker {
      * 健康状态
      */
     enum HealthStatus {
-        HEALTHY,      // 健康
-        UNHEALTHY,    // 不健康
-        UNKNOWN,      // 未知
-        CHECKING      // 检查中
+        HEALTHY("健康"),
+        UNHEALTHY("不健康"),
+        UNKNOWN("未知"),
+        CHECKING("检查中");
+        
+        private final String displayName;
+        
+        HealthStatus(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

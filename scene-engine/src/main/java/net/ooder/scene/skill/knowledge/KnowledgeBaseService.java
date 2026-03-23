@@ -176,4 +176,28 @@ public interface KnowledgeBaseService {
      * @param userId 用户ID
      */
     void revokePermission(String kbId, String userId);
+    
+    // ========== 统计聚合 ==========
+    
+    /**
+     * 获取知识库统计数据
+     *
+     * @return 统计数据
+     */
+    KnowledgeBaseStats getStats();
+    
+    /**
+     * 获取所有知识库
+     *
+     * @return 知识库列表
+     */
+    List<KnowledgeBase> listAll();
+    
+    /**
+     * 获取场景绑定数量
+     *
+     * @param kbId 知识库ID
+     * @return 绑定数量
+     */
+    int getBindingCount(String kbId);
 }

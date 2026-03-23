@@ -1,33 +1,49 @@
 package net.ooder.scene.skill.install;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 安装结果
  *
- * @author ooder
- * @since 2.3.2
+ * @author ooder Team
+ * @since 2.3.1
  */
 public class InstallResult {
 
     private boolean success;
-    private String installId;
-    private String capabilityId;
-    private String message;
-    private long duration;
+    private String skillId;
+    private String configId;
+    private String kbBindingId;
+    private String promptKbId;
+    private List<String> capabilities;
+    private List<String> warnings;
+    private String errorMessage;
+    private long installTime;
+    private Map<String, Object> metadata;
 
-    public InstallResult() {}
-
-    public InstallResult(boolean success, String capabilityId) {
-        this.success = success;
-        this.capabilityId = capabilityId;
+    public InstallResult() {
+        this.capabilities = new ArrayList<>();
+        this.warnings = new ArrayList<>();
+        this.metadata = new HashMap<>();
     }
 
-    public static InstallResult success(String capabilityId) {
-        return new InstallResult(true, capabilityId);
+    public static InstallResult success(String skillId) {
+        InstallResult result = new InstallResult();
+        result.setSuccess(true);
+        result.setSkillId(skillId);
+        result.setInstallTime(System.currentTimeMillis());
+        return result;
     }
 
-    public static InstallResult failure(String capabilityId, String message) {
-        InstallResult result = new InstallResult(false, capabilityId);
-        result.setMessage(message);
+    public static InstallResult failure(String skillId, String errorMessage) {
+        InstallResult result = new InstallResult();
+        result.setSuccess(false);
+        result.setSkillId(skillId);
+        result.setErrorMessage(errorMessage);
+        result.setInstallTime(System.currentTimeMillis());
         return result;
     }
 
@@ -39,35 +55,83 @@ public class InstallResult {
         this.success = success;
     }
 
-    public String getInstallId() {
-        return installId;
+    public String getSkillId() {
+        return skillId;
     }
 
-    public void setInstallId(String installId) {
-        this.installId = installId;
+    public void setSkillId(String skillId) {
+        this.skillId = skillId;
     }
 
-    public String getCapabilityId() {
-        return capabilityId;
+    public String getConfigId() {
+        return configId;
     }
 
-    public void setCapabilityId(String capabilityId) {
-        this.capabilityId = capabilityId;
+    public void setConfigId(String configId) {
+        this.configId = configId;
     }
 
-    public String getMessage() {
-        return message;
+    public String getKbBindingId() {
+        return kbBindingId;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setKbBindingId(String kbBindingId) {
+        this.kbBindingId = kbBindingId;
     }
 
-    public long getDuration() {
-        return duration;
+    public String getPromptKbId() {
+        return promptKbId;
     }
 
-    public void setDuration(long duration) {
-        this.duration = duration;
+    public void setPromptKbId(String promptKbId) {
+        this.promptKbId = promptKbId;
+    }
+
+    public List<String> getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(List<String> capabilities) {
+        this.capabilities = capabilities != null ? capabilities : new ArrayList<>();
+    }
+
+    public void addCapability(String capability) {
+        this.capabilities.add(capability);
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings != null ? warnings : new ArrayList<>();
+    }
+
+    public void addWarning(String warning) {
+        this.warnings.add(warning);
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public long getInstallTime() {
+        return installTime;
+    }
+
+    public void setInstallTime(long installTime) {
+        this.installTime = installTime;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata != null ? metadata : new HashMap<>();
     }
 }

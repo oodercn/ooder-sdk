@@ -68,6 +68,21 @@ public enum SceneEventType {
     SCENE_DEACTIVATED("scene.deactivated", "场景停用"),
     SCENE_GROUP_JOINED("scene.group.joined", "加入场景组"),
     SCENE_GROUP_LEFT("scene.group.left", "离开场景组"),
+    SCENE_GROUP_CREATED("scene.group.created", "创建场景组"),
+    SCENE_GROUP_DESTROYED("scene.group.destroyed", "销毁场景组"),
+    SCENE_GROUP_ACTIVATED("scene.group.activated", "激活场景组"),
+    SCENE_GROUP_SUSPENDED("scene.group.suspended", "暂停场景组"),
+    SCENE_GROUP_ARCHIVED("scene.group.archived", "归档场景组"),
+    SCENE_GROUP_RESTORED("scene.group.restored", "恢复场景组"),
+    SCENE_GROUP_PARTICIPANT_ADDED("scene.group.participant.added", "添加参与者"),
+    SCENE_GROUP_PARTICIPANT_REMOVED("scene.group.participant.removed", "移除参与者"),
+    SCENE_GROUP_PARTICIPANT_ROLE_CHANGED("scene.group.participant.role.changed", "参与者角色变更"),
+    SCENE_GROUP_CAPABILITY_BOUND("scene.group.capability.bound", "能力绑定"),
+    SCENE_GROUP_CAPABILITY_UNBOUND("scene.group.capability.unbound", "能力解绑"),
+    SCENE_GROUP_KNOWLEDGE_BOUND("scene.group.knowledge.bound", "知识库绑定"),
+    SCENE_GROUP_KNOWLEDGE_UNBOUND("scene.group.knowledge.unbound", "知识库解绑"),
+    SCENE_GROUP_SNAPSHOT_CREATED("scene.group.snapshot.created", "快照创建"),
+    SCENE_GROUP_SNAPSHOT_RESTORED("scene.group.snapshot.restored", "快照恢复"),
     
     USER_CREATED("user.created", "用户创建"),
     USER_UPDATED("user.updated", "用户更新"),
@@ -75,6 +90,25 @@ public enum SceneEventType {
     USER_ENABLED("user.enabled", "用户启用"),
     USER_DISABLED("user.disabled", "用户禁用"),
     USER_PERMISSIONS_CHANGED("user.permissions.changed", "用户权限变更"),
+    
+    ORG_COMPANY_CREATED("org.company.created", "创建公司"),
+    ORG_COMPANY_UPDATED("org.company.updated", "更新公司"),
+    ORG_COMPANY_DELETED("org.company.deleted", "删除公司"),
+    ORG_DEPARTMENT_CREATED("org.department.created", "创建部门"),
+    ORG_DEPARTMENT_UPDATED("org.department.updated", "更新部门"),
+    ORG_DEPARTMENT_DELETED("org.department.deleted", "删除部门"),
+    ORG_USER_CREATED("org.user.created", "创建组织用户"),
+    ORG_USER_UPDATED("org.user.updated", "更新组织用户"),
+    ORG_USER_DELETED("org.user.deleted", "删除组织用户"),
+    
+    WORKFLOW_REGISTERED("workflow.registered", "工作流注册"),
+    WORKFLOW_UNREGISTERED("workflow.unregistered", "工作流注销"),
+    WORKFLOW_EXECUTED("workflow.executed", "工作流执行"),
+    WORKFLOW_COMPLETED("workflow.completed", "工作流完成"),
+    WORKFLOW_FAILED("workflow.failed", "工作流失败"),
+    WORKFLOW_PAUSED("workflow.paused", "工作流暂停"),
+    WORKFLOW_RESUMED("workflow.resumed", "工作流恢复"),
+    WORKFLOW_CANCELLED("workflow.cancelled", "工作流取消"),
     
     PEER_DISCOVERED("peer.discovered", "节点发现"),
     PEER_OFFLINE("peer.offline", "节点离线"),
@@ -127,7 +161,29 @@ public enum SceneEventType {
     SCENE_DISCOVERED("scene.discovered", "场景发现"),
     CAPABILITY_DISCOVERED("capability.discovered", "能力发现"),
     DISCOVERY_COMPLETED("discovery.completed", "发现完成"),
-    DISCOVERY_FAILED("discovery.failed", "发现失败");
+    DISCOVERY_FAILED("discovery.failed", "发现失败"),
+    
+    ASSET_REGISTERED("asset.registered", "资产注册"),
+    ASSET_UPDATED("asset.updated", "资产更新"),
+    ASSET_DECOMMISSIONED("asset.decommissioned", "资产停用"),
+    ASSET_OWNERSHIP_TRANSFERRED("asset.ownership.transferred", "资产所有权转移"),
+    ASSET_STATUS_CHANGED("asset.status.changed", "资产状态变更"),
+    
+    KB_PERMISSION_GRANTED("kb.permission.granted", "知识库权限授予"),
+    KB_PERMISSION_REVOKED("kb.permission.revoked", "知识库权限撤销"),
+    KB_OWNERSHIP_TRANSFERRED("kb.ownership.transferred", "知识库所有权转移"),
+    
+    KNOWLEDGE_BASE_CREATED("kb.created", "知识库创建"),
+    KNOWLEDGE_BASE_UPDATED("kb.updated", "知识库更新"),
+    KNOWLEDGE_BASE_DELETED("kb.deleted", "知识库删除"),
+    KNOWLEDGE_BASE_DOCUMENT_ADDED("kb.document.added", "知识库文档添加"),
+    KNOWLEDGE_BASE_DOCUMENT_DELETED("kb.document.deleted", "知识库文档删除"),
+    KNOWLEDGE_BASE_INDEX_REBUILT("kb.index.rebuilt", "知识库索引重建"),
+    
+    SHARE_CREATED("share.created", "分享创建"),
+    SHARE_CANCELED("share.canceled", "分享取消"),
+    SHARE_UPDATED("share.updated", "分享更新"),
+    SHARE_ACCESSED("share.accessed", "分享访问");
     
     private final String code;
     private final String description;

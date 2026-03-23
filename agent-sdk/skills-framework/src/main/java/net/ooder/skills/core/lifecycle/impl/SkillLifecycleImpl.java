@@ -245,28 +245,52 @@ public class SkillLifecycleImpl implements SkillLifecycle {
         }
     }
     
+    /**
+     * 模板方法：初始化
+     * 子类应覆盖此方法实现具体的初始化逻辑
+     */
     protected void doInitialize() throws Exception {
-        log.debug("Skill {} initializing", skillId);
+        log.debug("Skill {} initializing (base implementation - override in subclass)", skillId);
     }
     
+    /**
+     * 模板方法：启动
+     * 子类应覆盖此方法实现具体的启动逻辑
+     */
     protected void doStart() throws Exception {
-        log.debug("Skill {} starting", skillId);
+        log.debug("Skill {} starting (base implementation - override in subclass)", skillId);
     }
     
+    /**
+     * 模板方法：停止
+     * 子类应覆盖此方法实现具体的停止逻辑
+     */
     protected void doStop() throws Exception {
-        log.debug("Skill {} stopping", skillId);
+        log.debug("Skill {} stopping (base implementation - override in subclass)", skillId);
     }
     
+    /**
+     * 模板方法：暂停
+     * 子类应覆盖此方法实现具体的暂停逻辑
+     */
     protected void doPause() throws Exception {
-        log.debug("Skill {} pausing", skillId);
+        log.debug("Skill {} pausing (base implementation - override in subclass)", skillId);
     }
     
+    /**
+     * 模板方法：恢复
+     * 子类应覆盖此方法实现具体的恢复逻辑
+     */
     protected void doResume() throws Exception {
-        log.debug("Skill {} resuming", skillId);
+        log.debug("Skill {} resuming (base implementation - override in subclass)", skillId);
     }
     
+    /**
+     * 模板方法：销毁
+     * 子类应覆盖此方法实现具体的销毁逻辑
+     */
     protected void doDestroy() throws Exception {
-        log.debug("Skill {} destroying", skillId);
+        log.debug("Skill {} destroying (base implementation - override in subclass)", skillId);
     }
     
     public void shutdown() {

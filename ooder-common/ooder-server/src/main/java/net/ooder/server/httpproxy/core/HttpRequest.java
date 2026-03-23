@@ -278,7 +278,7 @@ public class HttpRequest extends Request {
                 valueMap.putAll(this.session);
             }
             OgnlRuntime.clearCache();
-            context = new OgnlContext(OgnlValueStack.getAccessor(), JDSConverter.getInstance(), null, valueMap);
+            context = new OgnlContext(null, OgnlValueStack.getAccessor(), JDSConverter.getInstance(), valueMap);
 
         }
         return context;

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 400" width="700px" height="400px">
+<defs>
+    <style>
+        .bg { fill: #fafafa; }
+        .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+        .box-context { fill: #dbeafe; stroke: #1e40af; stroke-width: 2; rx: 8; }
+        .arrow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrowhead); }
+        .text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; font-size: 13px; fill: #334155; }
+        .text-title { font-size: 14px; font-weight: bold; fill: #1e40af; }
+        .text-header { font-size: 16px; font-weight: bold; fill: #ffffff; }
+        .title-box { fill: #2563eb; stroke: none; rx: 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+
+<!-- Title -->
+<rect class="title-box" x="20" y="15" width="660" height="35" rx="4"/>
+<text class="text-header" x="350" y="38" text-anchor="middle">Agent上下文体系</text>
+
+<!-- Center: SkillActivationContext -->
+<rect class="box-context" x="250" y="70" width="200" height="50"/>
+<text class="text-title" x="350" y="100" text-anchor="middle">SkillActivationContext</text>
+
+<!-- Four Context Components -->
+<rect class="box" x="50" y="170" width="140" height="100"/>
+<text class="text-title" x="120" y="195" text-anchor="middle">RoleContext</text>
+<text class="text" x="65" y="220">角色名称与描述</text>
+<text class="text" x="65" y="240">行为准则</text>
+<text class="text" x="65" y="260">专业领域</text>
+
+<rect class="box" x="210" y="170" width="140" height="100"/>
+<text class="text-title" x="280" y="195" text-anchor="middle">KnowledgeContext</text>
+<text class="text" x="225" y="220">多级知识加载</text>
+<text class="text" x="225" y="240">RAG知识检索</text>
+<text class="text" x="225" y="260">领域知识库</text>
+
+<rect class="box" x="370" y="170" width="140" height="100"/>
+<text class="text-title" x="440" y="195" text-anchor="middle">FunctionContext</text>
+<text class="text" x="385" y="220">Function Calling定义</text>
+<text class="text" x="385" y="240">能力映射</text>
+<text class="text" x="385" y="260">执行器绑定</text>
+
+<rect class="box" x="530" y="170" width="140" height="100"/>
+<text class="text-title" x="600" y="195" text-anchor="middle">MemoryContext</text>
+<text class="text" x="545" y="220">对话历史</text>
+<text class="text" x="545" y="240">用户偏好</text>
+<text class="text" x="545" y="260">会话状态</text>
+
+<!-- Arrows -->
+<line class="arrow" x1="280" y1="120" x2="120" y2="170"/>
+<line class="arrow" x1="320" y1="120" x2="280" y2="170"/>
+<line class="arrow" x1="380" y1="120" x2="440" y2="170"/>
+<line class="arrow" x1="420" y1="120" x2="600" y2="170"/>
+
+<!-- LLM -->
+<rect class="box-context" x="250" y="320" width="200" height="50"/>
+<text class="text-title" x="350" y="350" text-anchor="middle">LLM Request</text>
+
+<!-- Arrow to LLM -->
+<line class="arrow" x1="350" y1="270" x2="350" y2="320"/>
+
+</svg>

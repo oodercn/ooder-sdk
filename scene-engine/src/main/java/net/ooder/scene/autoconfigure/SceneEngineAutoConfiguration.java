@@ -1,6 +1,7 @@
 package net.ooder.scene.autoconfigure;
 
 import net.ooder.scene.llm.LlmService;
+import net.ooder.scene.llm.impl.NoOpLlmService;
 import net.ooder.scene.skill.conversation.ConversationService;
 import net.ooder.scene.skill.conversation.impl.ConversationServiceImpl;
 import net.ooder.scene.skill.conversation.storage.ConversationStorageService;
@@ -16,9 +17,12 @@ import net.ooder.scene.skill.SkillControllerFactory;
 import net.ooder.scene.spi.SceneServices;
 import net.ooder.scene.spi.SceneServiceFactory;
 import net.ooder.scene.spi.impl.DefaultSceneServiceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,10 +34,16 @@ import javax.annotation.PostConstruct;
  * <p>将 SE 核心服务暴露为 Spring Bean，供 Skill 插件使用</p>
  * <p>SE 只提供接口和扩展点，具体实现由 Skill 插件提供</p>
  *
+ * <p>默认禁用，需要通过配置显式启用：</p>
+ * <pre>
+ * scene.engine.enabled: true
+ * </pre>
+ *
  * @author ooder Team
  * @since 2.3.1
  */
 @Configuration
+@ConditionalOnProperty(name = "scene.engine.enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(SceneEngineProperties.class)
 public class SceneEngineAutoConfiguration {
 
@@ -66,6 +76,17 @@ public class SceneEngineAutoConfiguration {
     public ToolRegistry toolRegistry() {
         this.toolRegistry = new ToolRegistryImpl();
         return this.toolRegistry;
+    }
+
+    /**
+     * 默认 LLM 服务
+     * <p>当没有实际的 LlmService 实现时，提供空实现</p>
+     * <p>避免因缺少 LlmService Bean 导致启动失败</p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(LlmService.class)
+    public LlmService defaultLlmService() {
+        return new NoOpLlmService();
     }
 
     /**
