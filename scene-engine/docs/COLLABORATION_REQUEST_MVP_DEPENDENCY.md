@@ -84,16 +84,35 @@ scene:
 
 1. ✅ 所有 `@Configuration` 类已添加 `proxyBeanMethods = false`
 2. ✅ 自动配置类已添加 `@ConditionalOnProperty` 开关
+3. ✅ `JsonStorageService` 已重命名为 `SceneContextStorageService`
+4. ✅ `RequestMappingConfig` 中的 `@Primary` 注解已替换为 `@ConditionalOnMissingBean`
+5. ✅ `VectorStoreAutoConfiguration` 已添加 `@ConditionalOnProperty` 开关
+6. ✅ `SceneEngineAutoConfiguration` 已添加 `@ConditionalOnProperty` 开关
+
+---
+
+## 配置开关汇总
+
+| 配置项 | 说明 | 默认值 |
+|--------|------|--------|
+| `scene.engine.enabled` | 启用 Scene Engine 核心服务 | false |
+| `scene.engine.auto-config.enabled` | 启用 Scene Engine 自动配置 | true |
+| `scene.engine.vector.enabled` | 启用向量存储自动配置 | true |
+| `scene.engine.discovery.enabled` | 启用发现服务 | true |
+| `scene.engine.llm.audit.enabled` | 启用 LLM 审计服务 | true |
+| `scene.engine.key.management.enabled` | 启用密钥管理服务 | true |
+| `scene.bridge.sdk.enabled` | 启用 SDK SceneGroup 桥接 | false |
+| `scene.knowledge.persistence.enabled` | 启用知识库持久化 | false |
 
 ---
 
 ## 请求事项
 
-| 序号 | 请求内容 | 优先级 | 预计完成时间 |
-|------|----------|--------|--------------|
-| 1 | 重命名 `JsonStorageService` 或添加 `@ConditionalOnMissingBean` | 高 | 2026-03-25 |
-| 2 | 提供自动配置排除选项 | 中 | 2026-03-26 |
-| 3 | 检查并减少 `@Primary` 注解使用 | 中 | 2026-03-26 |
+| 序号 | 请求内容 | 优先级 | 状态 | 完成时间 |
+|------|----------|--------|------|----------|
+| 1 | 重命名 `JsonStorageService` 或添加 `@ConditionalOnMissingBean` | 高 | ✅ 已完成 | 2026-03-24 |
+| 2 | 提供自动配置排除选项 | 中 | ✅ 已完成 | 2026-03-24 |
+| 3 | 检查并减少 `@Primary` 注解使用 | 中 | ✅ 已完成 | 2026-03-24 |
 
 ---
 

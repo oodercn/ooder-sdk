@@ -11,6 +11,7 @@ import net.ooder.scene.session.SessionInfo;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,11 +26,17 @@ import org.springframework.context.annotation.Configuration;
  *   <li>CapabilityInstallLifecycle - 能力安装生命周期</li>
  * </ul>
  *
+ * <p>默认启用，可通过配置禁用：</p>
+ * <pre>
+ * scene.engine.auto-config.enabled: false
+ * </pre>
+ *
  * @author ooder
  * @since 2.3.2
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(SceneClient.class)
+@ConditionalOnProperty(prefix = "scene.engine.auto-config", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SceneEngineAutoConfiguration {
 
     @Bean

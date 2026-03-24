@@ -7,6 +7,7 @@ import net.ooder.scene.skill.engine.context.ContextStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -22,18 +23,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * JSON 文件存储服务实现
+ * 场景上下文存储服务实现
  * 基于文件系统的上下文持久化实现，支持并发访问控制
  *
- * <p>变更说明: 新增实现类，提供基于JSON文件的上下文存储能力</p>
+ * <p>变更说明: 从 JsonStorageService 重命名，避免与 skill-common 的 JsonStorageService 冲突</p>
  *
  * @author ooder
  * @since 2.3.1
  */
 @Service
-public class JsonStorageService implements ContextStorageService {
+@ConditionalOnMissingBean(name = "sceneContextStorageService")
+public class SceneContextStorageService implements ContextStorageService {
 
-    private static final Logger logger = LoggerFactory.getLogger(JsonStorageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SceneContextStorageService.class);
 
     private final ObjectMapper objectMapper;
     private final Map<String, ReentrantReadWriteLock> locks;
@@ -48,7 +50,7 @@ public class JsonStorageService implements ContextStorageService {
     @Value("${scene.engine.context.lock.expire:300}")
     private int lockExpireSeconds;
 
-    public JsonStorageService() {
+    public SceneContextStorageService() {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.locks = new ConcurrentHashMap<>();
@@ -61,16 +63,11 @@ public class JsonStorageService implements ContextStorageService {
 
     @PostConstruct
     public void init() {
-        // 初始化存储目录
         initStorageDirectories();
-        // 启动锁清理定时任务
         startLockCleanupTask();
-        logger.info("JsonStorageService initialized with root: {}", getStorageRoot());
+        logger.info("SceneContextStorageService initialized with root: {}", getStorageRoot());
     }
 
-    /**
-     * 初始化存储目录结构
-     */
     private void initStorageDirectories() {
         try {
             Files.createDirectories(Paths.get(getStorageRoot(), "users"));
@@ -82,9 +79,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    /**
-     * 启动锁清理定时任务
-     */
     private void startLockCleanupTask() {
         cleanupExecutor.scheduleAtFixedRate(
             this::cleanupExpiredLocks,
@@ -93,8 +87,6 @@ public class JsonStorageService implements ContextStorageService {
             TimeUnit.SECONDS
         );
     }
-
-    // ========== 用户上下文 ==========
 
     @Override
     public void saveUserContext(String userId, Map<String, Object> context) {
@@ -140,8 +132,6 @@ public class JsonStorageService implements ContextStorageService {
             lock.writeLock().unlock();
         }
     }
-
-    // ========== 会话上下文 ==========
 
     @Override
     public void saveSessionContext(String sessionId, Map<String, Object> context) {
@@ -198,8 +188,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    // ========== Skill 上下文 ==========
-
     @Override
     public void saveSkillContext(String skillId, String sessionId, Map<String, Object> context) {
         String lockKey = "skill:" + skillId + ":" + sessionId;
@@ -249,8 +237,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    // ========== 对话历史 ==========
-
     @Override
     public void saveChatMessage(String sessionId, Map<String, Object> message) {
         String lockKey = "chat:" + sessionId;
@@ -265,7 +251,6 @@ public class JsonStorageService implements ContextStorageService {
             List<Map<String, Object>> history = loadChatHistory(sessionId, 0);
             history.add(message);
 
-            // 按时间戳排序
             history.sort(Comparator.comparingLong(m -> {
                 Object ts = m.get("timestamp");
                 return ts instanceof Number ? ((Number) ts).longValue() : 0L;
@@ -344,8 +329,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    // ========== 页面状态 ==========
-
     @Override
     public void savePageState(String sessionId, String pageId, Map<String, Object> state) {
         String lockKey = "page:" + sessionId + ":" + pageId;
@@ -421,8 +404,6 @@ public class JsonStorageService implements ContextStorageService {
         return result;
     }
 
-    // ========== 工具方法 ==========
-
     @Override
     public String getStorageRoot() {
         return storageRoot;
@@ -434,7 +415,6 @@ public class JsonStorageService implements ContextStorageService {
         long maxAgeMillis = maxAgeDays * 24 * 60 * 60 * 1000L;
         long cutoffTime = System.currentTimeMillis() - maxAgeMillis;
 
-        // 清理过期的会话数据
         Path sessionsDir = Paths.get(getStorageRoot(), "sessions");
         if (Files.exists(sessionsDir)) {
             try (Stream<Path> paths = Files.list(sessionsDir)) {
@@ -453,30 +433,18 @@ public class JsonStorageService implements ContextStorageService {
         return cleanedCount;
     }
 
-    // ========== 私有辅助方法 ==========
-
-    /**
-     * 获取或创建锁
-     */
     private ReentrantReadWriteLock getLock(String key) {
         return locks.computeIfAbsent(key, k -> new ReentrantReadWriteLock());
     }
 
-    /**
-     * 清理过期的锁
-     */
     private void cleanupExpiredLocks() {
         locks.entrySet().removeIf(entry -> {
             ReentrantReadWriteLock lock = entry.getValue();
-            // 清理未被持有且读锁计数为0的锁
             return !lock.isWriteLocked() && lock.getReadLockCount() == 0;
         });
         logger.debug("Cleaned up expired locks, remaining: {}", locks.size());
     }
 
-    /**
-     * 写入 JSON 文件
-     */
     private void writeJsonFile(Path filePath, Object data) {
         try {
             Files.createDirectories(filePath.getParent());
@@ -486,9 +454,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    /**
-     * 读取 JSON 文件
-     */
     @SuppressWarnings("unchecked")
     private Map<String, Object> readJsonFile(Path filePath) {
         if (!Files.exists(filePath)) {
@@ -503,9 +468,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    /**
-     * 删除文件
-     */
     private void deleteFile(Path filePath) {
         try {
             Files.deleteIfExists(filePath);
@@ -514,9 +476,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    /**
-     * 递归删除目录
-     */
     private void deleteDirectory(Path dir) {
         if (!Files.exists(dir)) {
             return;
@@ -536,9 +495,6 @@ public class JsonStorageService implements ContextStorageService {
         }
     }
 
-    /**
-     * 检查目录是否过期
-     */
     private boolean isExpired(Path dir, long cutoffTime) {
         try {
             return Files.getLastModifiedTime(dir).toMillis() < cutoffTime;

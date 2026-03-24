@@ -1,8 +1,8 @@
 package net.ooder.scene.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.UrlPathHelper;
 
@@ -24,7 +24,7 @@ public class RequestMappingConfig {
      * 确保 UrlPathHelper 正确初始化
      */
     @Bean
-    @Primary
+    @ConditionalOnMissingBean
     public RequestMappingHandlerMapping requestMappingHandlerMapping() {
         RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
 
@@ -43,7 +43,7 @@ public class RequestMappingConfig {
      * 自定义 UrlPathHelper，确保 PATH 属性被设置
      */
     @Bean
-    @Primary
+    @ConditionalOnMissingBean
     public UrlPathHelper urlPathHelper() {
         return new FixedUrlPathHelper();
     }

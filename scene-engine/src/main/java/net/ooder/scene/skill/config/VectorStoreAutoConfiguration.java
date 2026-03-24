@@ -9,6 +9,7 @@ import net.ooder.scene.skill.vector.impl.MockEmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,10 +20,16 @@ import org.springframework.context.annotation.Configuration;
  *
  * <p>架构层级：基础设施层 - 自动配置</p>
  *
+ * <p>默认启用，可通过配置禁用：</p>
+ * <pre>
+ * scene.engine.vector.enabled: false
+ * </pre>
+ *
  * @author ooder
  * @since 2.3
  */
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(prefix = "scene.engine.vector", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class VectorStoreAutoConfiguration {
     
     private static final Logger log = LoggerFactory.getLogger(VectorStoreAutoConfiguration.class);
