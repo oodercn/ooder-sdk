@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
  * @author ooder
  * @since 2.3
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class VectorStoreAutoConfiguration {
     
     private static final Logger log = LoggerFactory.getLogger(VectorStoreAutoConfiguration.class);

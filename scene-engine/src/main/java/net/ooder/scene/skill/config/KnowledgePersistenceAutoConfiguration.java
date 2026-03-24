@@ -32,7 +32,7 @@ import jakarta.annotation.PreDestroy;
  * @author ooder
  * @since 2.3
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "scene.knowledge.persistence.enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(SceneEngineProperties.class)
 public class KnowledgePersistenceAutoConfiguration {

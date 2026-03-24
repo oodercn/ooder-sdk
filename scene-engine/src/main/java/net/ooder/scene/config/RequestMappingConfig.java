@@ -16,7 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * @author Ooder Team
  * @since 2.3.1
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RequestMappingConfig {
 
     /**

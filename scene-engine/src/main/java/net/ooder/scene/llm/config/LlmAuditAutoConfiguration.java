@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
  * @version 2.3.1
  * @since 2.3.1
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(LlmAuditService.class)
 @ConditionalOnProperty(name = "scene.engine.llm.audit.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(LlmAuditProperties.class)

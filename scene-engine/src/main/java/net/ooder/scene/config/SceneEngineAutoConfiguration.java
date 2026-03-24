@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
  * @author ooder
  * @since 2.3.2
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(SceneClient.class)
 public class SceneEngineAutoConfiguration {
 

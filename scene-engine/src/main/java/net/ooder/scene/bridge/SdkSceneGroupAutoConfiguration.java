@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
  * @version 2.3.1
  * @since 2.3.1
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(name = "net.ooder.sdk.api.scene.SceneGroupManager")
 @ConditionalOnProperty(name = "scene.bridge.sdk.enabled", havingValue = "true", matchIfMissing = false)
 public class SdkSceneGroupAutoConfiguration {

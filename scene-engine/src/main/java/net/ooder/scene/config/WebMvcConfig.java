@@ -13,7 +13,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Ooder Team
  * @since 2.3.1
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override

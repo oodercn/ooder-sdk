@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
  * @author ooder
  * @since 2.3.1
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(KeyManagementProperties.class)
 @ConditionalOnProperty(prefix = "scene.engine.key.management", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class KeyManagementAutoConfiguration {

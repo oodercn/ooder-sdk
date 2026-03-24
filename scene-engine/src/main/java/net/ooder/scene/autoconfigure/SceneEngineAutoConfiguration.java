@@ -42,7 +42,7 @@ import jakarta.annotation.PostConstruct;
  * @author ooder Team
  * @since 2.3.1
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "scene.engine.enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(SceneEngineProperties.class)
 public class SceneEngineAutoConfiguration {

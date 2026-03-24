@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
  * @author ooder
  * @since 2.3.1
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(prefix = "scene.engine.discovery", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(DiscoveryProperties.class)
 public class DiscoveryAutoConfiguration {
