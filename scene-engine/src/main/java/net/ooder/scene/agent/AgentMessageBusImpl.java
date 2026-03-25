@@ -2,6 +2,8 @@ package net.ooder.scene.agent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -11,6 +13,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 
 @Component
+@Primary
+@ConditionalOnProperty(prefix = "scene.engine.message", name = "secure", havingValue = "false", matchIfMissing = true)
 public class AgentMessageBusImpl implements AgentMessageBus {
 
     private static final Logger log = LoggerFactory.getLogger(AgentMessageBusImpl.class);

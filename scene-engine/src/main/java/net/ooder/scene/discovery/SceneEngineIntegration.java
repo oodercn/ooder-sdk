@@ -8,6 +8,7 @@ import net.ooder.scene.event.capability.CapabilityEvent;
 import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,6 +59,7 @@ import java.util.stream.Stream;
  * @see CapabilityDTO
  */
 @Component
+@ConditionalOnBean(SceneEngine.class)
 public class SceneEngineIntegration {
     
     private static final Logger logger = LoggerFactory.getLogger(SceneEngineIntegration.class);

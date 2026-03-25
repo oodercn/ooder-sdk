@@ -6,6 +6,7 @@ import net.ooder.scene.event.scenegroup.SceneGroupAuditEvent;
 import net.ooder.scene.participant.Participant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
  * @since 2.3.1
  */
 @Component
+@ConditionalOnProperty(prefix = "scene.engine.group", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SceneGroupManager {
     
     private static final Logger logger = LoggerFactory.getLogger(SceneGroupManager.class);

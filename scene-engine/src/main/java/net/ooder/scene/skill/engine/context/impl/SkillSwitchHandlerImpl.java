@@ -25,8 +25,11 @@ public class SkillSwitchHandlerImpl implements SkillSwitchHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SkillSwitchHandlerImpl.class);
 
-    @Autowired
-    private ContextStorageService contextStorageService;
+    private final ContextStorageService contextStorageService;
+
+    public SkillSwitchHandlerImpl(ContextStorageService contextStorageService) {
+        this.contextStorageService = contextStorageService;
+    }
 
     @Override
     public Map<String, Object> beforeSwitch(String fromSkillId, String toSkillId, String sessionId) {

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
 @Component
+@ConditionalOnProperty(prefix = "scene.engine.message", name = "secure", havingValue = "true")
 public class SecureAgentMessageBus implements AgentMessageBus {
 
     private static final Logger log = LoggerFactory.getLogger(SecureAgentMessageBus.class);

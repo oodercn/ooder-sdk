@@ -7,6 +7,7 @@ import net.ooder.scene.agent.AgentMessage;
 import net.ooder.scene.agent.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 @Component
+@ConditionalOnBean({AgentSessionManager.class, AgentMessageBus.class})
 public class FailoverManagerImpl implements FailoverManager {
 
     private static final Logger log = LoggerFactory.getLogger(FailoverManagerImpl.class);

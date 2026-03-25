@@ -6,6 +6,7 @@ import net.ooder.sdk.api.capability.CapRegistry;
 import net.ooder.sdk.api.capability.Capability;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -43,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see CapResponse
  */
 @Component
+@ConditionalOnBean(CapRegistry.class)
 public class CapRouter {
 
     /** 能力注册表 */

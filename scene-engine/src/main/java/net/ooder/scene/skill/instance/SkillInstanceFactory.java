@@ -22,8 +22,11 @@ public class SkillInstanceFactory {
 
     private static final Logger log = LoggerFactory.getLogger(SkillInstanceFactory.class);
 
-    @Autowired
-    private SkillSDKAdapter sdkAdapter;
+    private final SkillSDKAdapter sdkAdapter;
+
+    public SkillInstanceFactory(SkillSDKAdapter sdkAdapter) {
+        this.sdkAdapter = sdkAdapter;
+    }
 
     /**
      * 创建Skill实例

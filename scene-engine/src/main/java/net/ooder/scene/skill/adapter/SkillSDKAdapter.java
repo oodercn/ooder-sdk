@@ -1,10 +1,11 @@
 package net.ooder.scene.skill.adapter;
 
 import net.ooder.scene.skill.state.SkillLifecycleState;
+import net.ooder.scene.skill.state.SkillLifecycleState;
 import net.ooder.skills.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -20,18 +21,20 @@ import java.util.concurrent.CompletableFuture;
  * @since 2.3.0
  */
 @Component
+@ConditionalOnBean({SkillRegistry.class, SkillInstaller.class, SkillDiscoverer.class})
 public class SkillSDKAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(SkillSDKAdapter.class);
 
-    @Autowired
-    private SkillRegistry skillRegistry;
+    private final SkillRegistry skillRegistry;
+    private final SkillInstaller skillInstaller;
+    private final SkillDiscoverer skillDiscoverer;
 
-    @Autowired
-    private SkillInstaller skillInstaller;
-
-    @Autowired
-    private SkillDiscoverer skillDiscoverer;
+    public SkillSDKAdapter(SkillRegistry skillRegistry, SkillInstaller skillInstaller, SkillDiscoverer skillDiscoverer) {
+        this.skillRegistry = skillRegistry;
+        this.skillInstaller = skillInstaller;
+        this.skillDiscoverer = skillDiscoverer;
+    }
 
     // ==================== 安装管理 ====================
 

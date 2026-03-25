@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.ooder.scene.core.Result;
 import net.ooder.scene.core.security.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -23,6 +24,7 @@ import java.util.List;
  * @since 2.3.1
  */
 @Component
+@ConditionalOnBean(PermissionService.class)
 public class PermissionInterceptor implements HandlerInterceptor {
 
     private final PermissionService permissionService;
