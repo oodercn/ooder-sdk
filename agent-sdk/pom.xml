@@ -21,6 +21,7 @@
         <module>llm-sdk</module>
         <module>skills-framework</module>
         <module>agent-sdk-core</module>
+        <module>agent-sdk-spring-boot-starter</module>
     </modules>
     <name>Ooder Agent SDK</name>
     <description>Agent SDK for Southbound Protocol Implementation</description>
@@ -102,12 +103,6 @@
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
             <version>${fastjson2.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.83</version>
         </dependency>
 
         <dependency>

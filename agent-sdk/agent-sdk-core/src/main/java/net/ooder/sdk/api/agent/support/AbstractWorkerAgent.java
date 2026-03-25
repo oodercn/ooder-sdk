@@ -29,6 +29,7 @@ public abstract class AbstractWorkerAgent extends AbstractAgent implements Worke
     protected volatile WorkerAgentStatus workerStatus = WorkerAgentStatus.IDLE;
     protected volatile String currentTaskId;
     protected volatile SkillService skill;
+    protected volatile String errorMessage;
 
     public AbstractWorkerAgent(String sceneId, String workerName, String skillId, List<String> capabilities) {
         super(generateWorkerId(sceneId, workerName), workerName, AgentType.WORKER);
@@ -41,6 +42,16 @@ public abstract class AbstractWorkerAgent extends AbstractAgent implements Worke
 
     private static String generateWorkerId(String sceneId, String name) {
         return "worker-" + sceneId + "-" + name + "-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    @Override
+    public String getWorkerName() {
+        return getAgentName();
+    }
+
+    @Override
+    public String getDescription() {
+        return "Worker Agent: " + getAgentName();
     }
 
     @Override
@@ -61,6 +72,15 @@ public abstract class AbstractWorkerAgent extends AbstractAgent implements Worke
     @Override
     public WorkerAgentStatus getWorkerStatus() {
         return workerStatus;
+    }
+
+    @Override
+    public String getPreferredDevice() {
+        return null;
+    }
+
+    @Override
+    public void setPreferredDevice(String deviceId) {
     }
 
     @Override
@@ -92,6 +112,7 @@ public abstract class AbstractWorkerAgent extends AbstractAgent implements Worke
     @Override
     public void setError(String errorMessage) {
         workerStatus = WorkerAgentStatus.ERROR;
+        this.errorMessage = errorMessage;
     }
 
     @Override
@@ -114,25 +135,18 @@ public abstract class AbstractWorkerAgent extends AbstractAgent implements Worke
         this.skill = skill;
     }
 
-    @Override
     public void addCapability(String capability) {
         if (capability != null && !capabilities.contains(capability)) {
             capabilities.add(capability);
         }
     }
 
-    @Override
     public void removeCapability(String capability) {
         capabilities.remove(capability);
     }
 
-    @Override
     public boolean hasCapability(String capability) {
         return capabilities.contains(capability);
-    }
-
-    @Override
-    public void setPreferredDevice(String deviceId) {
     }
 
     @Override

@@ -19,7 +19,7 @@ public abstract class AbstractAgent implements Agent {
     protected final String agentId;
     protected final String agentName;
     protected final AgentType agentType;
-    protected volatile AgentState state = AgentState.CREATED;
+    protected volatile Agent.AgentState state = Agent.AgentState.CREATED;
 
     protected AbstractAgent(String agentId, String agentName, AgentType agentType) {
         this.agentId = agentId != null ? agentId : generateAgentId(agentType);
@@ -54,15 +54,15 @@ public abstract class AbstractAgent implements Agent {
 
     @Override
     public boolean isHealthy() {
-        return state == AgentState.RUNNING;
+        return state == Agent.AgentState.RUNNING;
     }
 
     @Override
-    public AgentState getState() {
+    public Agent.AgentState getState() {
         return state;
     }
 
-    protected boolean transitionState(AgentState from, AgentState to) {
+    protected boolean transitionState(Agent.AgentState from, Agent.AgentState to) {
         if (state == from) {
             state = to;
             onStateChanged(from, to);
@@ -71,15 +71,6 @@ public abstract class AbstractAgent implements Agent {
         return false;
     }
 
-    protected void onStateChanged(AgentState from, AgentState to) {
-    }
-
-    public enum AgentState {
-        CREATED,
-        INITIALIZING,
-        RUNNING,
-        STOPPING,
-        STOPPED,
-        ERROR
+    protected void onStateChanged(Agent.AgentState from, Agent.AgentState to) {
     }
 }

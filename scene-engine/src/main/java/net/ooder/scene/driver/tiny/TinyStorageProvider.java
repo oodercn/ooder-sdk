@@ -117,7 +117,8 @@ public class TinyStorageProvider implements StorageProvider {
             return result;
         }
 
-        File[] files = dirPath.listFiles((dir, name) -> name.endsWith(".json"));
+        File dir = dirPath.toFile();
+        File[] files = dir.listFiles((d, name) -> name.endsWith(".json"));
         if (files == null) {
             return result;
         }

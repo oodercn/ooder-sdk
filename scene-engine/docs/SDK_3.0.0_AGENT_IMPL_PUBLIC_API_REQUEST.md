@@ -1,10 +1,108 @@
 # SDK 3.0.0 Agent 实现公共 API 暴露协作需求
 
+## 协作状态：✅ SDK 已响应
+
+**响应日期**: 2026-03-25  
+**SDK 版本**: 3.0.0  
+**状态**: 已完成
+
+---
+
 ## 背景
 
 MVP 项目在升级到 SDK 3.0.0 版本后，发现 Agent 相关接口（`SceneAgent`、`EndAgent`、`WorkerAgent`、`RouteAgent`、`McpAgent`）非常复杂，包含大量方法需要实现。
 
 经 scene-engine 团队深入分析，**发现 SDK 已经提供了完整的 Agent 实现**，但这些实现类未作为公共 API 正式暴露，导致 MVP 项目不知道可以直接使用。
+
+---
+
+## SDK 团队响应结果
+
+### ✅ 需求 1：公共 API 状态确认 - 已完成
+
+SDK 团队采用 **方案 B**：添加 `@PublicAPI` 注解
+
+| 类名 | 状态 | 说明 |
+|------|------|------|
+| `AgentFactoryImpl` | ✅ 已添加 `@PublicAPI` | 公共 API |
+| `WorkerAgentImpl` | ✅ 已添加 `@PublicAPI` | 公共 API |
+| `SceneAgentImpl` | ✅ 已添加 `@PublicAPI` | 公共 API |
+| `EndAgentImpl` | ✅ 已添加 `@PublicAPI` | 公共 API |
+| `RouteAgentImpl` | ✅ 已添加 `@PublicAPI` | 公共 API |
+| `McpAgentImpl` | ✅ 已添加 `@PublicAPI` | 公共 API |
+
+**新增注解**:
+- [PublicAPI.java](file:///e:/github/ooder-sdk/agent-sdk/agent-sdk-core/src/main/java/net/ooder/sdk/api/PublicAPI.java) - 公共 API 标识注解
+
+### ✅ 需求 2：抽象基类 - 已完成
+
+SDK 团队在 `net.ooder.sdk.api.agent.support` 包中创建了抽象基类：
+
+| 抽象基类 | 路径 | 状态 |
+|----------|------|------|
+| `AbstractAgent` | [AbstractAgent.java](file:///e:/github/ooder-sdk/agent-sdk/agent-sdk-core/src/main/java/net/ooder/sdk/api/agent/support/AbstractAgent.java) | ✅ 已创建 |
+| `AbstractWorkerAgent` | [AbstractWorkerAgent.java](file:///e:/github/ooder-sdk/agent-sdk/agent-sdk-core/src/main/java/net/ooder/sdk/api/agent/support/AbstractWorkerAgent.java) | ✅ 已创建 |
+| `AbstractSceneAgent` | [AbstractSceneAgent.java](file:///e:/github/ooder-sdk/agent-sdk/agent-sdk-core/src/main/java/net/ooder/sdk/api/agent/support/AbstractSceneAgent.java) | ✅ 已创建 |
+
+**注意**: `AbstractEndAgent`、`AbstractRouteAgent`、`AbstractMcpAgent` 尚未创建，但可直接使用实现类。
+
+### ⏳ 需求 3：Spring Boot Starter - 待完成（SDK 团队）
+
+此需求优先级为 P2，**SDK 团队** 尚未实现。
+
+### ⏳ 需求 4：文档更新 - 待完成（SDK 团队）
+
+此需求优先级为 P1，**SDK 团队** 尚未实现。
+
+---
+
+## MVP 下一步行动
+
+### 立即可执行的操作
+
+MVP 项目现在可以：
+
+1. **直接使用实现类**：
+```java
+import net.ooder.sdk.core.agent.factory.AgentFactoryImpl;
+import net.ooder.sdk.core.agent.impl.SceneAgentImpl;
+
+AgentFactory factory = new AgentFactoryImpl();
+SceneAgent agent = factory.createSceneAgent("mvp-scene", "mvp-agent");
+```
+
+2. **继承抽象基类扩展**：
+```java
+import net.ooder.sdk.api.agent.support.AbstractWorkerAgent;
+
+public class MyWorkerAgent extends AbstractWorkerAgent {
+    public MyWorkerAgent(String sceneId, String workerName, String skillId) {
+        super(sceneId, workerName, skillId, Arrays.asList("cap1", "cap2"));
+    }
+    
+    @Override
+    public CompletableFuture<Object> execute(String capId, Map<String, Object> params) {
+        // 自定义实现
+    }
+}
+```
+
+3. **使用 OoderSDK 入口类**：
+```java
+OoderSDK sdk = OoderSDK.builder()
+    .agentId("mvp-agent")
+    .agentName("MVP Agent")
+    .build();
+
+EndAgent endAgent = sdk.createEndAgent();
+```
+
+### 迁移检查清单
+
+- [ ] 移除 `AgentHeartbeatConfig.java` 中的临时实现
+- [ ] 使用 SDK 提供的 `AgentFactoryImpl`
+- [ ] 按需继承 `AbstractWorkerAgent` 或 `AbstractSceneAgent`
+- [ ] 测试 Agent 功能正常
 
 ---
 

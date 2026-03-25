@@ -1,16 +1,25 @@
 package net.ooder.sdk.api.agent.support;
 
 import net.ooder.sdk.api.PublicAPI;
+import net.ooder.sdk.api.agent.Agent;
 import net.ooder.sdk.api.agent.SceneAgent;
 import net.ooder.sdk.api.agent.SceneContext;
 import net.ooder.sdk.api.capability.CapAddress;
 import net.ooder.sdk.api.capability.CapRegistry;
+import net.ooder.sdk.api.capability.CapRegistryException;
+import net.ooder.sdk.api.capability.CapRegistryListener;
 import net.ooder.sdk.api.capability.Capability;
+import net.ooder.sdk.api.capability.CapabilityStatus;
+import net.ooder.sdk.api.capability.CapabilityType;
 import net.ooder.sdk.common.enums.AgentType;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SceneAgent 抽象基类
@@ -36,7 +45,7 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
         this.context = createSceneContext(sceneId, domainId);
     }
 
-    private static String generateSceneAgentId(String sceneId, String agentName) {
+    private static String generateSceneAgentId(String sceneId, String name) {
         return "scene-" + sceneId + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
@@ -70,7 +79,7 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
 
     @Override
     public boolean isRunning() {
-        return getState() == AgentState.RUNNING && agentStatus == AgentStatus.RUNNING;
+        return getState() == Agent.AgentState.RUNNING && agentStatus == AgentStatus.RUNNING;
     }
 
     @Override
@@ -80,12 +89,20 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
 
     @Override
     public void registerCapability(Capability capability) {
-        capRegistry.register(capability);
+        try {
+            capRegistry.register(capability);
+        } catch (CapRegistryException e) {
+            throw new RuntimeException("Failed to register capability", e);
+        }
     }
 
     @Override
     public void unregisterCapability(String capId) {
-        capRegistry.unregister(capId);
+        try {
+            capRegistry.unregister(capId);
+        } catch (CapRegistryException e) {
+            throw new RuntimeException("Failed to unregister capability", e);
+        }
     }
 
     @Override
@@ -93,9 +110,6 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
         Capability capability = capRegistry.findById(capId);
         if (capability == null) {
             throw new RuntimeException("Capability not found: " + capId);
-        }
-        if (!capability.isAvailable()) {
-            throw new RuntimeException("Capability not available: " + capId);
         }
         return invokeCapabilityInternal(capability, params);
     }
@@ -121,15 +135,16 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
     }
 
     protected static class InMemoryCapRegistry implements CapRegistry {
-        private final Map<String, Capability> capabilities = new java.util.concurrent.ConcurrentHashMap<>();
+        private final Map<String, Capability> capabilities = new ConcurrentHashMap<>();
+        private final List<CapRegistryListener> listeners = new CopyOnWriteArrayList<>();
 
         @Override
-        public void register(Capability capability) {
+        public void register(Capability capability) throws CapRegistryException {
             capabilities.put(capability.getCapId(), capability);
         }
 
         @Override
-        public void unregister(String capId) {
+        public void unregister(String capId) throws CapRegistryException {
             capabilities.remove(capId);
         }
 
@@ -147,8 +162,118 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
         }
 
         @Override
-        public java.util.List<Capability> findAll() {
-            return new java.util.ArrayList<>(capabilities.values());
+        public List<Capability> findByDomain(String domainId) {
+            List<Capability> result = new ArrayList<>();
+            for (Capability cap : capabilities.values()) {
+                if (domainId.equals(cap.getDomainId())) {
+                    result.add(cap);
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public List<Capability> findByType(CapabilityType type) {
+            List<Capability> result = new ArrayList<>();
+            for (Capability cap : capabilities.values()) {
+                if (cap.getType() == type) {
+                    result.add(cap);
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public List<Capability> findBySkill(String skillId) {
+            List<Capability> result = new ArrayList<>();
+            for (Capability cap : capabilities.values()) {
+                if (skillId.equals(cap.getSkillId())) {
+                    result.add(cap);
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public List<Capability> findByTag(String tag) {
+            List<Capability> result = new ArrayList<>();
+            for (Capability cap : capabilities.values()) {
+                if (cap.getTags() != null && cap.getTags().contains(tag)) {
+                    result.add(cap);
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public List<Capability> findAll() {
+            return new ArrayList<>(capabilities.values());
+        }
+
+        @Override
+        public boolean hasCapability(String capId) {
+            return capabilities.containsKey(capId);
+        }
+
+        @Override
+        public boolean isAddressOccupied(CapAddress address) {
+            return findByAddress(address) != null;
+        }
+
+        @Override
+        public void updateStatus(String capId, CapabilityStatus status) throws CapRegistryException {
+            Capability cap = capabilities.get(capId);
+            if (cap != null) {
+                cap.setStatus(status);
+            }
+        }
+
+        @Override
+        public CapabilityStatus getStatus(String capId) {
+            Capability cap = capabilities.get(capId);
+            return cap != null ? cap.getStatus() : null;
+        }
+
+        @Override
+        public CapAddress allocateAddress(String domainId) throws CapRegistryException {
+            return new CapAddress(domainId, "cap-" + UUID.randomUUID().toString().substring(0, 8));
+        }
+
+        @Override
+        public void releaseAddress(CapAddress address) {
+        }
+
+        @Override
+        public DomainStats getDomainStats(String domainId) {
+            DomainStats stats = new DomainStats();
+            stats.setDomainId(domainId);
+            stats.setTotalCapabilities(findByDomain(domainId).size());
+            return stats;
+        }
+
+        @Override
+        public List<String> getAllDomains() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void addListener(CapRegistryListener listener) {
+            listeners.add(listener);
+        }
+
+        @Override
+        public void removeListener(CapRegistryListener listener) {
+            listeners.remove(listener);
+        }
+
+        @Override
+        public void clear() {
+            capabilities.clear();
+        }
+
+        @Override
+        public int size() {
+            return capabilities.size();
         }
     }
 }
