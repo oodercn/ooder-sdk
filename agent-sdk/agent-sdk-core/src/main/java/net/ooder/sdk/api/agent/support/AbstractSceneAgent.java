@@ -20,12 +20,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * SceneAgent 抽象基类
  * 提供场景上下文、能力注册等通用实现
  *
- * @version 3.0.0
+ * @version 3.0.1
  * @since 3.0.0
  */
 @PublicAPI
@@ -156,7 +157,7 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
         @Override
         public Capability findByAddress(CapAddress address) {
             return capabilities.values().stream()
-                    .filter(cap -> cap.getAddress().equals(address))
+                    .filter(cap -> cap.getAddress() != null && cap.getAddress().equals(address))
                     .findFirst()
                     .orElse(null);
         }
@@ -165,7 +166,7 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
         public List<Capability> findByDomain(String domainId) {
             List<Capability> result = new ArrayList<>();
             for (Capability cap : capabilities.values()) {
-                if (domainId.equals(cap.getDomainId())) {
+                if (cap.getAddress() != null && domainId.equals(cap.getAddress().getDomainId())) {
                     result.add(cap);
                 }
             }
@@ -176,7 +177,7 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
         public List<Capability> findByType(CapabilityType type) {
             List<Capability> result = new ArrayList<>();
             for (Capability cap : capabilities.values()) {
-                if (cap.getType() == type) {
+                if (cap.getType() != null && cap.getType().equals(type.name())) {
                     result.add(cap);
                 }
             }
