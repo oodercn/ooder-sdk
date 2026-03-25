@@ -60,68 +60,53 @@ Scene Engine v3.0.0 提供三种规模的安装方案，适应不同场景需求
 
 ### 1.3 安装步骤
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Step 1: 添加 Maven 依赖                                    │
-├─────────────────────────────────────────────────────────────┤
-│  <dependency>                                               │
-│      <groupId>net.ooder</groupId>                           │
-│      <artifactId>scene-engine</artifactId>                  │
-│      <version>3.0.0</version>                               │
-│  </dependency>                                              │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 2: 配置 application.yml                               │
-├─────────────────────────────────────────────────────────────┤
-│  scene:                                                     │
-│    engine:                                                  │
-│      driver: tiny                                           │
-│      tiny:                                                  │
-│        storage:                                             │
-│          path: ./data                                       │
-│        llm:                                                 │
-│          endpoint: http://localhost:11434                   │
-│          model: llama2                                      │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 3: (可选) 安装 Ollama                                 │
-├─────────────────────────────────────────────────────────────┤
-│  # macOS/Linux                                              │
-│  curl -fsSL https://ollama.com/install.sh | sh              │
-│                                                             │
-│  # 下载模型                                                  │
-│  ollama pull llama2                                         │
-│                                                             │
-│  # 启动服务                                                  │
-│  ollama serve                                               │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 4: 启动应用                                           │
-├─────────────────────────────────────────────────────────────┤
-│  mvn spring-boot:run                                        │
-│                                                             │
-│  ✓ 服务启动成功！                                            │
-│  ✓ 数据存储: ./data 目录                                     │
-│  ✓ LLM: Ollama 本地 (或降级 Mock)                           │
-│  ✓ 向量: 内存 (重启丢失)                                     │
-└─────────────────────────────────────────────────────────────┘
+**Step 1: 添加 Maven 依赖**
+
+```xml
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>scene-engine</artifactId>
+    <version>3.0.0</version>
+</dependency>
 ```
 
-### 1.4 验证安装
+**Step 2: 配置 application.yml**
+
+```yaml
+scene:
+  engine:
+    driver: tiny
+    tiny:
+      storage:
+        path: ./data
+      llm:
+        endpoint: http://localhost:11434
+        model: llama2
+```
+
+**Step 3: (可选) 安装 Ollama**
 
 ```bash
-# 检查服务状态
-curl http://localhost:8080/actuator/health
+# macOS/Linux
+curl -fsSL https://ollama.com/install.sh | sh
 
-# 检查驱动类型
-curl http://localhost:8080/api/scene/engine/info
+# 下载模型
+ollama pull llama2
+
+# 启动服务
+ollama serve
 ```
+
+**Step 4: 启动应用**
+
+```bash
+mvn spring-boot:run
+```
+
+✓ 服务启动成功！
+✓ 数据存储: ./data 目录
+✓ LLM: Ollama 本地 (或降级 Mock)
+✓ 向量: 内存 (重启丢失)
 
 ---
 
@@ -148,96 +133,71 @@ curl http://localhost:8080/api/scene/engine/info
 
 ### 2.3 安装步骤
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Step 1: 准备基础设施                                        │
-├─────────────────────────────────────────────────────────────┤
-│  # 创建数据库                                                │
-│  CREATE DATABASE scene_engine DEFAULT CHARSET utf8mb4;      │
-│                                                             │
-│  # 创建用户                                                  │
-│  CREATE USER 'scene'@'%' IDENTIFIED BY 'your_password';     │
-│  GRANT ALL PRIVILEGES ON scene_engine.* TO 'scene'@'%';     │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 2: 添加 Maven 依赖                                    │
-├─────────────────────────────────────────────────────────────┤
-│  <dependency>                                               │
-│      <groupId>net.ooder</groupId>                           │
-│      <artifactId>scene-engine</artifactId>                  │
-│      <version>3.0.0</version>                               │
-│  </dependency>                                              │
-│                                                             │
-│  <!-- 数据库驱动 -->                                         │
-│  <dependency>                                               │
-│      <groupId>com.mysql</groupId>                           │
-│      <artifactId>mysql-connector-j</artifactId>             │
-│  </dependency>                                              │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 3: 配置 application.yml                               │
-├─────────────────────────────────────────────────────────────┤
-│  scene:                                                     │
-│    engine:                                                  │
-│      driver: small                                          │
-│      small:                                                 │
-│        storage:                                             │
-│          table-prefix: scene_                               │
-│        llm:                                                 │
-│          endpoint: https://api.openai.com/v1                │
-│          api-key: ${OPENAI_API_KEY}                         │
-│          model: gpt-3.5-turbo                               │
-│                                                             │
-│  spring:                                                    │
-│    datasource:                                              │
-│      url: jdbc:mysql://localhost:3306/scene_engine          │
-│      username: scene                                        │
-│      password: ${DB_PASSWORD}                               │
-│      driver-class-name: com.mysql.cj.jdbc.Driver            │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 4: 配置 LLM API (选择一种)                             │
-├─────────────────────────────────────────────────────────────┤
-│  # 方案A: OpenAI                                            │
-│  export OPENAI_API_KEY=sk-xxx                               │
-│                                                             │
-│  # 方案B: Azure OpenAI                                      │
-│  scene.engine.small.llm.endpoint=https://xxx.openai.azure.com│
-│  scene.engine.small.llm.api-key=${AZURE_OPENAI_KEY}         │
-│                                                             │
-│  # 方案C: 自定义 API                                        │
-│  scene.engine.small.llm.endpoint=https://your-llm-api.com   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 5: 启动应用                                           │
-├─────────────────────────────────────────────────────────────┤
-│  mvn spring-boot:run                                        │
-│                                                             │
-│  ✓ 服务启动成功！                                            │
-│  ✓ 数据存储: MySQL 数据库                                    │
-│  ✓ LLM: 远程 API                                            │
-│  ✓ 向量: Milvus Lite                                        │
-└─────────────────────────────────────────────────────────────┘
+**Step 1: 准备数据库**
+
+```sql
+CREATE DATABASE scene_engine DEFAULT CHARSET utf8mb4;
+CREATE USER 'scene'@'%' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON scene_engine.* TO 'scene'@'%';
 ```
 
-### 2.4 验证安装
+**Step 2: 添加 Maven 依赖**
+
+```xml
+<dependency>
+    <groupId>net.ooder</groupId>
+    <artifactId>scene-engine</artifactId>
+    <version>3.0.0</version>
+</dependency>
+<dependency>
+    <groupId>com.mysql</groupId>
+    <artifactId>mysql-connector-j</artifactId>
+</dependency>
+```
+
+**Step 3: 配置 application.yml**
+
+```yaml
+scene:
+  engine:
+    driver: small
+    small:
+      storage:
+        table-prefix: scene_
+      llm:
+        endpoint: https://api.openai.com/v1
+        api-key: ${OPENAI_API_KEY}
+        model: gpt-3.5-turbo
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/scene_engine
+    username: scene
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+```
+
+**Step 4: 配置 LLM API**
 
 ```bash
-# 检查数据库连接
-curl http://localhost:8080/actuator/health/db
+# OpenAI
+export OPENAI_API_KEY=sk-xxx
 
-# 检查驱动类型
-curl http://localhost:8080/api/scene/engine/info
-# 期望返回: {"providerType":"small", ...}
+# 或 Azure OpenAI
+scene.engine.small.llm.endpoint=https://xxx.openai.azure.com
+scene.engine.small.llm.api-key=${AZURE_OPENAI_KEY}
 ```
+
+**Step 5: 启动应用**
+
+```bash
+mvn spring-boot:run
+```
+
+✓ 服务启动成功！
+✓ 数据存储: MySQL 数据库
+✓ LLM: 远程 API
+✓ 向量: Milvus Lite
 
 ---
 
@@ -288,94 +248,86 @@ curl http://localhost:8080/api/scene/engine/info
 
 ### 3.4 安装步骤
 
+**Step 1: 准备基础设施**
+
+1. 部署 MySQL 主从集群
+2. 部署 Redis Cluster
+3. 部署 Milvus 分布式集群
+4. 部署 Kafka 集群 (可选)
+5. 部署监控栈 (Prometheus + Grafana)
+
+**Step 2: 配置 application.yml**
+
+```yaml
+scene:
+  engine:
+    driver: enterprise
+    enterprise:
+      llm:
+        endpoints: |
+          openai:https://api.openai.com/v1:gpt-4
+          azure:https://xxx.openai.azure.com:gpt-35-turbo
+          local:http://ollama.internal:11434:llama2
+
+spring:
+  datasource:
+    url: jdbc:mysql:mysql-master:3306/scene_engine
+    username: scene
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+  redis:
+    cluster:
+      nodes: redis1:6379,redis2:6379,redis3:6379
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Step 1: 准备基础设施                                        │
-├─────────────────────────────────────────────────────────────┤
-│  1. 部署 MySQL 主从集群                                      │
-│  2. 部署 Redis Cluster                                      │
-│  3. 部署 Milvus 分布式集群                                   │
-│  4. 部署 Kafka 集群 (可选)                                   │
-│  5. 部署监控栈 (Prometheus + Grafana)                        │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 2: 配置 application.yml                               │
-├─────────────────────────────────────────────────────────────┤
-│  scene:                                                     │
-│    engine:                                                  │
-│      driver: enterprise                                     │
-│      enterprise:                                            │
-│        llm:                                                 │
-│          endpoints: |                                       │
-│            openai:https://api.openai.com/v1:gpt-4           │
-│            azure:https://xxx.openai.azure.com:gpt-35-turbo  │
-│            local:http://ollama.internal:11434:llama2        │
-│                                                             │
-│  spring:                                                    │
-│    datasource:                                              │
-│      url: jdbc:mysql:mysql-master:3306/scene_engine         │
-│      username: scene                                        │
-│      password: ${DB_PASSWORD}                               │
-│      hikari:                                                │
-│        maximum-pool-size: 20                                │
-│    redis:                                                   │
-│      cluster:                                               │
-│        nodes: redis1:6379,redis2:6379,redis3:6379           │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 3: 配置多模型路由                                      │
-├─────────────────────────────────────────────────────────────┤
-│  scene:                                                     │
-│    engine:                                                  │
-│      enterprise:                                            │
-│        llm:                                                 │
-│          routing:                                           │
-│            default: openai                                  │
-│            fallback: azure                                  │
-│            rules:                                           │
-│              - pattern: "code.*"                            │
-│                endpoint: openai                             │
-│                model: gpt-4                                 │
-│              - pattern: "chat.*"                            │
-│                endpoint: azure                              │
-│                model: gpt-35-turbo                          │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 4: 部署应用                                           │
-├─────────────────────────────────────────────────────────────┤
-│  # 构建 Docker 镜像                                         │
-│  docker build -t scene-engine:3.0.0 .                       │
-│                                                             │
-│  # Kubernetes 部署                                          │
-│  kubectl apply -f k8s-deployment.yaml                       │
-│                                                             │
-│  # 或 Docker Compose                                        │
-│  docker-compose up -d                                       │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Step 5: 验证集群                                           │
-├─────────────────────────────────────────────────────────────┤
-│  # 检查各节点状态                                            │
-│  curl http://node1:8080/actuator/health                     │
-│  curl http://node2:8080/actuator/health                     │
-│  curl http://node3:8080/actuator/health                     │
-│                                                             │
-│  ✓ 企业级部署完成！                                          │
-│  ✓ 高可用: 多节点负载均衡                                    │
-│  ✓ 数据存储: MySQL 主从                                      │
-│  ✓ 缓存: Redis Cluster                                      │
-│  ✓ 向量: Milvus 分布式                                       │
-│  ✓ LLM: 多模型路由 + 故障转移                                │
-└─────────────────────────────────────────────────────────────┘
+
+**Step 3: 配置多模型路由**
+
+```yaml
+scene:
+  engine:
+    enterprise:
+      llm:
+        routing:
+          default: openai
+          fallback: azure
+          rules:
+            - pattern: "code.*"
+              endpoint: openai
+              model: gpt-4
+            - pattern: "chat.*"
+              endpoint: azure
+              model: gpt-35-turbo
 ```
+
+**Step 4: 部署应用**
+
+```bash
+# 构建 Docker 镜像
+docker build -t scene-engine:3.0.0 .
+
+# Kubernetes 部署
+kubectl apply -f k8s-deployment.yaml
+
+# 或 Docker Compose
+docker-compose up -d
+```
+
+**Step 5: 验证集群**
+
+```bash
+# 检查各节点状态
+curl http://node1:8080/actuator/health
+curl http://node2:8080/actuator/health
+curl http://node3:8080/actuator/health
+```
+
+✓ 企业级部署完成！
+✓ 高可用: 多节点负载均衡
+✓ 数据存储: MySQL 主从
+✓ 缓存: Redis Cluster
+✓ 向量: Milvus 分布式
+✓ LLM: 多模型路由 + 故障转移
 
 ---
 
@@ -383,7 +335,7 @@ curl http://localhost:8080/api/scene/engine/info
 
 ### 4.1 命令行引导
 
-```bash
+```
 $ java -jar scene-engine-installer.jar
 
 ╔═══════════════════════════════════════════════════════════════╗
@@ -458,8 +410,6 @@ $ java -jar scene-engine-installer.jar
 ║                                                               ║
 ║  [Redis 配置] (可选)                                          ║
 ║  是否使用 Redis? [y/N]: _                                     ║
-║  Redis 主机 [localhost]: _                                    ║
-║  Redis 端口 [6379]: _                                         ║
 ║                                                               ║
 ║  确认以上配置? [Y/n]: _                                        ║
 ║                                                               ║
@@ -511,26 +461,17 @@ $ java -jar scene-engine-installer.jar
 ```yaml
 scene:
   engine:
-    # 驱动类型: tiny | small | enterprise
-    driver: tiny
-    
-    # 降级实现开关
+    driver: tiny  # tiny | small | enterprise
     fallback:
       enabled: true
-    
-    # RAD 集成开关
     rad:
       enabled: false
-    
-    # Tiny 驱动配置
     tiny:
       storage:
         path: ./data
       llm:
         endpoint: http://localhost:11434
         model: llama2
-    
-    # Small 驱动配置
     small:
       storage:
         table-prefix: scene_
@@ -538,8 +479,6 @@ scene:
         endpoint: https://api.openai.com/v1
         api-key: ${OPENAI_API_KEY}
         model: gpt-3.5-turbo
-    
-    # Enterprise 驱动配置
     enterprise:
       llm:
         endpoints: |
