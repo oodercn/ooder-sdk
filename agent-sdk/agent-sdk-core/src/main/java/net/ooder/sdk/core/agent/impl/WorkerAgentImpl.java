@@ -1,5 +1,6 @@
 package net.ooder.sdk.core.agent.impl;
 
+import net.ooder.sdk.api.PublicAPI;
 import net.ooder.sdk.api.agent.WorkerAgent;
 import net.ooder.skills.api.SkillRequest;
 import net.ooder.skills.api.SkillService;
@@ -10,6 +11,16 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Worker Agent 实现类
+ * <p>
+ * 此类为公共 API，用户可直接使用
+ * </p>
+ *
+ * @version 3.0.0
+ * @since 3.0.0
+ */
+@PublicAPI
 public class WorkerAgentImpl implements WorkerAgent {
     
     private static final Logger log = LoggerFactory.getLogger(WorkerAgentImpl.class);

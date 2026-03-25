@@ -8,18 +8,31 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.ooder.skills.core.impl.LocalSkillRegistry;
+import net.ooder.sdk.api.PublicAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.ooder.sdk.api.agent.Agent;
 import net.ooder.sdk.api.agent.EndAgent;
 import net.ooder.sdk.api.scene.SceneGroupKey;
+import net.ooder.sdk.api.capability.CapRegistry;
+import net.ooder.sdk.api.capability.Capability;
 import net.ooder.skills.api.SkillPackage;
 import net.ooder.sdk.common.enums.AgentType;
 import net.ooder.sdk.common.enums.MemberRole;
 import net.ooder.sdk.core.agent.model.AgentConfig;
 import net.ooder.sdk.core.agent.model.AgentStateInfo;
 
+/**
+ * EndAgent 实现类
+ * <p>
+ * 此类为公共 API，用户可直接使用
+ * </p>
+ *
+ * @version 3.0.0
+ * @since 3.0.0
+ */
+@PublicAPI
 public class EndAgentImpl implements EndAgent, Agent {
     
     private static final Logger log = LoggerFactory.getLogger(EndAgentImpl.class);

@@ -28,6 +28,17 @@ import net.ooder.sdk.infra.config.SDKConfiguration;
 import net.ooder.sdk.infra.lifecycle.LifecycleManager;
 import net.ooder.skills.core.impl.SkillPackageManagerImpl;
 
+/**
+ * Ooder SDK 入口类
+ * <p>
+ * 此类为公共 API，用户可直接使用。
+ * 这是 SDK 的主要入口点，用于创建和管理各种 Agent。
+ * </p>
+ *
+ * @version 3.0.0
+ * @since 3.0.0
+ */
+@PublicAPI
 public class OoderSDK {
     
     private final SDKConfiguration configuration;

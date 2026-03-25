@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.ooder.sdk.api.PublicAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,16 @@ import net.ooder.sdk.common.enums.AgentType;
 import net.ooder.sdk.core.agent.model.AgentConfig;
 import net.ooder.sdk.core.agent.model.AgentStateInfo;
 
+/**
+ * McpAgent 实现类
+ * <p>
+ * 此类为公共 API，用户可直接使用
+ * </p>
+ *
+ * @version 3.0.0
+ * @since 3.0.0
+ */
+@PublicAPI
 public class McpAgentImpl implements McpAgent, Agent {
     
     private static final Logger log = LoggerFactory.getLogger(McpAgentImpl.class);

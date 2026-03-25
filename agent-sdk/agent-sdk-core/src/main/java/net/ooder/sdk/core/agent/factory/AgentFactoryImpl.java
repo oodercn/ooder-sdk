@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.ooder.sdk.api.PublicAPI;
 import net.ooder.sdk.api.agent.Agent;
 import net.ooder.sdk.api.agent.AgentFactory;
 import net.ooder.sdk.api.agent.EndAgent;
@@ -22,6 +23,16 @@ import net.ooder.sdk.core.agent.impl.WorkerAgentImpl;
 import net.ooder.sdk.core.agent.model.AgentConfig;
 import net.ooder.sdk.infra.config.SDKConfiguration;
 
+/**
+ * Agent 工厂实现
+ * <p>
+ * 此类为公共 API，用户可直接使用
+ * </p>
+ *
+ * @version 3.0.0
+ * @since 3.0.0
+ */
+@PublicAPI
 public class AgentFactoryImpl implements AgentFactory {
     
     private static final Logger log = LoggerFactory.getLogger(AgentFactoryImpl.class);

@@ -1,5 +1,6 @@
 package net.ooder.sdk.core.agent.impl;
 
+import net.ooder.sdk.api.PublicAPI;
 import net.ooder.sdk.api.agent.Agent;
 import net.ooder.sdk.api.agent.SceneAgent;
 import net.ooder.sdk.api.agent.SceneContext;
@@ -23,13 +24,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * SceneAgent 实现
- *
- * <p>遵循 v0.8.0 架构 "Scene = Agent" 原则</p>
+ * SceneAgent 实现类
+ * <p>
+ * 此类为公共 API，用户可直接使用。
+ * 遵循 v0.8.0 架构 "Scene = Agent" 原则
+ * </p>
  *
  * @author Ooder Team
- * @version 2.3
+ * @version 3.0.0
+ * @since 3.0.0
  */
+@PublicAPI
 public class SceneAgentImpl implements SceneAgent {
 
     private static final Logger log = LoggerFactory.getLogger(SceneAgentImpl.class);
