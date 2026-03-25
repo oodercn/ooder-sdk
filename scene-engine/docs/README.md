@@ -35,9 +35,10 @@ scene:
 
 | 文档 | 说明 |
 |------|------|
-| [二次开发指南](SECONDARY_DEVELOPMENT_GUIDE.md) | 完整的二次开发文档 |
+| [安装指南](INSTALLATION_GUIDE.md) | 微型/小型/企业级安装流程 |
 | [API 参考](API_REFERENCE.md) | API 接口文档 |
 | [应用集成指南](APPLICATION_INTEGRATION_GUIDE.md) | 应用层集成说明 |
+| [变更日志](CHANGELOG.md) | 版本变更记录 |
 
 ## SPI 接口
 
