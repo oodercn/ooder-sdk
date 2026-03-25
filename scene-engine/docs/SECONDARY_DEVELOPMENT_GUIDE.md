@@ -5947,3 +5947,242 @@ Phase 4: RAG 集成 (3天)
 
 **文档维护**: Ooder Team  
 **最后更新**: 2026-03-14
+
+---
+
+## 三十九、SPI 驱动架构 (v3.0.0)
+
+### 39.1 架构概述
+
+Scene Engine v3.0.0 引入 SPI 驱动架构，支持不同规模的部署环境：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    应用层 (ooder-pro)                        │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              选择驱动配置                            │   │
+│  │  scene.engine.driver: tiny | small | enterprise    │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    SPI 接口层                                │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │StorageProvider│ │LlmProvider │  │VectorStore │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+└─────────────────────────────────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│Tiny Driver  │     │Small Driver │     │Enterprise   │
+│(文件存储)   │     │(JDBC存储)   │     │Driver       │
+│(Ollama LLM) │     │(远程LLM API)│     │(分布式)     │
+│(内存向量)   │     │(Milvus Lite)│     │(企业级)     │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+### 39.2 核心 SPI 接口
+
+#### 39.2.1 StorageProvider
+
+```java
+public interface StorageProvider {
+    <T> Optional<T> get(String collection, String key, Class<T> type);
+    <T> void put(String collection, String key, T value);
+    void remove(String collection, String key);
+    <T> Map<String, T> getAll(String collection, Class<T> type);
+    boolean exists(String collection, String key);
+    void clear(String collection);
+    String getProviderType();
+}
+```
+
+#### 39.2.2 LlmProvider
+
+```java
+public interface LlmProvider {
+    String chat(String prompt, Map<String, Object> params);
+    CompletableFuture<String> chatAsync(String prompt, Map<String, Object> params);
+    void chatStream(String prompt, Map<String, Object> params, StreamCallback callback);
+    String chatWithContext(String prompt, List<Map<String, String>> context, Map<String, Object> params);
+    String getModelName();
+    String getProviderType();
+    boolean isAvailable();
+}
+```
+
+#### 39.2.3 VectorStore
+
+```java
+public interface VectorStore {
+    void addVector(String id, float[] embedding, Map<String, Object> metadata);
+    void addVectors(List<VectorData> vectors);
+    List<SearchResult> search(float[] embedding, int topK);
+    List<SearchResult> search(float[] embedding, int topK, Map<String, Object> filter);
+    void deleteVector(String id);
+    void clear();
+    int size();
+    String getProviderType();
+}
+```
+
+### 39.3 驱动实现
+
+#### 39.3.1 Tiny 驱动 (开发测试)
+
+| 组件 | 实现 | 说明 |
+|------|------|------|
+| `TinyStorageProvider` | 文件存储 | JSON 文件持久化 |
+| `TinyLlmProvider` | Ollama | 本地 LLM 调用 |
+| `TinyVectorStore` | 内存向量 | 重启丢失 |
+
+**配置示例**:
+```yaml
+scene:
+  engine:
+    driver: tiny
+    tiny:
+      storage:
+        path: ./data
+      llm:
+        endpoint: http://localhost:11434
+        model: llama2
+```
+
+#### 39.3.2 Small 驱动 (小团队)
+
+| 组件 | 实现 | 说明 |
+|------|------|------|
+| `SmallStorageProvider` | JDBC | MySQL/PostgreSQL |
+| `SmallLlmProvider` | 远程 API | OpenAI/Azure |
+| `SmallVectorStore` | Milvus Lite | 本地向量库 |
+
+**配置示例**:
+```yaml
+scene:
+  engine:
+    driver: small
+    small:
+      storage:
+        table-prefix: scene_
+      llm:
+        endpoint: https://api.openai.com/v1
+        api-key: ${OPENAI_API_KEY}
+        model: gpt-3.5-turbo
+```
+
+#### 39.3.3 Enterprise 驱动 (企业级)
+
+| 组件 | 实现 | 说明 |
+|------|------|------|
+| `EnterpriseStorageProvider` | 分布式存储 | 分库分表 |
+| `EnterpriseLlmProvider` | 多模型路由 | 负载均衡 |
+| `EnterpriseVectorStore` | 分布式向量库 | 高可用 |
+
+**配置示例**:
+```yaml
+scene:
+  engine:
+    driver: enterprise
+    enterprise:
+      llm:
+        endpoints: |
+          openai:https://api.openai.com/v1:gpt-4
+          azure:https://xxx.openai.azure.com:gpt-35-turbo
+```
+
+### 39.4 降级实现
+
+当没有配置驱动时，自动启用降级实现：
+
+| 组件 | 实现 | 说明 |
+|------|------|------|
+| `InMemoryStorageProvider` | 内存存储 | 重启丢失 |
+| `MockLlmProvider` | Mock LLM | 返回模拟响应 |
+| `NoOpVectorStore` | 空向量 | 不支持检索 |
+
+**配置**:
+```yaml
+scene:
+  engine:
+    fallback:
+      enabled: true  # 默认启用
+```
+
+### 39.5 自定义驱动实现
+
+#### 39.5.1 实现 SPI 接口
+
+```java
+@Component
+@ConditionalOnProperty(prefix = "scene.engine", name = "driver", havingValue = "custom")
+public class CustomStorageProvider implements StorageProvider {
+    
+    @Override
+    public String getProviderType() {
+        return "custom";
+    }
+    
+    // 实现其他方法...
+}
+```
+
+#### 39.5.2 注册驱动
+
+```java
+@Configuration
+@ComponentScan(basePackages = "com.yourcompany.scene.driver")
+@ConditionalOnProperty(prefix = "scene.engine", name = "driver", havingValue = "custom")
+public class CustomDriverAutoConfiguration {
+    // 自动扫描并注册
+}
+```
+
+### 39.6 RAD 集成
+
+Scene Engine v3.0.0 提供 RAD (低代码平台) 集成支持：
+
+```java
+// 表单适配器
+@Component
+public class FormRadAdapter implements RadAdapter {
+    
+    @Override
+    public String triggerScene(String eventType, Map<String, Object> eventData) {
+        // 将表单事件转换为场景触发
+        return sceneEngine.createScene(sceneId, userId, eventData);
+    }
+}
+```
+
+**配置**:
+```yaml
+scene:
+  engine:
+    rad:
+      enabled: true
+      form-mapping:
+        user_register: scene_user_onboarding
+        leave_apply: scene_leave_approval
+```
+
+### 39.7 配置开关汇总
+
+| 配置项 | 说明 | 默认值 |
+|--------|------|--------|
+| `scene.engine.driver` | 驱动类型 | 无 (使用降级) |
+| `scene.engine.fallback.enabled` | 启用降级实现 | true |
+| `scene.engine.rad.enabled` | 启用 RAD 集成 | false |
+
+### 39.8 最佳实践
+
+1. **开发环境**: 使用 `tiny` 驱动 + Ollama 本地 LLM
+2. **测试环境**: 使用 `small` 驱动 + 测试数据库
+3. **生产环境**: 使用 `enterprise` 驱动 + 分布式组件
+4. **快速验证**: 使用降级实现，零配置启动
+
+---
+
+**最后更新**: 2026-03-25

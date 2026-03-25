@@ -88,6 +88,11 @@ scene:
 4. ✅ `RequestMappingConfig` 中的 `@Primary` 注解已替换为 `@ConditionalOnMissingBean`
 5. ✅ `VectorStoreAutoConfiguration` 已添加 `@ConditionalOnProperty` 开关
 6. ✅ `SceneEngineAutoConfiguration` 已添加 `@ConditionalOnProperty` 开关
+7. ✅ 新增 SPI 接口定义: `StorageProvider`, `LlmProvider`, `VectorStore`
+8. ✅ 新增驱动实现: Tiny (文件存储), Small (JDBC), Enterprise (分布式)
+9. ✅ 新增降级实现: `InMemoryStorageProvider`, `MockLlmProvider`, `NoOpVectorStore`
+10. ✅ 新增 RAD 适配器: `RadAdapter`, `FormRadAdapter`
+11. ✅ 核心组件添加 `@ConditionalOnBean` 条件装配
 
 ---
 
