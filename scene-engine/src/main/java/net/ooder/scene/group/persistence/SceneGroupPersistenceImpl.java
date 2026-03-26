@@ -1,7 +1,8 @@
 package net.ooder.scene.group.persistence;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.participant.Participant;
 import org.slf4j.Logger;
@@ -84,13 +85,13 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         Files.createDirectories(groupDir);
         
         Path participantsFile = groupDir.resolve(PARTICIPANTS_FILE);
-        String content = JSON.toJSONString(participants, true);
+        String content = JSON.toJSONString(participants, JSONWriter.Feature.PrettyFormat);
         Files.write(participantsFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
     private void saveParticipantsInternal(Path groupDir, List<Participant> participants) throws IOException {
         Path participantsFile = groupDir.resolve(PARTICIPANTS_FILE);
-        String content = JSON.toJSONString(participants, true);
+        String content = JSON.toJSONString(participants, JSONWriter.Feature.PrettyFormat);
         Files.write(participantsFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
@@ -120,7 +121,7 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         metadata.setLastUpdateTime(group.getLastUpdateTime().toString());
         
         Path metadataFile = groupDir.resolve(METADATA_FILE);
-        String content = JSON.toJSONString(metadata, true);
+        String content = JSON.toJSONString(metadata, JSONWriter.Feature.PrettyFormat);
         Files.write(metadataFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
@@ -153,7 +154,7 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         config.setLlmConfig(group.getAllLlmConfig());
         
         Path configFile = groupDir.resolve(CONFIG_FILE);
-        String content = JSON.toJSONString(config, true);
+        String content = JSON.toJSONString(config, JSONWriter.Feature.PrettyFormat);
         Files.write(configFile, content.getBytes(StandardCharsets.UTF_8));
     }
     

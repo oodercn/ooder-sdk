@@ -1,7 +1,8 @@
 package net.ooder.scene.discovery.cache;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.annotation.JSONField;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +125,7 @@ public class JsonFileCacheManager {
             String fileName = getCacheFileName(key);
             Path filePath = Paths.get(cacheDir, fileName);
 
-            String json = JSON.toJSONString(entry, true);
+            String json = JSON.toJSONString(entry, JSONWriter.Feature.PrettyFormat);
             Files.write(filePath, json.getBytes("UTF-8"));
 
             logger.debug("Saved cache to file: {}", filePath);

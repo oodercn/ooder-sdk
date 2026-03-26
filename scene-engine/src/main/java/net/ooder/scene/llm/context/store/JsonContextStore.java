@@ -1,7 +1,8 @@
 package net.ooder.scene.llm.context.store;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.TypeReference;
+import com.alibaba.fastjson2.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +68,7 @@ public class JsonContextStore {
             return;
         }
         Path filePath = storePath.resolve(key + ".json");
-        String content = JSON.toJSONString(data, true);
+        String content = JSON.toJSONString(data, JSONWriter.Feature.PrettyFormat);
         Files.write(filePath, content.getBytes(StandardCharsets.UTF_8));
         log.debug("Saved data to: {}", filePath);
     }

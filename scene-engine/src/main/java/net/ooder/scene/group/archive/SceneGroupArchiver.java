@@ -1,7 +1,8 @@
 package net.ooder.scene.group.archive;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SceneGroupManager;
 import net.ooder.scene.group.persistence.SceneGroupPersistence;
@@ -181,7 +182,7 @@ public class SceneGroupArchiver {
         Files.createDirectories(archivesDir);
         
         Path archiveFile = archivesDir.resolve(metadata.getArchiveId() + ".yaml");
-        String content = JSON.toJSONString(metadata, true);
+        String content = JSON.toJSONString(metadata, JSONWriter.Feature.PrettyFormat);
         Files.write(archiveFile, content.getBytes(StandardCharsets.UTF_8));
     }
     

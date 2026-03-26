@@ -1,7 +1,8 @@
 package net.ooder.scene.skill.llm.example;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.skill.llm.FunctionCall;
 
 import java.util.*;
@@ -285,7 +286,7 @@ public class FunctionCallingExample {
         
         System.out.println("\n=== LLM Tools 格式 ===");
         List<Map<String, Object>> tools = registry.getToolsForLLM();
-        System.out.println(JSON.toJSONString(tools, true));
+        System.out.println(JSON.toJSONString(tools, JSONWriter.Feature.PrettyFormat));
         
         System.out.println("\n=== 模拟函数调用 ===");
         Map<String, Object> toolCall = new HashMap<>();
@@ -295,6 +296,6 @@ public class FunctionCallingExample {
         toolCall.put("function", func);
         
         Object result = registry.executeFunctionCall(toolCall);
-        System.out.println(JSON.toJSONString(result, true));
+        System.out.println(JSON.toJSONString(result, JSONWriter.Feature.PrettyFormat));
     }
 }

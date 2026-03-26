@@ -1,6 +1,7 @@
 package net.ooder.scene.agent.persistence;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.agent.AgentMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,7 +336,7 @@ public class JsonMessagePersistence implements MessagePersistence {
             String dir = getStatusDirectory(persisted.getStatus());
             Path filePath = Paths.get(storageRoot, dir, persisted.getStorageId() + ".json");
             Files.createDirectories(filePath.getParent());
-            Files.write(filePath, JSON.toJSONString(persisted, true).getBytes("UTF-8"));
+            Files.write(filePath, JSON.toJSONString(persisted, JSONWriter.Feature.PrettyFormat).getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to write message file", e);
         }

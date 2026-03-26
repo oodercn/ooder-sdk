@@ -1,6 +1,7 @@
 package net.ooder.scene.agent.security;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -249,7 +250,7 @@ public class JsonCredentialStorage implements AgentCredentialStorage {
         try {
             Path filePath = getFilePath(credential.getCredentialId());
             Files.createDirectories(filePath.getParent());
-            Files.write(filePath, JSON.toJSONString(credential, true).getBytes("UTF-8"));
+            Files.write(filePath, JSON.toJSONString(credential, JSONWriter.Feature.PrettyFormat).getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to write credential file", e);
         }

@@ -1,6 +1,7 @@
 package net.ooder.scene.security.storage;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.sdk.api.security.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -370,7 +371,7 @@ public class JsonKeyStorageService {
     private void writeJsonFile(Path filePath, Object data) {
         try {
             Files.createDirectories(filePath.getParent());
-            String json = JSON.toJSONString(data, true);
+            String json = JSON.toJSONString(data, JSONWriter.Feature.PrettyFormat);
             Files.write(filePath, json.getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to write JSON file: " + filePath, e);

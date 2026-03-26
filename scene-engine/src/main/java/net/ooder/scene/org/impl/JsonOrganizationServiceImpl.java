@@ -1,6 +1,7 @@
 package net.ooder.scene.org.impl;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.SceneEventType;
 import net.ooder.scene.event.org.OrganizationEvent;
@@ -116,7 +117,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     private void saveCompanies() {
         try {
             File file = new File(dataDir, "companies.json");
-            String content = JSON.toJSONString(new ArrayList<>(companies.values()), true);
+            String content = JSON.toJSONString(new ArrayList<>(companies.values()), JSONWriter.Feature.PrettyFormat);
             Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.error("Failed to save companies: {}", e.getMessage());
@@ -126,7 +127,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     private void saveDepartments() {
         try {
             File file = new File(dataDir, "departments.json");
-            String content = JSON.toJSONString(new ArrayList<>(departments.values()), true);
+            String content = JSON.toJSONString(new ArrayList<>(departments.values()), JSONWriter.Feature.PrettyFormat);
             Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.error("Failed to save departments: {}", e.getMessage());
@@ -136,7 +137,7 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     private void saveUsers() {
         try {
             File file = new File(dataDir, "users.json");
-            String content = JSON.toJSONString(new ArrayList<>(users.values()), true);
+            String content = JSON.toJSONString(new ArrayList<>(users.values()), JSONWriter.Feature.PrettyFormat);
             Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.error("Failed to save users: {}", e.getMessage());

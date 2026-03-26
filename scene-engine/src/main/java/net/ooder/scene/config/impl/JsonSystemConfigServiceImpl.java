@@ -1,6 +1,7 @@
 package net.ooder.scene.config.impl;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -370,7 +371,7 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
             Map<String, Object> data = new HashMap<>();
             data.put("skillConfigs", skillConfigs);
             data.put("lastUpdate", System.currentTimeMillis());
-            java.nio.file.Files.write(configFile.toPath(), JSON.toJSONString(data, true).getBytes("UTF-8"));
+            java.nio.file.Files.write(configFile.toPath(), JSON.toJSONString(data, JSONWriter.Feature.PrettyFormat).getBytes("UTF-8"));
             log.debug("Saved {} skill configs to {}", skillConfigs.size(), configFile);
         } catch (IOException e) {
             log.error("Failed to save configs to " + configFile, e);
