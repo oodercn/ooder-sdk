@@ -1,13 +1,14 @@
 package net.ooder.scene.group.persistence;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.participant.Participant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,12 +27,6 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
     private static final String CAPABILITIES_DIR = "capabilities";
     private static final String KNOWLEDGE_DIR = "knowledge";
     private static final String ARCHIVES_DIR = "archives";
-    
-    private final ObjectMapper yamlMapper;
-    
-    public SceneGroupPersistenceImpl() {
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
-    }
     
     @Override
     public void save(SceneGroup group) throws IOException {
@@ -89,12 +84,14 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         Files.createDirectories(groupDir);
         
         Path participantsFile = groupDir.resolve(PARTICIPANTS_FILE);
-        yamlMapper.writeValue(participantsFile.toFile(), participants);
+        String content = JSON.toJSONString(participants, true);
+        Files.write(participantsFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
     private void saveParticipantsInternal(Path groupDir, List<Participant> participants) throws IOException {
         Path participantsFile = groupDir.resolve(PARTICIPANTS_FILE);
-        yamlMapper.writeValue(participantsFile.toFile(), participants);
+        String content = JSON.toJSONString(participants, true);
+        Files.write(participantsFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
     @Override
@@ -106,8 +103,8 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
             return Collections.emptyList();
         }
         
-        return yamlMapper.readValue(participantsFile.toFile(), 
-            yamlMapper.getTypeFactory().constructCollectionType(List.class, Participant.class));
+        String content = new String(Files.readAllBytes(participantsFile), StandardCharsets.UTF_8);
+        return JSON.parseArray(content, Participant.class);
     }
     
     private void saveMetadata(Path groupDir, SceneGroup group) throws IOException {
@@ -123,7 +120,8 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         metadata.setLastUpdateTime(group.getLastUpdateTime().toString());
         
         Path metadataFile = groupDir.resolve(METADATA_FILE);
-        yamlMapper.writeValue(metadataFile.toFile(), metadata);
+        String content = JSON.toJSONString(metadata, true);
+        Files.write(metadataFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
     private Optional<SceneGroup> loadMetadata(Path groupDir, String sceneGroupId) throws IOException {
@@ -133,7 +131,8 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
             return Optional.empty();
         }
         
-        SceneGroupMetadata metadata = yamlMapper.readValue(metadataFile.toFile(), SceneGroupMetadata.class);
+        String content = new String(Files.readAllBytes(metadataFile), StandardCharsets.UTF_8);
+        SceneGroupMetadata metadata = JSON.parseObject(content, SceneGroupMetadata.class);
         
         SceneGroup group = new SceneGroup(
             metadata.getSceneGroupId(),
@@ -154,7 +153,8 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         config.setLlmConfig(group.getAllLlmConfig());
         
         Path configFile = groupDir.resolve(CONFIG_FILE);
-        yamlMapper.writeValue(configFile.toFile(), config);
+        String content = JSON.toJSONString(config, true);
+        Files.write(configFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
     private void deleteDirectory(Path dir) throws IOException {

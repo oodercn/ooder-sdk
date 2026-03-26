@@ -1,8 +1,6 @@
 package net.ooder.scene.agent.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +20,6 @@ public class JsonCredentialStorage implements AgentCredentialStorage {
 
     private static final Logger log = LoggerFactory.getLogger(JsonCredentialStorage.class);
 
-    private final ObjectMapper objectMapper;
     private final Map<String, ReentrantReadWriteLock> locks;
     private final Map<String, AgentCredential> memoryCache;
 
@@ -30,9 +27,6 @@ public class JsonCredentialStorage implements AgentCredentialStorage {
     private String storageRoot;
 
     public JsonCredentialStorage() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.locks = new ConcurrentHashMap<>();
         this.memoryCache = new ConcurrentHashMap<>();
     }
@@ -255,7 +249,7 @@ public class JsonCredentialStorage implements AgentCredentialStorage {
         try {
             Path filePath = getFilePath(credential.getCredentialId());
             Files.createDirectories(filePath.getParent());
-            objectMapper.writeValue(filePath.toFile(), credential);
+            Files.write(filePath, JSON.toJSONString(credential, true).getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to write credential file", e);
         }
@@ -267,7 +261,7 @@ public class JsonCredentialStorage implements AgentCredentialStorage {
         }
 
         try {
-            return objectMapper.readValue(filePath.toFile(), AgentCredential.class);
+            return JSON.parseObject(new String(Files.readAllBytes(filePath), "UTF-8"), AgentCredential.class);
         } catch (IOException e) {
             log.error("Failed to read credential file: {}", filePath, e);
             return null;

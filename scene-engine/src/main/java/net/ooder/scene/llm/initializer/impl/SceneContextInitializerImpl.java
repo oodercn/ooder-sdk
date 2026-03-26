@@ -1,6 +1,6 @@
 package net.ooder.scene.llm.initializer.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.llm.context.*;
 import net.ooder.scene.llm.initializer.SceneContextInitializeRequest;
 import net.ooder.scene.llm.initializer.SceneContextInitializer;
@@ -26,14 +26,12 @@ public class SceneContextInitializerImpl implements SceneContextInitializer {
     private static final long DEFAULT_IDLE_TIMEOUT = 10 * 60 * 1000; // 10分钟
     
     private final LlmContextRegistry contextRegistry;
-    private final ObjectMapper objectMapper;
     
     // 上下文元数据存储
     private final Map<String, ContextMetadata> contextMetadata;
     
     public SceneContextInitializerImpl(LlmContextRegistry contextRegistry) {
         this.contextRegistry = contextRegistry;
-        this.objectMapper = new ObjectMapper();
         this.contextMetadata = new ConcurrentHashMap<>();
     }
     
@@ -103,7 +101,7 @@ public class SceneContextInitializerImpl implements SceneContextInitializer {
         }
         
         try {
-            LlmSceneContext context = objectMapper.readValue(serialized, LlmSceneContext.class);
+            LlmSceneContext context = JSON.parseObject(serialized, LlmSceneContext.class);
             // 生成新的contextId避免冲突
             context.setContextId(generateContextId());
             contextRegistry.register(context);
@@ -123,7 +121,7 @@ public class SceneContextInitializerImpl implements SceneContextInitializer {
         }
         
         try {
-            return objectMapper.writeValueAsString(context);
+            return JSON.toJSONString(context);
         } catch (Exception e) {
             log.error("Failed to serialize context: {}", e.getMessage());
             throw new RuntimeException("Failed to serialize context", e);
@@ -169,7 +167,7 @@ public class SceneContextInitializerImpl implements SceneContextInitializer {
                 }
             }
             
-            return objectMapper.writeValueAsString(partial);
+            return JSON.toJSONString(partial);
         } catch (Exception e) {
             log.error("Failed to serialize partial context: {}", e.getMessage());
             throw new RuntimeException("Failed to serialize partial context", e);

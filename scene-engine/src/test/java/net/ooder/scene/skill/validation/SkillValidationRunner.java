@@ -1,10 +1,9 @@
 package net.ooder.scene.skill.validation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.skills.capability.CapabilityAddress;
+import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
+import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,7 +21,7 @@ import java.util.stream.Stream;
  */
 public class SkillValidationRunner {
 
-    private static final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+    private static final Yaml yaml = new Yaml();
 
     // Skills 目录路径
     private static final String SKILLS_BASE_PATH = "E:\\github\\ooder-skills\\skills";
@@ -108,7 +107,7 @@ public class SkillValidationRunner {
         }
         
         try {
-            Map<String, Object> index = yamlMapper.readValue(indexPath.toFile(), Map.class);
+            Map<String, Object> index = yaml.load(new FileInputStream(indexPath.toFile()));
             
             // 检查必需字段
             List<String> missingFields = new ArrayList<>();
@@ -189,7 +188,7 @@ public class SkillValidationRunner {
         String skillId = skillPath.substring(skillPath.lastIndexOf("\\") + 1);
         
         try {
-            Map<String, Object> skill = yamlMapper.readValue(yamlPath.toFile(), Map.class);
+            Map<String, Object> skill = yaml.load(new FileInputStream(yamlPath.toFile()));
             
             List<String> errors = new ArrayList<>();
             List<String> warnings = new ArrayList<>();
@@ -427,7 +426,7 @@ public class SkillValidationRunner {
                 .filter(p -> p.getFileName().toString().equals("skill.yaml"))
                 .forEach(yamlPath -> {
                     try {
-                        Map<String, Object> skill = yamlMapper.readValue(yamlPath.toFile(), Map.class);
+                        Map<String, Object> skill = yaml.load(new FileInputStream(yamlPath.toFile()));
                         Map<String, Object> metadata = (Map<String, Object>) skill.get("metadata");
                         
                         String skillId = yamlPath.getParent().getFileName().toString();

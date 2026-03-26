@@ -1,12 +1,12 @@
 package net.ooder.scene.llm.config.layered;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,7 +33,6 @@ public class LayeredConfigLoader {
     private static final String DEFAULT_CONFIG = "llm-config-default.yaml";
     private static final String USER_CONFIG_DIR = ".ooder";
 
-    private final ObjectMapper yamlMapper;
     private final Path configBaseDir;
     private final String environment;
     private final ConfigMergeStrategy mergeStrategy;
@@ -43,7 +42,6 @@ public class LayeredConfigLoader {
     }
 
     public LayeredConfigLoader(Path configBaseDir, String environment) {
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
         this.configBaseDir = configBaseDir != null ? configBaseDir : Paths.get("config");
         this.environment = environment != null ? environment : "dev";
         this.mergeStrategy = new DeepMergeStrategy();
@@ -107,7 +105,10 @@ public class LayeredConfigLoader {
         InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath);
         if (is != null) {
             try {
-                return yamlMapper.readValue(is, LlmConfigProperties.class);
+                byte[] bytes = new byte[is.available()];
+                is.read(bytes);
+                String content = new String(bytes, StandardCharsets.UTF_8);
+                return JSON.parseObject(content, LlmConfigProperties.class);
             } catch (IOException e) {
                 log.warn("Failed to load system default config: {}", e.getMessage());
             } finally {
@@ -164,7 +165,8 @@ public class LayeredConfigLoader {
         }
 
         try {
-            return yamlMapper.readValue(path.toFile(), LlmConfigProperties.class);
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            return JSON.parseObject(content, LlmConfigProperties.class);
         } catch (IOException e) {
             log.warn("Failed to load config from {}: {}", path, e.getMessage());
             return null;

@@ -1,11 +1,7 @@
 package net.ooder.scene.core.activation.repository;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import net.ooder.scene.core.activation.model.ActivationProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +47,6 @@ public class SqlActivationProcessRepository implements ActivationProcessReposito
     private final String jdbcUrl;
     private final String username;
     private final String password;
-    private final ObjectMapper objectMapper;
     private Connection connection;
     private boolean initialized = false;
 
@@ -63,12 +58,6 @@ public class SqlActivationProcessRepository implements ActivationProcessReposito
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
-
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public void initialize() {
@@ -445,7 +434,7 @@ public class SqlActivationProcessRepository implements ActivationProcessReposito
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(steps);
+            return JSON.toJSONString(steps);
         } catch (Exception e) {
             log.warn("Failed to serialize steps: {}", e.getMessage());
             return null;
@@ -457,7 +446,7 @@ public class SqlActivationProcessRepository implements ActivationProcessReposito
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<List<ActivationProcess.StepExecution>>() {});
+            return JSON.parseObject(json, new TypeReference<List<ActivationProcess.StepExecution>>() {});
         } catch (Exception e) {
             log.warn("Failed to deserialize steps: {}", e.getMessage());
             return new ArrayList<>();

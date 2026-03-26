@@ -1,7 +1,6 @@
 package net.ooder.scene.llm.audit.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.llm.audit.*;
 import net.ooder.scene.llm.stats.LlmCompanyStats;
 import net.ooder.scene.llm.stats.LlmDepartmentStats;
@@ -13,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +32,6 @@ public class JsonLlmAuditServiceImpl implements LlmAuditService {
     
     private static final Logger log = LoggerFactory.getLogger(JsonLlmAuditServiceImpl.class);
     
-    private final ObjectMapper objectMapper;
     private final File dataDir;
     private final List<LlmCallLog> callLogs = new CopyOnWriteArrayList<>();
     private final Map<String, LlmCallLog> logIndex = new ConcurrentHashMap<>();
@@ -39,8 +39,6 @@ public class JsonLlmAuditServiceImpl implements LlmAuditService {
     private static final int MAX_LOG_SIZE = 10000;
     
     public JsonLlmAuditServiceImpl(String dataPath) {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.dataDir = new File(dataPath);
         
         if (!dataDir.exists()) {
@@ -54,10 +52,13 @@ public class JsonLlmAuditServiceImpl implements LlmAuditService {
         File file = new File(dataDir, "llm-call-logs.json");
         if (file.exists()) {
             try {
-                LlmCallLog[] array = objectMapper.readValue(file, LlmCallLog[].class);
-                for (LlmCallLog logEntry : array) {
-                    callLogs.add(logEntry);
-                    logIndex.put(logEntry.getLogId(), logEntry);
+                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                List<LlmCallLog> logs = JSON.parseArray(content, LlmCallLog.class);
+                if (logs != null) {
+                    for (LlmCallLog logEntry : logs) {
+                        callLogs.add(logEntry);
+                        logIndex.put(logEntry.getLogId(), logEntry);
+                    }
                 }
                 JsonLlmAuditServiceImpl.log.info("Loaded {} LLM call logs", callLogs.size());
             } catch (IOException e) {
@@ -69,7 +70,8 @@ public class JsonLlmAuditServiceImpl implements LlmAuditService {
     private void saveLogs() {
         try {
             File file = new File(dataDir, "llm-call-logs.json");
-            objectMapper.writeValue(file, callLogs);
+            String content = JSON.toJSONString(callLogs, true);
+            Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.error("Failed to save LLM call logs: {}", e.getMessage());
         }

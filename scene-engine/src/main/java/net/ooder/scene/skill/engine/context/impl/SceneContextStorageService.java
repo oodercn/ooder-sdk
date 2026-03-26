@@ -1,8 +1,7 @@
 package net.ooder.scene.skill.engine.context.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.skill.engine.context.ContextStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +35,6 @@ public class SceneContextStorageService implements ContextStorageService {
 
     private static final Logger logger = LoggerFactory.getLogger(SceneContextStorageService.class);
 
-    private final ObjectMapper objectMapper;
     private final Map<String, ReentrantReadWriteLock> locks;
     private final ScheduledExecutorService cleanupExecutor;
 
@@ -51,8 +48,6 @@ public class SceneContextStorageService implements ContextStorageService {
     private int lockExpireSeconds;
 
     public SceneContextStorageService() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.locks = new ConcurrentHashMap<>();
         this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "context-lock-cleanup");
@@ -448,7 +443,8 @@ public class SceneContextStorageService implements ContextStorageService {
     private void writeJsonFile(Path filePath, Object data) {
         try {
             Files.createDirectories(filePath.getParent());
-            objectMapper.writeValue(filePath.toFile(), data);
+            String json = JSON.toJSONString(data, JSONWriter.Feature.PrettyFormat);
+            Files.writeString(filePath, json);
         } catch (IOException e) {
             throw new RuntimeException("Failed to write JSON file: " + filePath, e);
         }
@@ -461,7 +457,8 @@ public class SceneContextStorageService implements ContextStorageService {
         }
 
         try {
-            return objectMapper.readValue(filePath.toFile(), new TypeReference<Map<String, Object>>() {});
+            String json = Files.readString(filePath);
+            return JSON.parseObject(json, Map.class);
         } catch (IOException e) {
             logger.error("Failed to read JSON file: {}", filePath, e);
             return new HashMap<>();

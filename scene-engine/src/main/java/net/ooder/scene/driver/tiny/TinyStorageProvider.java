@@ -1,6 +1,6 @@
 package net.ooder.scene.driver.tiny;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.spi.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,6 @@ public class TinyStorageProvider implements StorageProvider {
 
     private static final Logger log = LoggerFactory.getLogger(TinyStorageProvider.class);
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Map<String, Object>> cache = new ConcurrentHashMap<>();
 
     @Value("${scene.engine.tiny.storage.path:./data}")
@@ -62,7 +61,7 @@ public class TinyStorageProvider implements StorageProvider {
 
         try {
             String content = Files.readString(filePath);
-            T value = objectMapper.readValue(content, type);
+            T value = JSON.parseObject(content, type);
             collectionCache.put(key, value);
             return Optional.of(value);
         } catch (IOException e) {
@@ -81,7 +80,7 @@ public class TinyStorageProvider implements StorageProvider {
             Files.createDirectories(dirPath);
 
             Path filePath = dirPath.resolve(key + ".json");
-            String content = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(value);
+            String content = JSON.toJSONString(value, true);
             Files.writeString(filePath, content);
 
             log.debug("Stored: {}/{}", collection, key);

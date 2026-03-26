@@ -1,7 +1,9 @@
 package net.ooder.scene.discovery.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import net.ooder.scene.discovery.UnifiedDiscoveryService;
 import net.ooder.scene.discovery.cache.JsonFileCacheManager;
 import net.ooder.skills.api.SkillPackage;
@@ -63,16 +65,11 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     private long giteeCacheTtl = 3600000;
     private long githubCacheTtl = 3600000;
     
-    private final ObjectMapper yamlMapper;
-    private final ObjectMapper jsonMapper;
-    
     private static final String GITEE_API_BASE = "https://gitee.com/api/v5";
     private static final String GITHUB_API_BASE = "https://api.github.com";
 
     public UnifiedDiscoveryServiceImpl() {
         this.cacheManager = new JsonFileCacheManager();
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
-        this.jsonMapper = new ObjectMapper();
     }
 
     /**
@@ -284,11 +281,10 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     @SuppressWarnings("unchecked")
     private String decodeGiteeContent(String jsonResponse) {
         try {
-            ObjectMapper jsonMapper = new ObjectMapper();
-            Map<String, Object> responseMap = jsonMapper.readValue(jsonResponse, Map.class);
+            JSONObject responseMap = JSON.parseObject(jsonResponse);
             
-            String encoding = (String) responseMap.get("encoding");
-            String content = (String) responseMap.get("content");
+            String encoding = responseMap.getString("encoding");
+            String content = responseMap.getString("content");
             
             if (content == null) {
                 logger.error("Gitee API response missing 'content' field");
@@ -442,20 +438,20 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         List<SkillPackage> skills = new ArrayList<>();
         
         try {
-            Map<String, Object> indexData = yamlMapper.readValue(content, Map.class);
+            JSONObject indexData = JSON.parseObject(content);
             
-            Map<String, Object> spec = (Map<String, Object>) indexData.get("spec");
+            JSONObject spec = indexData.getJSONObject("spec");
             if (spec != null && spec.containsKey("includes")) {
-                List<String> includes = (List<String>) spec.get("includes");
+                JSONArray includesArray = spec.getJSONArray("includes");
+                List<String> includes = includesArray.toJavaList(String.class);
                 logger.info("Detected includes format with {} patterns", includes.size());
                 return resolveIncludes(includes, indexData);
             }
             
-            Object skillsObj = indexData.get("skills");
-            if (skillsObj instanceof List) {
-                List<Map<String, Object>> skillsList = (List<Map<String, Object>>) skillsObj;
-                
-                for (Map<String, Object> skillData : skillsList) {
+            JSONArray skillsArray = indexData.getJSONArray("skills");
+            if (skillsArray != null) {
+                for (int i = 0; i < skillsArray.size(); i++) {
+                    JSONObject skillData = skillsArray.getJSONObject(i);
                     SkillPackage skill = createSkillPackage(skillData);
                     if (skill != null) {
                         skills.add(skill);
@@ -473,7 +469,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
     
     @SuppressWarnings("unchecked")
-    private List<SkillPackage> resolveIncludes(List<String> includes, Map<String, Object> indexData) {
+    private List<SkillPackage> resolveIncludes(List<String> includes, JSONObject indexData) {
         List<SkillPackage> allSkills = new ArrayList<>();
         
         String platform = (String) giteeConfig.getOrDefault("_currentPlatform", "gitee");
@@ -574,11 +570,12 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 return files;
             }
             
-            List<Map<String, Object>> items = jsonMapper.readValue(jsonResponse, List.class);
-            for (Map<String, Object> item : items) {
-                String type = (String) item.get("type");
+            JSONArray items = JSON.parseArray(jsonResponse);
+            for (int i = 0; i < items.size(); i++) {
+                JSONObject item = items.getJSONObject(i);
+                String type = item.getString("type");
                 if ("file".equals(type)) {
-                    files.add((String) item.get("name"));
+                    files.add(item.getString("name"));
                 }
             }
             
@@ -630,22 +627,23 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 return skills;
             }
             
-            Map<String, Object> yamlData = yamlMapper.readValue(content, Map.class);
+            JSONObject yamlData = JSON.parseObject(content);
             
             if (yamlData.containsKey("skills")) {
-                List<Map<String, Object>> skillsList = (List<Map<String, Object>>) yamlData.get("skills");
-                for (Map<String, Object> skillData : skillsList) {
+                JSONArray skillsArray = yamlData.getJSONArray("skills");
+                for (int i = 0; i < skillsArray.size(); i++) {
+                    JSONObject skillData = skillsArray.getJSONObject(i);
                     SkillPackage skill = createSkillPackage(skillData);
                     if (skill != null) {
                         skills.add(skill);
                     }
                 }
             } else if (yamlData.containsKey("id") || yamlData.containsKey("metadata")) {
-                Map<String, Object> skillData = yamlData.containsKey("metadata") 
-                        ? (Map<String, Object>) yamlData.get("metadata") 
+                JSONObject skillData = yamlData.containsKey("metadata") 
+                        ? yamlData.getJSONObject("metadata") 
                         : yamlData;
                 
-                Map<String, Object> spec = (Map<String, Object>) yamlData.get("spec");
+                JSONObject spec = yamlData.getJSONObject("spec");
                 if (spec != null) {
                     skillData.putAll(spec);
                 }
@@ -701,13 +699,13 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
 
     @SuppressWarnings("unchecked")
-    private SkillPackage createSkillPackage(Map<String, Object> skillData) {
+    private SkillPackage createSkillPackage(JSONObject skillData) {
         try {
-            String skillId = (String) skillData.get("id");
-            String name = (String) skillData.get("name");
-            String version = (String) skillData.get("version");
-            String description = (String) skillData.get("description");
-            String category = (String) skillData.get("category");
+            String skillId = skillData.getString("id");
+            String name = skillData.getString("name");
+            String version = skillData.getString("version");
+            String description = skillData.getString("description");
+            String category = skillData.getString("category");
             
             if (skillId == null || name == null) {
                 return null;
@@ -720,11 +718,11 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             skill.setDescription(description);
             skill.setCategory(category);
             
-            Object tagsObj = skillData.get("tags");
-            if (tagsObj instanceof List) {
+            JSONArray tagsArray = skillData.getJSONArray("tags");
+            if (tagsArray != null) {
                 List<String> tags = new ArrayList<>();
-                for (Object tag : (List<?>) tagsObj) {
-                    tags.add(String.valueOf(tag));
+                for (int i = 0; i < tagsArray.size(); i++) {
+                    tags.add(String.valueOf(tagsArray.get(i)));
                 }
                 skill.setTags(tags);
             }

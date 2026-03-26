@@ -1,7 +1,6 @@
 package net.ooder.scene.security.storage;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson.JSON;
 import net.ooder.sdk.api.security.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,6 @@ public class JsonKeyStorageService {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonKeyStorageService.class);
 
-    private final ObjectMapper objectMapper;
     private final Map<String, ReentrantReadWriteLock> locks;
     private final ScheduledExecutorService cleanupExecutor;
 
@@ -43,8 +41,6 @@ public class JsonKeyStorageService {
     private int lockCleanupIntervalSeconds;
 
     public JsonKeyStorageService() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.locks = new ConcurrentHashMap<>();
         this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "key-lock-cleanup");
@@ -374,7 +370,8 @@ public class JsonKeyStorageService {
     private void writeJsonFile(Path filePath, Object data) {
         try {
             Files.createDirectories(filePath.getParent());
-            objectMapper.writeValue(filePath.toFile(), data);
+            String json = JSON.toJSONString(data, true);
+            Files.write(filePath, json.getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to write JSON file: " + filePath, e);
         }
@@ -386,7 +383,8 @@ public class JsonKeyStorageService {
         }
         
         try {
-            return objectMapper.readValue(filePath.toFile(), clazz);
+            String json = new String(Files.readAllBytes(filePath), "UTF-8");
+            return JSON.parseObject(json, clazz);
         } catch (IOException e) {
             logger.error("Failed to read JSON file: {}", filePath, e);
             return null;

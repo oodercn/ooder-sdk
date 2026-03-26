@@ -1,6 +1,6 @@
 package net.ooder.scene.core.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.core.Result;
 import net.ooder.scene.core.security.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +28,10 @@ import java.util.List;
 public class PermissionInterceptor implements HandlerInterceptor {
 
     private final PermissionService permissionService;
-    private final ObjectMapper objectMapper;
 
     @Autowired
-    public PermissionInterceptor(PermissionService permissionService, ObjectMapper objectMapper) {
+    public PermissionInterceptor(PermissionService permissionService) {
         this.permissionService = permissionService;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -135,6 +133,6 @@ public class PermissionInterceptor implements HandlerInterceptor {
         response.setContentType("application/json;charset=UTF-8");
 
         Result<Void> result = Result.error("权限不足: 缺少 " + String.join(", ", requiredPermissions) + " 权限", 403);
-        response.getWriter().write(objectMapper.writeValueAsString(result));
+        response.getWriter().write(JSON.toJSONString(result));
     }
 }

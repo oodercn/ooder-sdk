@@ -1,11 +1,7 @@
 package net.ooder.scene.core.instance;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import net.ooder.scene.core.lifecycle.SceneSkillLifecycle.SkillLifecycleState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +96,6 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
     private final String jdbcUrl;
     private final String username;
     private final String password;
-    private final ObjectMapper objectMapper;
     private Connection connection;
     private boolean initialized = false;
 
@@ -112,12 +107,6 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
-
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public void initialize() {
@@ -706,7 +695,7 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(map);
+            return JSON.toJSONString(map);
         } catch (Exception e) {
             log.warn("Failed to serialize map: {}", e.getMessage());
             return null;
@@ -718,7 +707,7 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return JSON.parseObject(json, new TypeReference<Map<String, Object>>() {});
         } catch (Exception e) {
             log.warn("Failed to deserialize map: {}", e.getMessage());
             return new HashMap<>();
@@ -730,7 +719,7 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(map);
+            return JSON.toJSONString(map);
         } catch (Exception e) {
             log.warn("Failed to serialize string map: {}", e.getMessage());
             return null;
@@ -742,7 +731,7 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
+            return JSON.parseObject(json, new TypeReference<Map<String, String>>() {});
         } catch (Exception e) {
             log.warn("Failed to deserialize string map: {}", e.getMessage());
             return new HashMap<>();
@@ -754,7 +743,7 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(list);
+            return JSON.toJSONString(list);
         } catch (Exception e) {
             log.warn("Failed to serialize list: {}", e.getMessage());
             return null;
@@ -766,7 +755,7 @@ public class SqlSceneInstanceRepository implements SceneInstanceRepository {
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            return JSON.parseObject(json, new TypeReference<List<String>>() {});
         } catch (Exception e) {
             log.warn("Failed to deserialize list: {}", e.getMessage());
             return new ArrayList<>();

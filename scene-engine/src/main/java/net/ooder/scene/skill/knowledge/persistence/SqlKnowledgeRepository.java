@@ -1,11 +1,7 @@
 package net.ooder.scene.skill.knowledge.persistence;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.skill.knowledge.Document;
 import net.ooder.scene.skill.knowledge.IndexStatus;
 import net.ooder.scene.skill.knowledge.KnowledgeBase;
@@ -70,7 +66,6 @@ public class SqlKnowledgeRepository implements KnowledgeRepository {
     private final String jdbcUrl;
     private final String username;
     private final String password;
-    private final ObjectMapper objectMapper;
     private Connection connection;
     private boolean initialized = false;
 
@@ -82,12 +77,6 @@ public class SqlKnowledgeRepository implements KnowledgeRepository {
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
-
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @Override
@@ -566,7 +555,7 @@ public class SqlKnowledgeRepository implements KnowledgeRepository {
             return null;
         }
         try {
-            return objectMapper.writeValueAsString(map);
+            return JSON.toJSONString(map);
         } catch (Exception e) {
             log.warn("Failed to serialize map: {}", e.getMessage());
             return null;
@@ -579,7 +568,7 @@ public class SqlKnowledgeRepository implements KnowledgeRepository {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return JSON.parseObject(json, Map.class);
         } catch (Exception e) {
             log.warn("Failed to deserialize map: {}", e.getMessage());
             return new HashMap<>();

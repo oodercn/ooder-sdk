@@ -1,15 +1,13 @@
 package net.ooder.scene.skill.validation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -23,7 +21,7 @@ import java.util.stream.Stream;
  */
 public class SkillIndexValidator {
 
-    private final ObjectMapper yamlMapper;
+    private final Yaml yaml;
     private final List<ValidationError> errors;
     private final List<ValidationWarning> warnings;
     
@@ -47,7 +45,7 @@ public class SkillIndexValidator {
     private static final Set<String> VALID_PERMISSIONS = Set.of("READ", "WRITE", "CONFIG", "DELETE");
     
     public SkillIndexValidator() {
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
+        this.yaml = new Yaml();
         this.errors = new ArrayList<>();
         this.warnings = new ArrayList<>();
     }
@@ -69,7 +67,7 @@ public class SkillIndexValidator {
         }
         
         @SuppressWarnings("unchecked")
-        Map<String, Object> entry = yamlMapper.readValue(entryPath.toFile(), Map.class);
+        Map<String, Object> entry = yaml.load(new FileInputStream(entryPath.toFile()));
         
         // 验证基本结构
         validateStructure(entry);

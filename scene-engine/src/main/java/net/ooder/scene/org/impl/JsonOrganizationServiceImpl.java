@@ -1,7 +1,6 @@
 package net.ooder.scene.org.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.event.SceneEventPublisher;
 import net.ooder.scene.event.SceneEventType;
 import net.ooder.scene.event.org.OrganizationEvent;
@@ -11,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,6 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     
     private static final Logger log = LoggerFactory.getLogger(JsonOrganizationServiceImpl.class);
     
-    private final ObjectMapper objectMapper;
     private final File dataDir;
     private final SceneEventPublisher eventPublisher;
     
@@ -43,8 +43,6 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     }
     
     public JsonOrganizationServiceImpl(String dataPath, SceneEventPublisher eventPublisher) {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.dataDir = new File(dataPath);
         this.eventPublisher = eventPublisher;
         
@@ -65,9 +63,12 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
         File file = new File(dataDir, "companies.json");
         if (file.exists()) {
             try {
-                OrgCompany[] array = objectMapper.readValue(file, OrgCompany[].class);
-                for (OrgCompany company : array) {
-                    companies.put(company.getCompanyId(), company);
+                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                List<OrgCompany> list = JSON.parseArray(content, OrgCompany.class);
+                if (list != null) {
+                    for (OrgCompany company : list) {
+                        companies.put(company.getCompanyId(), company);
+                    }
                 }
                 log.info("Loaded {} companies", companies.size());
             } catch (IOException e) {
@@ -80,9 +81,12 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
         File file = new File(dataDir, "departments.json");
         if (file.exists()) {
             try {
-                OrgDepartment[] array = objectMapper.readValue(file, OrgDepartment[].class);
-                for (OrgDepartment dept : array) {
-                    departments.put(dept.getDepartmentId(), dept);
+                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                List<OrgDepartment> list = JSON.parseArray(content, OrgDepartment.class);
+                if (list != null) {
+                    for (OrgDepartment dept : list) {
+                        departments.put(dept.getDepartmentId(), dept);
+                    }
                 }
                 log.info("Loaded {} departments", departments.size());
             } catch (IOException e) {
@@ -95,9 +99,12 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
         File file = new File(dataDir, "users.json");
         if (file.exists()) {
             try {
-                OrgUser[] array = objectMapper.readValue(file, OrgUser[].class);
-                for (OrgUser user : array) {
-                    users.put(user.getUserId(), user);
+                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                List<OrgUser> list = JSON.parseArray(content, OrgUser.class);
+                if (list != null) {
+                    for (OrgUser user : list) {
+                        users.put(user.getUserId(), user);
+                    }
                 }
                 log.info("Loaded {} users", users.size());
             } catch (IOException e) {
@@ -109,7 +116,8 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     private void saveCompanies() {
         try {
             File file = new File(dataDir, "companies.json");
-            objectMapper.writeValue(file, companies.values());
+            String content = JSON.toJSONString(new ArrayList<>(companies.values()), true);
+            Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.error("Failed to save companies: {}", e.getMessage());
         }
@@ -118,7 +126,8 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     private void saveDepartments() {
         try {
             File file = new File(dataDir, "departments.json");
-            objectMapper.writeValue(file, departments.values());
+            String content = JSON.toJSONString(new ArrayList<>(departments.values()), true);
+            Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.error("Failed to save departments: {}", e.getMessage());
         }
@@ -127,7 +136,8 @@ public class JsonOrganizationServiceImpl implements OrganizationService {
     private void saveUsers() {
         try {
             File file = new File(dataDir, "users.json");
-            objectMapper.writeValue(file, users.values());
+            String content = JSON.toJSONString(new ArrayList<>(users.values()), true);
+            Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.error("Failed to save users: {}", e.getMessage());
         }

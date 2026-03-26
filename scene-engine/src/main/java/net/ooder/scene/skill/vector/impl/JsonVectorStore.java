@@ -1,10 +1,7 @@
 package net.ooder.scene.skill.vector.impl;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.skill.vector.VectorStore;
 import net.ooder.scene.skill.vector.VectorData;
 import net.ooder.scene.skill.vector.SearchResult;
@@ -39,7 +36,6 @@ public class JsonVectorStore implements VectorStore {
 
     private final String basePath;
     private final int dimension;
-    private final ObjectMapper objectMapper;
     private final boolean autoSave;
     private final long saveIntervalMs;
 
@@ -57,11 +53,6 @@ public class JsonVectorStore implements VectorStore {
         this.dimension = dimension;
         this.autoSave = autoSave;
         this.saveIntervalMs = saveIntervalMs;
-
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public void initialize() {
@@ -116,7 +107,8 @@ public class JsonVectorStore implements VectorStore {
         }
 
         try {
-            List<VectorEntry> list = objectMapper.readValue(file, new TypeReference<List<VectorEntry>>() {});
+            String json = Files.readString(file.toPath());
+            List<VectorEntry> list = JSON.parseArray(json, VectorEntry.class);
             for (VectorEntry entry : list) {
                 vectors.put(entry.id, entry);
             }
@@ -129,7 +121,8 @@ public class JsonVectorStore implements VectorStore {
     private synchronized void saveVectors() {
         try {
             File file = Paths.get(basePath, VECTORS_FILE).toFile();
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, new ArrayList<>(vectors.values()));
+            String json = JSON.toJSONString(new ArrayList<>(vectors.values()), JSONWriter.Feature.PrettyFormat);
+            Files.writeString(file.toPath(), json);
             dirty = false;
             log.debug("Saved {} vectors", vectors.size());
         } catch (IOException e) {

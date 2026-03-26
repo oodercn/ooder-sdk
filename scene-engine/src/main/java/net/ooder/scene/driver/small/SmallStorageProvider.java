@@ -1,6 +1,6 @@
 package net.ooder.scene.driver.small;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.spi.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,6 @@ public class SmallStorageProvider implements StorageProvider {
     private static final Logger log = LoggerFactory.getLogger(SmallStorageProvider.class);
 
     private final DataSource dataSource;
-    private final ObjectMapper objectMapper;
     private final Map<String, Map<String, Object>> cache = new ConcurrentHashMap<>();
 
     @Value("${scene.engine.small.storage.table-prefix:scene_}")
@@ -50,7 +49,6 @@ public class SmallStorageProvider implements StorageProvider {
     @Autowired(required = false)
     public SmallStorageProvider(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.objectMapper = new ObjectMapper();
         if (dataSource != null) {
             initTables();
         }
@@ -107,7 +105,7 @@ public class SmallStorageProvider implements StorageProvider {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String json = rs.getString("value");
-                    T value = objectMapper.readValue(json, type);
+                    T value = JSON.parseObject(json, type);
                     collectionCache.put(key, value);
                     return Optional.of(value);
                 }
@@ -139,7 +137,7 @@ public class SmallStorageProvider implements StorageProvider {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, collection);
             ps.setString(2, key);
-            ps.setString(3, objectMapper.writeValueAsString(value));
+            ps.setString(3, JSON.toJSONString(value));
             ps.executeUpdate();
             log.debug("Stored: {}/{}", collection, key);
         } catch (Exception e) {
@@ -200,7 +198,7 @@ public class SmallStorageProvider implements StorageProvider {
                 while (rs.next()) {
                     String key = rs.getString("key");
                     String json = rs.getString("value");
-                    T value = objectMapper.readValue(json, type);
+                    T value = JSON.parseObject(json, type);
                     result.put(key, value);
                 }
             }

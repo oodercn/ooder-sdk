@@ -1,8 +1,7 @@
 package net.ooder.scene.skill.conversation.storage.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.skill.conversation.Conversation;
 import net.ooder.scene.skill.conversation.FunctionCallLog;
 import net.ooder.scene.skill.conversation.Message;
@@ -35,7 +34,6 @@ public class FileConversationStorageService implements ConversationStorageServic
 
     private static final Logger log = LoggerFactory.getLogger(FileConversationStorageService.class);
 
-    private final ObjectMapper objectMapper;
     private final String storagePath;
     private final Path conversationsDir;
     private final Path messagesDir;
@@ -44,8 +42,6 @@ public class FileConversationStorageService implements ConversationStorageServic
 
     public FileConversationStorageService(String storagePath) {
         this.storagePath = storagePath;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
         this.conversationsDir = Paths.get(storagePath, "conversations");
         this.messagesDir = Paths.get(storagePath, "messages");
@@ -75,7 +71,8 @@ public class FileConversationStorageService implements ConversationStorageServic
     public void saveConversation(Conversation conversation) {
         try {
             Path filePath = conversationsDir.resolve(conversation.getConversationId() + ".json");
-            objectMapper.writeValue(filePath.toFile(), conversation);
+            String json = JSON.toJSONString(conversation, JSONWriter.Feature.PrettyFormat);
+            Files.writeString(filePath, json);
             log.debug("Saved conversation: {}", conversation.getConversationId());
         } catch (IOException e) {
             log.error("Failed to save conversation: {}", conversation.getConversationId(), e);
@@ -90,7 +87,8 @@ public class FileConversationStorageService implements ConversationStorageServic
             if (!Files.exists(filePath)) {
                 return null;
             }
-            return objectMapper.readValue(filePath.toFile(), Conversation.class);
+            String json = Files.readString(filePath);
+            return JSON.parseObject(json, Conversation.class);
         } catch (IOException e) {
             log.error("Failed to load conversation: {}", conversationId, e);
             return null;
@@ -125,7 +123,8 @@ public class FileConversationStorageService implements ConversationStorageServic
                     .filter(path -> path.toString().endsWith(".json"))
                     .map(path -> {
                         try {
-                            return objectMapper.readValue(path.toFile(), Conversation.class);
+                            String json = Files.readString(path);
+                            return JSON.parseObject(json, Conversation.class);
                         } catch (IOException e) {
                             log.error("Failed to load conversation from: {}", path, e);
                             return null;
@@ -147,7 +146,8 @@ public class FileConversationStorageService implements ConversationStorageServic
             messages.add(message);
 
             Path filePath = messagesDir.resolve(conversationId + ".json");
-            objectMapper.writeValue(filePath.toFile(), messages);
+            String json = JSON.toJSONString(messages, JSONWriter.Feature.PrettyFormat);
+            Files.writeString(filePath, json);
             log.debug("Saved message to conversation: {}", conversationId);
         } catch (IOException e) {
             log.error("Failed to save message: {}", conversationId, e);
@@ -162,7 +162,8 @@ public class FileConversationStorageService implements ConversationStorageServic
             if (!Files.exists(filePath)) {
                 return new ArrayList<>();
             }
-            return objectMapper.readValue(filePath.toFile(), new TypeReference<List<Message>>() {});
+            String json = Files.readString(filePath);
+            return JSON.parseArray(json, Message.class);
         } catch (IOException e) {
             log.error("Failed to load messages: {}", conversationId, e);
             return new ArrayList<>();
@@ -187,7 +188,8 @@ public class FileConversationStorageService implements ConversationStorageServic
             logs.add(functionCallLog);
 
             Path filePath = toolCallsDir.resolve(conversationId + ".json");
-            objectMapper.writeValue(filePath.toFile(), logs);
+            String json = JSON.toJSONString(logs, JSONWriter.Feature.PrettyFormat);
+            Files.writeString(filePath, json);
             log.debug("Saved tool call log to conversation: {}", conversationId);
         } catch (IOException e) {
             log.error("Failed to save tool call log: {}", conversationId, e);
@@ -202,7 +204,8 @@ public class FileConversationStorageService implements ConversationStorageServic
             if (!Files.exists(filePath)) {
                 return new ArrayList<>();
             }
-            return objectMapper.readValue(filePath.toFile(), new TypeReference<List<FunctionCallLog>>() {});
+            String json = Files.readString(filePath);
+            return JSON.parseArray(json, FunctionCallLog.class);
         } catch (IOException e) {
             log.error("Failed to load tool call logs: {}", conversationId, e);
             return new ArrayList<>();
@@ -222,7 +225,8 @@ public class FileConversationStorageService implements ConversationStorageServic
     public void saveContext(String key, Map<String, Object> data) {
         try {
             Path filePath = contextDir.resolve(key + ".json");
-            objectMapper.writeValue(filePath.toFile(), data);
+            String json = JSON.toJSONString(data, JSONWriter.Feature.PrettyFormat);
+            Files.writeString(filePath, json);
             log.debug("Saved context: {}", key);
         } catch (IOException e) {
             log.error("Failed to save context: {}", key, e);
@@ -238,7 +242,8 @@ public class FileConversationStorageService implements ConversationStorageServic
             if (!Files.exists(filePath)) {
                 return null;
             }
-            return objectMapper.readValue(filePath.toFile(), Map.class);
+            String json = Files.readString(filePath);
+            return JSON.parseObject(json, Map.class);
         } catch (IOException e) {
             log.error("Failed to load context: {}", key, e);
             return null;

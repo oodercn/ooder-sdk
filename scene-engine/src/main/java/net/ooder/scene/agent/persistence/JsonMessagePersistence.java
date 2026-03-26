@@ -1,8 +1,6 @@
 package net.ooder.scene.agent.persistence;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.agent.AgentMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,6 @@ public class JsonMessagePersistence implements MessagePersistence {
 
     private static final Logger log = LoggerFactory.getLogger(JsonMessagePersistence.class);
 
-    private final ObjectMapper objectMapper;
     private final Map<String, ReentrantReadWriteLock> locks;
     private final Map<String, PersistedMessage> memoryCache;
 
@@ -35,9 +32,6 @@ public class JsonMessagePersistence implements MessagePersistence {
     private boolean enabled;
 
     public JsonMessagePersistence() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.locks = new ConcurrentHashMap<>();
         this.memoryCache = new ConcurrentHashMap<>();
     }
@@ -341,7 +335,7 @@ public class JsonMessagePersistence implements MessagePersistence {
             String dir = getStatusDirectory(persisted.getStatus());
             Path filePath = Paths.get(storageRoot, dir, persisted.getStorageId() + ".json");
             Files.createDirectories(filePath.getParent());
-            objectMapper.writeValue(filePath.toFile(), persisted);
+            Files.write(filePath, JSON.toJSONString(persisted, true).getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to write message file", e);
         }
@@ -366,7 +360,7 @@ public class JsonMessagePersistence implements MessagePersistence {
         }
 
         try {
-            return objectMapper.readValue(filePath.toFile(), PersistedMessage.class);
+            return JSON.parseObject(new String(Files.readAllBytes(filePath), "UTF-8"), PersistedMessage.class);
         } catch (IOException e) {
             log.error("Failed to read message file: {}", filePath, e);
             return null;

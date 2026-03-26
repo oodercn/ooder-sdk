@@ -1,5 +1,7 @@
 package net.ooder.scene.discovery;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import net.ooder.scene.core.SceneEngine;
 import net.ooder.scene.discovery.api.DiscoveryRequest;
 import net.ooder.scene.discovery.api.DiscoveryResult;
@@ -10,9 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +67,6 @@ public class SceneEngineIntegration {
     private final SceneEventPublisher eventPublisher;
     private final DiscoveryEventPublisher discoveryEventPublisher;
     private final List<SceneEngineDiscoveryHook> discoveryHooks = new CopyOnWriteArrayList<>();
-    private final ObjectMapper yamlMapper;
     private UnifiedDiscoveryService unifiedDiscoveryService;
     
     public SceneEngineIntegration(SceneEngine sceneEngine, SceneEventPublisher eventPublisher, 
@@ -76,7 +74,6 @@ public class SceneEngineIntegration {
         this.sceneEngine = sceneEngine;
         this.eventPublisher = eventPublisher;
         this.discoveryEventPublisher = discoveryEventPublisher;
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
     }
     
     public void setUnifiedDiscoveryService(UnifiedDiscoveryService service) {
@@ -435,27 +432,29 @@ public class SceneEngineIntegration {
             dto.setDiscoveredAt(System.currentTimeMillis());
             
             String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> yamlData = yamlMapper.readValue(content, Map.class);
+            JSONObject yamlData = JSON.parseObject(content);
             
             if (yamlData != null) {
-                dto.setId((String) yamlData.getOrDefault("id", extractIdFromPath(path)));
-                dto.setName((String) yamlData.get("name"));
-                dto.setDescription((String) yamlData.get("description"));
-                dto.setVersion((String) yamlData.getOrDefault("version", "1.0.0"));
-                dto.setCategory((String) yamlData.get("category"));
+                dto.setId(yamlData.getString("id"));
+                if (dto.getId() == null) {
+                    dto.setId(extractIdFromPath(path));
+                }
+                dto.setName(yamlData.getString("name"));
+                dto.setDescription(yamlData.getString("description"));
+                dto.setVersion(yamlData.getString("version"));
+                if (dto.getVersion() == null) {
+                    dto.setVersion("1.0.0");
+                }
+                dto.setCategory(yamlData.getString("category"));
                 
-                @SuppressWarnings("unchecked")
-                List<String> tags = (List<String>) yamlData.get("tags");
-                dto.setTags(tags);
+                dto.setTags(yamlData.getJSONArray("tags") != null ? 
+                    yamlData.getJSONArray("tags").toJavaList(String.class) : null);
                 
-                @SuppressWarnings("unchecked")
-                List<String> dependencies = (List<String>) yamlData.get("dependencies");
-                dto.setDependencies(dependencies);
+                dto.setDependencies(yamlData.getJSONArray("dependencies") != null ? 
+                    yamlData.getJSONArray("dependencies").toJavaList(String.class) : null);
                 
-                @SuppressWarnings("unchecked")
-                Map<String, Object> metadata = (Map<String, Object>) yamlData.get("metadata");
-                dto.setMetadata(metadata);
+                dto.setMetadata(yamlData.getJSONObject("metadata") != null ? 
+                    yamlData.getJSONObject("metadata").getInnerMap() : null);
             } else {
                 dto.setId(extractIdFromPath(path));
             }
@@ -478,41 +477,44 @@ public class SceneEngineIntegration {
             dto.setDiscoveredAt(System.currentTimeMillis());
             
             String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> yamlData = yamlMapper.readValue(content, Map.class);
+            JSONObject yamlData = JSON.parseObject(content);
             
             if (yamlData != null) {
-                dto.setId((String) yamlData.getOrDefault("id", extractIdFromPath(path)));
-                dto.setName((String) yamlData.get("name"));
-                dto.setDescription((String) yamlData.get("description"));
-                dto.setVersion((String) yamlData.getOrDefault("version", "1.0.0"));
-                dto.setCategory((String) yamlData.get("category"));
+                dto.setId(yamlData.getString("id"));
+                if (dto.getId() == null) {
+                    dto.setId(extractIdFromPath(path));
+                }
+                dto.setName(yamlData.getString("name"));
+                dto.setDescription(yamlData.getString("description"));
+                dto.setVersion(yamlData.getString("version"));
+                if (dto.getVersion() == null) {
+                    dto.setVersion("1.0.0");
+                }
+                dto.setCategory(yamlData.getString("category"));
                 
-                @SuppressWarnings("unchecked")
-                List<String> tags = (List<String>) yamlData.get("tags");
-                dto.setTags(tags);
+                dto.setTags(yamlData.getJSONArray("tags") != null ? 
+                    yamlData.getJSONArray("tags").toJavaList(String.class) : null);
                 
-                @SuppressWarnings("unchecked")
-                List<String> dependencies = (List<String>) yamlData.get("dependencies");
-                dto.setDependencies(dependencies);
+                dto.setDependencies(yamlData.getJSONArray("dependencies") != null ? 
+                    yamlData.getJSONArray("dependencies").toJavaList(String.class) : null);
                 
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> driverConditionsRaw = 
-                    (List<Map<String, Object>>) yamlData.get("driverConditions");
+                com.alibaba.fastjson.JSONArray driverConditionsRaw = yamlData.getJSONArray("driverConditions");
                 if (driverConditionsRaw != null) {
                     List<CapabilityDTO.DriverCondition> driverConditions = driverConditionsRaw.stream()
-                        .map(dc -> new CapabilityDTO.DriverCondition(
-                            (String) dc.get("type"),
-                            (String) dc.get("expression"),
-                            (String) dc.get("description")
-                        ))
+                        .map(obj -> {
+                            JSONObject dc = (JSONObject) obj;
+                            return new CapabilityDTO.DriverCondition(
+                                dc.getString("type"),
+                                dc.getString("expression"),
+                                dc.getString("description")
+                            );
+                        })
                         .collect(Collectors.toList());
                     dto.setDriverConditions(driverConditions);
                 }
                 
-                @SuppressWarnings("unchecked")
-                Map<String, Object> metadata = (Map<String, Object>) yamlData.get("metadata");
-                dto.setMetadata(metadata);
+                dto.setMetadata(yamlData.getJSONObject("metadata") != null ? 
+                    yamlData.getJSONObject("metadata").getInnerMap() : null);
             } else {
                 dto.setId(extractIdFromPath(path));
             }

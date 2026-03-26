@@ -1,9 +1,7 @@
 package net.ooder.scene.discovery.cache;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
 import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +26,6 @@ public class JsonFileCacheManager {
     private final String cacheDir;
     private final int maxEntries;
     private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper;
 
     public JsonFileCacheManager() {
         this("./.ooder/cache/discovery", 100);
@@ -37,8 +34,6 @@ public class JsonFileCacheManager {
     public JsonFileCacheManager(String cacheDir, int maxEntries) {
         this.cacheDir = cacheDir;
         this.maxEntries = maxEntries;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         initCacheDir();
     }
 
@@ -129,7 +124,8 @@ public class JsonFileCacheManager {
             String fileName = getCacheFileName(key);
             Path filePath = Paths.get(cacheDir, fileName);
 
-            objectMapper.writeValue(filePath.toFile(), entry);
+            String json = JSON.toJSONString(entry, true);
+            Files.write(filePath, json.getBytes("UTF-8"));
 
             logger.debug("Saved cache to file: {}", filePath);
         } catch (Exception e) {
@@ -146,7 +142,8 @@ public class JsonFileCacheManager {
                 return null;
             }
 
-            return objectMapper.readValue(filePath.toFile(), CacheEntry.class);
+            String json = new String(Files.readAllBytes(filePath), "UTF-8");
+            return JSON.parseObject(json, CacheEntry.class);
         } catch (Exception e) {
             logger.error("Failed to load cache from file for key: " + key, e);
             return null;
@@ -169,13 +166,13 @@ public class JsonFileCacheManager {
 
     public static class CacheEntry {
         
-        @JsonProperty("skills")
+        @JSONField(name = "skills")
         private List<SkillPackage> skills;
         
-        @JsonProperty("timestamp")
+        @JSONField(name = "timestamp")
         private long timestamp;
         
-        @JsonProperty("ttl")
+        @JSONField(name = "ttl")
         private long ttl;
 
         public CacheEntry() {}
@@ -204,6 +201,7 @@ public class JsonFileCacheManager {
             this.ttl = ttl;
         }
 
+        @JSONField(serialize = false, deserialize = false)
         public boolean isExpired() {
             return System.currentTimeMillis() > (timestamp + ttl);
         }

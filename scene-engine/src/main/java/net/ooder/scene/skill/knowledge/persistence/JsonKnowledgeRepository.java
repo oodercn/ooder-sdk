@@ -1,11 +1,7 @@
 package net.ooder.scene.skill.knowledge.persistence;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.scene.skill.knowledge.Document;
 import net.ooder.scene.skill.knowledge.IndexStatus;
 import net.ooder.scene.skill.knowledge.KnowledgeBase;
@@ -43,7 +39,6 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
     private static final String PERMISSIONS_FILE = "permissions.json";
 
     private final String basePath;
-    private final ObjectMapper objectMapper;
     private final boolean autoSave;
     private final long saveIntervalMs;
 
@@ -64,12 +59,6 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
         this.basePath = basePath;
         this.autoSave = autoSave;
         this.saveIntervalMs = saveIntervalMs;
-
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @Override
@@ -143,7 +132,8 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
         }
 
         try {
-            List<KnowledgeBase> list = objectMapper.readValue(file, new TypeReference<List<KnowledgeBase>>() {});
+            String json = Files.readString(file.toPath());
+            List<KnowledgeBase> list = JSON.parseArray(json, KnowledgeBase.class);
             for (KnowledgeBase kb : list) {
                 knowledgeBases.put(kb.getKbId(), kb);
                 documents.computeIfAbsent(kb.getKbId(), k -> new ConcurrentHashMap<>());
@@ -173,7 +163,8 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
     private void loadDocumentFile(Path file) {
         try {
             String kbId = file.getFileName().toString().replace(".json", "");
-            List<Document> docList = objectMapper.readValue(file.toFile(), new TypeReference<List<Document>>() {});
+            String json = Files.readString(file);
+            List<Document> docList = JSON.parseArray(json, Document.class);
             Map<String, Document> kbDocs = documents.computeIfAbsent(kbId, k -> new ConcurrentHashMap<>());
             for (Document doc : docList) {
                 kbDocs.put(doc.getDocId(), doc);
@@ -191,7 +182,8 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
         }
 
         try {
-            List<IndexStatus> list = objectMapper.readValue(file, new TypeReference<List<IndexStatus>>() {});
+            String json = Files.readString(file.toPath());
+            List<IndexStatus> list = JSON.parseArray(json, IndexStatus.class);
             for (IndexStatus status : list) {
                 indexStatuses.put(status.getKbId(), status);
             }
@@ -208,7 +200,9 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
         }
 
         try {
-            Map<String, Map<String, String>> loaded = objectMapper.readValue(file, new TypeReference<Map<String, Map<String, String>>>() {});
+            String json = Files.readString(file.toPath());
+            Map<String, Map<String, String>> loaded = JSON.parseObject(json, 
+                new com.alibaba.fastjson2.TypeReference<Map<String, Map<String, String>>>() {});
             permissions.putAll(loaded);
             log.debug("Loaded permissions for {} knowledge bases", permissions.size());
         } catch (IOException e) {
@@ -231,7 +225,8 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
 
     private void saveKnowledgeBases() throws IOException {
         File file = Paths.get(basePath, KNOWLEDGE_BASES_FILE).toFile();
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, new ArrayList<>(knowledgeBases.values()));
+        String json = JSON.toJSONString(new ArrayList<>(knowledgeBases.values()), JSONWriter.Feature.PrettyFormat);
+        Files.writeString(file.toPath(), json);
     }
 
     private void saveAllDocuments() throws IOException {
@@ -245,17 +240,20 @@ public class JsonKnowledgeRepository implements KnowledgeRepository {
             return;
         }
         File file = Paths.get(basePath, DOCUMENTS_DIR, kbId + ".json").toFile();
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, new ArrayList<>(kbDocs.values()));
+        String json = JSON.toJSONString(new ArrayList<>(kbDocs.values()), JSONWriter.Feature.PrettyFormat);
+        Files.writeString(file.toPath(), json);
     }
 
     private void saveIndexStatuses() throws IOException {
         File file = Paths.get(basePath, INDEX_STATUS_FILE).toFile();
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, new ArrayList<>(indexStatuses.values()));
+        String json = JSON.toJSONString(new ArrayList<>(indexStatuses.values()), JSONWriter.Feature.PrettyFormat);
+        Files.writeString(file.toPath(), json);
     }
 
     private void savePermissions() throws IOException {
         File file = Paths.get(basePath, PERMISSIONS_FILE).toFile();
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, permissions);
+        String json = JSON.toJSONString(permissions, JSONWriter.Feature.PrettyFormat);
+        Files.writeString(file.toPath(), json);
     }
 
     private void startAutoSave() {

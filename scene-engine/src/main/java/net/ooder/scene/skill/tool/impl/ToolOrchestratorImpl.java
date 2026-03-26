@@ -1,7 +1,8 @@
 package net.ooder.scene.skill.tool.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import net.ooder.scene.skill.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +27,10 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
     private static final Logger log = LoggerFactory.getLogger(ToolOrchestratorImpl.class);
     
     private final ToolRegistry toolRegistry;
-    private final ObjectMapper objectMapper;
     private final ExecutorService executorService;
     
     public ToolOrchestratorImpl(ToolRegistry toolRegistry) {
         this.toolRegistry = toolRegistry;
-        this.objectMapper = new ObjectMapper();
         this.executorService = Executors.newFixedThreadPool(4);
     }
     
@@ -157,23 +156,21 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
         List<ToolCall> toolCalls = new ArrayList<>();
         
         try {
-            Map<String, Object> response = objectMapper.readValue(llmResponse, 
-                    new TypeReference<Map<String, Object>>() {});
+            JSONObject response = JSON.parseObject(llmResponse);
             
-            Object choices = response.get("choices");
-            if (choices instanceof List) {
-                for (Object choice : (List<?>) choices) {
-                    if (choice instanceof Map) {
-                        Map<?, ?> choiceMap = (Map<?, ?>) choice;
-                        Object message = choiceMap.get("message");
-                        if (message instanceof Map) {
-                            Map<?, ?> messageMap = (Map<?, ?>) message;
-                            Object toolCallsObj = messageMap.get("tool_calls");
-                            if (toolCallsObj instanceof List) {
-                                for (Object tc : (List<?>) toolCallsObj) {
-                                    if (tc instanceof Map) {
-                                        toolCalls.add(parseToolCall((Map<?, ?>) tc));
-                                    }
+            JSONArray choices = response.getJSONArray("choices");
+            if (choices != null) {
+                for (int i = 0; i < choices.size(); i++) {
+                    JSONObject choice = choices.getJSONObject(i);
+                    JSONObject message = choice.getJSONObject("message");
+                    if (message != null) {
+                        JSONArray toolCallsArray = message.getJSONArray("tool_calls");
+                        if (toolCallsArray != null) {
+                            for (int j = 0; j < toolCallsArray.size(); j++) {
+                                JSONObject tc = toolCallsArray.getJSONObject(j);
+                                ToolCall toolCall = parseToolCall(tc);
+                                if (toolCall != null) {
+                                    toolCalls.add(toolCall);
                                 }
                             }
                         }
@@ -201,7 +198,7 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
                 formattedResults.add(item);
             }
             
-            return objectMapper.writeValueAsString(formattedResults);
+            return JSON.toJSONString(formattedResults);
             
         } catch (Exception e) {
             log.error("Failed to format tool results", e);
@@ -234,14 +231,13 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
                 
                 if (bracketEnd > bracketStart) {
                     String toolCallsJson = buffer.substring(bracketStart, bracketEnd + 1);
-                    List<?> toolCallsList = objectMapper.readValue(toolCallsJson, List.class);
+                    JSONArray toolCallsArray = JSON.parseArray(toolCallsJson);
                     
-                    for (Object tc : toolCallsList) {
-                        if (tc instanceof Map) {
-                            ToolCall toolCall = parseToolCall((Map<?, ?>) tc);
-                            if (toolCall != null) {
-                                callback.accept(toolCall);
-                            }
+                    for (int i = 0; i < toolCallsArray.size(); i++) {
+                        JSONObject tc = toolCallsArray.getJSONObject(i);
+                        ToolCall toolCall = parseToolCall(tc);
+                        if (toolCall != null) {
+                            callback.accept(toolCall);
                         }
                     }
                     
@@ -419,18 +415,19 @@ public class ToolOrchestratorImpl implements ToolOrchestrator {
         return sr;
     }
     
-    private ToolCall parseToolCall(Map<?, ?> tc) {
-        String id = (String) tc.get("id");
-        String type = (String) tc.get("type");
+    private ToolCall parseToolCall(JSONObject tc) {
+        String id = tc.getString("id");
+        String type = tc.getString("type");
         
         if ("function".equals(type)) {
-            Map<?, ?> function = (Map<?, ?>) tc.get("function");
-            String name = (String) function.get("name");
-            String argsJson = (String) function.get("arguments");
+            JSONObject function = tc.getJSONObject("function");
+            String name = function.getString("name");
+            String argsJson = function.getString("arguments");
             
             Map<String, Object> arguments = new HashMap<>();
             try {
-                arguments = objectMapper.readValue(argsJson, new TypeReference<Map<String, Object>>() {});
+                arguments = JSON.parseObject(argsJson, 
+                    new com.alibaba.fastjson2.TypeReference<Map<String, Object>>() {});
             } catch (Exception e) {
                 log.warn("Failed to parse tool arguments: {}", argsJson);
             }

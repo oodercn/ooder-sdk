@@ -1,14 +1,13 @@
 package net.ooder.scene.llm.context.store;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,7 +26,6 @@ public class JsonContextStore {
 
     private static final Logger log = LoggerFactory.getLogger(JsonContextStore.class);
 
-    private final ObjectMapper objectMapper;
     private final Path storePath;
     private final ExecutorService executor;
 
@@ -36,11 +34,6 @@ public class JsonContextStore {
     }
 
     public JsonContextStore(String storeDir) {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        
         this.storePath = Paths.get(storeDir);
         this.executor = Executors.newFixedThreadPool(2, r -> {
             Thread t = new Thread(r, "json-store-worker");
@@ -74,7 +67,8 @@ public class JsonContextStore {
             return;
         }
         Path filePath = storePath.resolve(key + ".json");
-        objectMapper.writeValue(filePath.toFile(), data);
+        String content = JSON.toJSONString(data, true);
+        Files.write(filePath, content.getBytes(StandardCharsets.UTF_8));
         log.debug("Saved data to: {}", filePath);
     }
 
@@ -88,7 +82,8 @@ public class JsonContextStore {
             return Optional.empty();
         }
         try {
-            T data = objectMapper.readValue(file, type);
+            String content = new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8);
+            T data = JSON.parseObject(content, type);
             return Optional.ofNullable(data);
         } catch (IOException e) {
             log.error("Failed to load data for key: {}", key, e);
@@ -106,7 +101,8 @@ public class JsonContextStore {
             return Optional.empty();
         }
         try {
-            T data = objectMapper.readValue(file, typeRef);
+            String content = new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8);
+            T data = JSON.parseObject(content, typeRef);
             return Optional.ofNullable(data);
         } catch (IOException e) {
             log.error("Failed to load data for key: {}", key, e);

@@ -1,7 +1,7 @@
 package net.ooder.scene.group.archive;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SceneGroupManager;
 import net.ooder.scene.group.persistence.SceneGroupPersistence;
@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,12 +27,10 @@ public class SceneGroupArchiver {
     
     private final SceneGroupManager sceneGroupManager;
     private final SceneGroupPersistence persistence;
-    private final ObjectMapper yamlMapper;
     
     public SceneGroupArchiver(SceneGroupManager sceneGroupManager, SceneGroupPersistence persistence) {
         this.sceneGroupManager = sceneGroupManager;
         this.persistence = persistence;
-        this.yamlMapper = new ObjectMapper(new YAMLFactory());
     }
     
     public ArchiveResult archive(String sceneGroupId, String description) {
@@ -117,7 +116,8 @@ public class SceneGroupArchiver {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(archivesDir, "*.yaml")) {
             for (Path entry : stream) {
                 try {
-                    ArchiveMetadata metadata = yamlMapper.readValue(entry.toFile(), ArchiveMetadata.class);
+                    String content = new String(Files.readAllBytes(entry), StandardCharsets.UTF_8);
+                    ArchiveMetadata metadata = JSON.parseObject(content, ArchiveMetadata.class);
                     archives.add(metadata);
                 } catch (Exception e) {
                     logger.warn("Failed to load archive: {}", entry, e);
@@ -181,7 +181,8 @@ public class SceneGroupArchiver {
         Files.createDirectories(archivesDir);
         
         Path archiveFile = archivesDir.resolve(metadata.getArchiveId() + ".yaml");
-        yamlMapper.writeValue(archiveFile.toFile(), metadata);
+        String content = JSON.toJSONString(metadata, true);
+        Files.write(archiveFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
     private ArchiveMetadata loadArchive(String sceneGroupId, String archiveId) throws IOException {
@@ -189,7 +190,8 @@ public class SceneGroupArchiver {
         if (!Files.exists(archiveFile)) {
             return null;
         }
-        return yamlMapper.readValue(archiveFile.toFile(), ArchiveMetadata.class);
+        String content = new String(Files.readAllBytes(archiveFile), StandardCharsets.UTF_8);
+        return JSON.parseObject(content, ArchiveMetadata.class);
     }
     
     private Path getArchivesDir(String sceneGroupId) {

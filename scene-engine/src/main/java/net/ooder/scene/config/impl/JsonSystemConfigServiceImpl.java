@@ -1,7 +1,6 @@
 package net.ooder.scene.config.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson.JSON;
 import net.ooder.scene.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,6 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
     
     private static final Logger log = LoggerFactory.getLogger(JsonSystemConfigServiceImpl.class);
     
-    private final ObjectMapper objectMapper;
     private final File dataDir;
     private final Map<String, SystemSkillConfig> skillConfigs = new ConcurrentHashMap<>();
     private final List<ConfigHistory> configHistory = new ArrayList<>();
@@ -42,8 +40,6 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
     );
     
     public JsonSystemConfigServiceImpl(String dataPath) {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.dataDir = new File(dataPath);
         
         if (!dataDir.exists()) {
@@ -349,14 +345,15 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
         File configFile = new File(dataDir, "system-skills.json");
         if (configFile.exists()) {
             try {
-                Map<String, Object> data = objectMapper.readValue(configFile, Map.class);
+                String content = new String(java.nio.file.Files.readAllBytes(configFile.toPath()), "UTF-8");
+                Map<String, Object> data = JSON.parseObject(content, Map.class);
                 @SuppressWarnings("unchecked")
                 Map<String, Object> configs = (Map<String, Object>) data.get("skillConfigs");
                 if (configs != null) {
                     for (Map.Entry<String, Object> entry : configs.entrySet()) {
                         @SuppressWarnings("unchecked")
                         Map<String, Object> configMap = (Map<String, Object>) entry.getValue();
-                        SystemSkillConfig config = objectMapper.convertValue(configMap, SystemSkillConfig.class);
+                        SystemSkillConfig config = JSON.parseObject(JSON.toJSONString(configMap), SystemSkillConfig.class);
                         skillConfigs.put(entry.getKey(), config);
                     }
                 }
@@ -373,7 +370,7 @@ public class JsonSystemConfigServiceImpl implements SystemConfigService {
             Map<String, Object> data = new HashMap<>();
             data.put("skillConfigs", skillConfigs);
             data.put("lastUpdate", System.currentTimeMillis());
-            objectMapper.writeValue(configFile, data);
+            java.nio.file.Files.write(configFile.toPath(), JSON.toJSONString(data, true).getBytes("UTF-8"));
             log.debug("Saved {} skill configs to {}", skillConfigs.size(), configFile);
         } catch (IOException e) {
             log.error("Failed to save configs to " + configFile, e);
