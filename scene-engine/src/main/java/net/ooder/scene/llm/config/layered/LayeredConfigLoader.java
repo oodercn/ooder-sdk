@@ -1,6 +1,7 @@
 package net.ooder.scene.llm.config.layered;
 
-import com.alibaba.fastjson2.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,8 @@ public class LayeredConfigLoader {
 
     private static final String DEFAULT_CONFIG = "llm-config-default.yaml";
     private static final String USER_CONFIG_DIR = ".ooder";
+
+    private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
     private final Path configBaseDir;
     private final String environment;

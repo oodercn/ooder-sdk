@@ -4,6 +4,8 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.discovery.UnifiedDiscoveryService;
 import net.ooder.scene.discovery.cache.JsonFileCacheManager;
 import net.ooder.skills.api.SkillPackage;
@@ -58,6 +60,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
 
     private static final Logger logger = LoggerFactory.getLogger(UnifiedDiscoveryServiceImpl.class);
+
+    private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
     private final Map<String, Object> giteeConfig = new ConcurrentHashMap<>();
     private final Map<String, Object> githubConfig = new ConcurrentHashMap<>();
@@ -438,7 +442,8 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         List<SkillPackage> skills = new ArrayList<>();
         
         try {
-            JSONObject indexData = JSON.parseObject(content);
+            Map<String, Object> indexDataMap = yamlMapper.readValue(content, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            JSONObject indexData = new JSONObject(indexDataMap);
             
             JSONObject spec = indexData.getJSONObject("spec");
             if (spec != null && spec.containsKey("includes")) {
@@ -627,7 +632,8 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 return skills;
             }
             
-            JSONObject yamlData = JSON.parseObject(content);
+            Map<String, Object> yamlDataMap = yamlMapper.readValue(content, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            JSONObject yamlData = new JSONObject(yamlDataMap);
             
             if (yamlData.containsKey("skills")) {
                 JSONArray skillsArray = yamlData.getJSONArray("skills");

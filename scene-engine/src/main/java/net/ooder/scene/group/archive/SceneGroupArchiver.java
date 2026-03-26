@@ -3,6 +3,8 @@ package net.ooder.scene.group.archive;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.JSONWriter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SceneGroupManager;
 import net.ooder.scene.group.persistence.SceneGroupPersistence;
@@ -25,6 +27,8 @@ public class SceneGroupArchiver {
     
     private static final String ARCHIVES_DIR = "archives";
     private static final DateTimeFormatter ARCHIVE_ID_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    
+    private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
     
     private final SceneGroupManager sceneGroupManager;
     private final SceneGroupPersistence persistence;
@@ -117,8 +121,7 @@ public class SceneGroupArchiver {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(archivesDir, "*.yaml")) {
             for (Path entry : stream) {
                 try {
-                    String content = new String(Files.readAllBytes(entry), StandardCharsets.UTF_8);
-                    ArchiveMetadata metadata = JSON.parseObject(content, ArchiveMetadata.class);
+                    ArchiveMetadata metadata = yamlMapper.readValue(entry.toFile(), ArchiveMetadata.class);
                     archives.add(metadata);
                 } catch (Exception e) {
                     logger.warn("Failed to load archive: {}", entry, e);
@@ -182,7 +185,7 @@ public class SceneGroupArchiver {
         Files.createDirectories(archivesDir);
         
         Path archiveFile = archivesDir.resolve(metadata.getArchiveId() + ".yaml");
-        String content = JSON.toJSONString(metadata, JSONWriter.Feature.PrettyFormat);
+        String content = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(metadata);
         Files.write(archiveFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
@@ -191,8 +194,9 @@ public class SceneGroupArchiver {
         if (!Files.exists(archiveFile)) {
             return null;
         }
+        
         String content = new String(Files.readAllBytes(archiveFile), StandardCharsets.UTF_8);
-        return JSON.parseObject(content, ArchiveMetadata.class);
+        return yamlMapper.readValue(content, ArchiveMetadata.class);
     }
     
     private Path getArchivesDir(String sceneGroupId) {

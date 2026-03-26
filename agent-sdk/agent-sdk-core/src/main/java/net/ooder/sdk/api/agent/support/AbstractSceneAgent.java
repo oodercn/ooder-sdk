@@ -237,7 +237,7 @@ public abstract class AbstractSceneAgent extends AbstractAgent implements SceneA
 
         @Override
         public CapAddress allocateAddress(String domainId) throws CapRegistryException {
-            return new CapAddress(domainId, "cap-" + UUID.randomUUID().toString().substring(0, 8));
+            return CapAddress.ofZone(CapAddress.AddressZone.EXTENSION, domainId);
         }
 
         @Override

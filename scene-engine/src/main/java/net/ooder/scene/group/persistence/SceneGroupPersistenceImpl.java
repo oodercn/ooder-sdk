@@ -3,6 +3,8 @@ package net.ooder.scene.group.persistence;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONWriter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.participant.Participant;
 import org.slf4j.Logger;
@@ -28,6 +30,8 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
     private static final String CAPABILITIES_DIR = "capabilities";
     private static final String KNOWLEDGE_DIR = "knowledge";
     private static final String ARCHIVES_DIR = "archives";
+    
+    private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
     
     @Override
     public void save(SceneGroup group) throws IOException {
@@ -121,7 +125,7 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         metadata.setLastUpdateTime(group.getLastUpdateTime().toString());
         
         Path metadataFile = groupDir.resolve(METADATA_FILE);
-        String content = JSON.toJSONString(metadata, JSONWriter.Feature.PrettyFormat);
+        String content = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(metadata);
         Files.write(metadataFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
@@ -132,8 +136,7 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
             return Optional.empty();
         }
         
-        String content = new String(Files.readAllBytes(metadataFile), StandardCharsets.UTF_8);
-        SceneGroupMetadata metadata = JSON.parseObject(content, SceneGroupMetadata.class);
+        SceneGroupMetadata metadata = yamlMapper.readValue(metadataFile.toFile(), SceneGroupMetadata.class);
         
         SceneGroup group = new SceneGroup(
             metadata.getSceneGroupId(),
@@ -154,7 +157,7 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         config.setLlmConfig(group.getAllLlmConfig());
         
         Path configFile = groupDir.resolve(CONFIG_FILE);
-        String content = JSON.toJSONString(config, JSONWriter.Feature.PrettyFormat);
+        String content = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(config);
         Files.write(configFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
