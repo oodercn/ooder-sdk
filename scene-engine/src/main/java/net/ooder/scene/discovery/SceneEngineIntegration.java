@@ -1,6 +1,7 @@
 package net.ooder.scene.discovery;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import net.ooder.scene.core.SceneEngine;
 import net.ooder.scene.discovery.api.DiscoveryRequest;
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -454,7 +456,7 @@ public class SceneEngineIntegration {
                     yamlData.getJSONArray("dependencies").toJavaList(String.class) : null);
                 
                 dto.setMetadata(yamlData.getJSONObject("metadata") != null ? 
-                    yamlData.getJSONObject("metadata").getInnerMap() : null);
+                    new HashMap<>(yamlData.getJSONObject("metadata")) : null);
             } else {
                 dto.setId(extractIdFromPath(path));
             }
@@ -498,7 +500,7 @@ public class SceneEngineIntegration {
                 dto.setDependencies(yamlData.getJSONArray("dependencies") != null ? 
                     yamlData.getJSONArray("dependencies").toJavaList(String.class) : null);
                 
-                com.alibaba.fastjson.JSONArray driverConditionsRaw = yamlData.getJSONArray("driverConditions");
+                JSONArray driverConditionsRaw = yamlData.getJSONArray("driverConditions");
                 if (driverConditionsRaw != null) {
                     List<CapabilityDTO.DriverCondition> driverConditions = driverConditionsRaw.stream()
                         .map(obj -> {
@@ -514,7 +516,7 @@ public class SceneEngineIntegration {
                 }
                 
                 dto.setMetadata(yamlData.getJSONObject("metadata") != null ? 
-                    yamlData.getJSONObject("metadata").getInnerMap() : null);
+                    new HashMap<>(yamlData.getJSONObject("metadata")) : null);
             } else {
                 dto.setId(extractIdFromPath(path));
             }
