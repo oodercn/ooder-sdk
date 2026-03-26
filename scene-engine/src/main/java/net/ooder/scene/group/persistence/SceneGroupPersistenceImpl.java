@@ -89,13 +89,13 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
         Files.createDirectories(groupDir);
         
         Path participantsFile = groupDir.resolve(PARTICIPANTS_FILE);
-        String content = JSON.toJSONString(participants, JSONWriter.Feature.PrettyFormat);
+        String content = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(participants);
         Files.write(participantsFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
     private void saveParticipantsInternal(Path groupDir, List<Participant> participants) throws IOException {
         Path participantsFile = groupDir.resolve(PARTICIPANTS_FILE);
-        String content = JSON.toJSONString(participants, JSONWriter.Feature.PrettyFormat);
+        String content = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(participants);
         Files.write(participantsFile, content.getBytes(StandardCharsets.UTF_8));
     }
     
@@ -108,8 +108,7 @@ public class SceneGroupPersistenceImpl implements SceneGroupPersistence {
             return Collections.emptyList();
         }
         
-        String content = new String(Files.readAllBytes(participantsFile), StandardCharsets.UTF_8);
-        return JSON.parseArray(content, Participant.class);
+        return yamlMapper.readValue(participantsFile.toFile(), new com.fasterxml.jackson.core.type.TypeReference<List<Participant>>() {});
     }
     
     private void saveMetadata(Path groupDir, SceneGroup group) throws IOException {
