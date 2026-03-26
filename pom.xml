@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>ooder-sdk-parent</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
     <packaging>pom</packaging>
 
     <name>Ooder SDK Parent</name>
@@ -58,7 +58,7 @@
         
         <ooder.version>3.0.0</ooder.version>
         <agent-sdk.version>3.0.0</agent-sdk.version>
-        <scene-engine.version>3.0.0</scene-engine.version>
+        <scene-engine.version>3.0.1</scene-engine.version>
         <llm-sdk.version>3.0.0</llm-sdk.version>
         <spring-boot.version>3.2.5</spring-boot.version>
         <lombok.version>1.18.36</lombok.version>
