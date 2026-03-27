@@ -3,9 +3,9 @@ package net.ooder.scene.discovery.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import net.ooder.scene.discovery.GiteeDiscoveryConfig;
 import net.ooder.scene.discovery.UnifiedDiscoveryService;
 import net.ooder.scene.discovery.cache.JsonFileCacheManager;
 import net.ooder.skills.api.SkillPackage;
@@ -54,6 +54,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * - skillsPath="skills"    → 获取 skills/skill-index.yaml
  * </pre>
  *
+ * <h3>v3.0.1 更新：</h3>
+ * <ul>
+ *   <li>修复 YAML 解析问题 - 使用 Jackson YAML 解析器</li>
+ *   <li>支持配置索引文件名 - 可配置 index.yaml 或 skill-index.yaml</li>
+ *   <li>支持自动检测索引文件 - 自动尝试多个备选文件名</li>
+ *   <li>支持递归目录遍历 - 支持 &#42;&#42;/*.yaml 模式</li>
+ *   <li>优化空内容处理 - 添加空数组检查</li>
+ * </ul>
+ *
  * @author ooder
  * @since 2.3.1
  */
@@ -77,7 +86,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
 
     /**
-     * 配置Gitee
+     * 配置Gitee（兼容旧版本）
      */
     public void configureGitee(String token, String owner, String repo, String branch, String skillsPath) {
         if (token != null) {
@@ -97,6 +106,40 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         
         logger.info("Gitee configured: owner={}, repo={}, branch={}, skillsPath={}", 
             owner, repo, branch, skillsPath);
+    }
+
+    /**
+     * 配置Gitee（新版本 - 支持 GiteeDiscoveryConfig）
+     *
+     * @param config Gitee 发现配置
+     */
+    public void configureGitee(GiteeDiscoveryConfig config) {
+        if (config == null) {
+            logger.warn("GiteeDiscoveryConfig is null, skip configuration");
+            return;
+        }
+        
+        if (config.getToken() != null) {
+            giteeConfig.put("token", config.getToken());
+        }
+        if (config.getOwner() != null) {
+            giteeConfig.put("owner", config.getOwner());
+        }
+        if (config.getRepo() != null) {
+            giteeConfig.put("repo", config.getRepo());
+        }
+        giteeConfig.put("branch", config.getBranch() != null ? config.getBranch() : "main");
+        if (config.getSkillsPath() != null) {
+            giteeConfig.put("skillsPath", normalizePath(config.getSkillsPath()));
+        }
+        giteeConfig.put("indexFileName", config.getIndexFileName());
+        giteeConfig.put("recursive", config.isRecursive());
+        giteeConfig.put("fallbackIndexFiles", config.getFallbackIndexFiles());
+        giteeConfig.put("_currentPlatform", "gitee");
+        
+        this.giteeCacheTtl = config.getCacheTtl();
+        
+        logger.info("Gitee configured with GiteeDiscoveryConfig: {}", config);
     }
 
     /**
@@ -238,6 +281,11 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             String token = (String) giteeConfig.get("token");
             String branch = (String) giteeConfig.getOrDefault("branch", "main");
             String basePath = skillsPath != null ? normalizePath(skillsPath) : (String) giteeConfig.get("skillsPath");
+            String indexFileName = (String) giteeConfig.getOrDefault("indexFileName", "skill-index.yaml");
+            boolean recursive = (Boolean) giteeConfig.getOrDefault("recursive", false);
+            @SuppressWarnings("unchecked")
+            List<String> fallbackIndexFiles = (List<String>) giteeConfig.getOrDefault("fallbackIndexFiles", 
+                    Arrays.asList("index.yaml", "skill-index.yaml"));
             
             String cacheKey = buildCacheKey("gitee", owner, repo, basePath);
             
@@ -249,7 +297,8 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             logger.info("Discovering from Gitee: owner={}, repo={}, branch={}, basePath={}", 
                 owner, repo, branch, basePath);
             
-            List<SkillPackage> skills = fetchSkillsFromGitee(owner, repo, branch, basePath, token);
+            List<SkillPackage> skills = fetchSkillsFromGitee(owner, repo, branch, basePath, token, 
+                    indexFileName, fallbackIndexFiles, recursive);
             
             cacheManager.put(cacheKey, skills, giteeCacheTtl);
             logger.info("Discovered {} skills from Gitee", skills.size());
@@ -262,33 +311,36 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
 
     private List<SkillPackage> fetchSkillsFromGitee(String owner, String repo, String branch, 
-            String basePath, String token) {
+            String basePath, String token, String indexFileName, List<String> fallbackIndexFiles,
+            boolean recursive) {
         try {
-            String indexPath = buildIndexPath(basePath);
-            String indexUrl = String.format(
-                "https://gitee.com/api/v5/repos/%s/%s/contents/%s?ref=%s",
-                owner, repo, indexPath, branch
-            );
+            String yamlContent = null;
+            String usedIndexFile = null;
             
-            if (token != null && !token.isEmpty()) {
-                indexUrl += "&access_token=" + token;
+            String primaryIndexPath = buildIndexPath(basePath, indexFileName);
+            yamlContent = fetchAndDecodeGiteeFile(owner, repo, branch, primaryIndexPath, token);
+            
+            if (yamlContent != null) {
+                usedIndexFile = primaryIndexPath;
+                logger.debug("Found index file: {}", primaryIndexPath);
+            } else {
+                for (String fallbackFile : fallbackIndexFiles) {
+                    String fallbackPath = buildIndexPath(basePath, fallbackFile);
+                    yamlContent = fetchAndDecodeGiteeFile(owner, repo, branch, fallbackPath, token);
+                    if (yamlContent != null) {
+                        usedIndexFile = fallbackPath;
+                        logger.info("Using fallback index file: {}", fallbackPath);
+                        break;
+                    }
+                }
             }
             
-            logger.debug("Fetching skill-index from: {}", indexUrl.replaceAll("access_token=[^&]+", "access_token=***"));
-            
-            String jsonResponse = fetchUrlContent(indexUrl);
-            if (jsonResponse == null) {
-                logger.warn("skill-index.yaml not found at path: {}", indexPath);
-                return new ArrayList<>();
-            }
-            
-            String yamlContent = decodeGiteeContent(jsonResponse);
             if (yamlContent == null) {
-                logger.warn("Failed to decode skill-index.yaml content from Gitee");
+                logger.warn("No index file found in path: {}", basePath);
                 return new ArrayList<>();
             }
             
-            return parseSkillIndex(yamlContent);
+            return parseSkillIndex(yamlContent, recursive, basePath);
             
         } catch (Exception e) {
             logger.error("Failed to fetch skills from Gitee: {}/{} - {}", owner, repo, e.getMessage());
@@ -296,16 +348,69 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         }
     }
     
-    @SuppressWarnings("unchecked")
+    private String fetchAndDecodeGiteeFile(String owner, String repo, String branch, 
+            String filePath, String token) {
+        try {
+            String indexUrl = String.format(
+                "https://gitee.com/api/v5/repos/%s/%s/contents/%s?ref=%s",
+                owner, repo, filePath, branch
+            );
+            
+            if (token != null && !token.isEmpty()) {
+                indexUrl += "&access_token=" + token;
+            }
+            
+            logger.debug("Fetching file from: {}", indexUrl.replaceAll("access_token=[^&]+", "access_token=***"));
+            
+            String jsonResponse = fetchUrlContent(indexUrl);
+            if (jsonResponse == null) {
+                return null;
+            }
+            
+            return decodeGiteeContent(jsonResponse);
+            
+        } catch (Exception e) {
+            logger.debug("Failed to fetch file {}: {}", filePath, e.getMessage());
+            return null;
+        }
+    }
+    
     private String decodeGiteeContent(String jsonResponse) {
+        if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+            logger.warn("Empty response from Gitee API");
+            return null;
+        }
+        
+        String trimmedResponse = jsonResponse.trim();
+        
+        if (trimmedResponse.startsWith("[")) {
+            try {
+                JSONArray arr = JSON.parseArray(jsonResponse);
+                if (arr == null || arr.isEmpty()) {
+                    logger.warn("Gitee API returned empty array");
+                    return null;
+                }
+                logger.debug("Gitee API returned array with {} items, expected file content", arr.size());
+                return null;
+            } catch (Exception e) {
+                logger.warn("Failed to parse Gitee response as array: {}", e.getMessage());
+                return null;
+            }
+        }
+        
         try {
             JSONObject responseMap = JSON.parseObject(jsonResponse);
+            
+            if (responseMap == null) {
+                logger.warn("Gitee API response is null after parsing");
+                return null;
+            }
             
             String encoding = responseMap.getString("encoding");
             String content = responseMap.getString("content");
             
-            if (content == null) {
-                logger.error("Gitee API response missing 'content' field");
+            if (content == null || content.isEmpty()) {
+                logger.warn("Gitee API response missing 'content' field");
                 return null;
             }
             
@@ -354,7 +459,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     private List<SkillPackage> fetchSkillsFromGithub(String owner, String repo, 
             String basePath, String token) {
         try {
-            String indexPath = buildIndexPath(basePath);
+            String indexPath = buildIndexPath(basePath, "skill-index.yaml");
             String indexUrl = String.format(
                 "https://api.github.com/repos/%s/%s/contents/%s",
                 owner, repo, indexPath
@@ -374,7 +479,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 return new ArrayList<>();
             }
             
-            return parseSkillIndex(content);
+            return parseSkillIndex(content, false, basePath);
             
         } catch (Exception e) {
             logger.error("Failed to fetch skills from GitHub: {}/{} - {}", owner, repo, e.getMessage());
@@ -382,11 +487,12 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         }
     }
 
-    private String buildIndexPath(String basePath) {
+    private String buildIndexPath(String basePath, String indexFileName) {
+        String fileName = indexFileName != null ? indexFileName : "skill-index.yaml";
         if (basePath == null || basePath.isEmpty()) {
-            return "skill-index.yaml";
+            return fileName;
         }
-        return basePath + "/skill-index.yaml";
+        return basePath + "/" + fileName;
     }
 
     private String buildCacheKey(String platform, String owner, String repo, String basePath) {
@@ -452,11 +558,17 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
 
     @SuppressWarnings("unchecked")
-    private List<SkillPackage> parseSkillIndex(String content) {
+    private List<SkillPackage> parseSkillIndex(String content, boolean recursive, String basePath) {
         List<SkillPackage> skills = new ArrayList<>();
         
+        if (content == null || content.trim().isEmpty()) {
+            logger.warn("Empty skill-index content");
+            return skills;
+        }
+        
         try {
-            Map<String, Object> indexDataMap = yamlMapper.readValue(content, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            Map<String, Object> indexDataMap = yamlMapper.readValue(content, 
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
             JSONObject indexData = new JSONObject(indexDataMap);
             
             JSONObject spec = indexData.getJSONObject("spec");
@@ -464,7 +576,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 JSONArray includesArray = spec.getJSONArray("includes");
                 List<String> includes = includesArray.toJavaList(String.class);
                 logger.info("Detected includes format with {} patterns", includes.size());
-                return resolveIncludes(includes, indexData);
+                return resolveIncludes(includes, indexData, recursive, basePath);
             }
             
             JSONArray skillsArray = indexData.getJSONArray("skills");
@@ -488,7 +600,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
     
     @SuppressWarnings("unchecked")
-    private List<SkillPackage> resolveIncludes(List<String> includes, JSONObject indexData) {
+    private List<SkillPackage> resolveIncludes(List<String> includes, JSONObject indexData, boolean recursive, String basePath) {
         List<SkillPackage> allSkills = new ArrayList<>();
         
         String platform = (String) giteeConfig.getOrDefault("_currentPlatform", "gitee");
@@ -505,12 +617,16 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         
         for (String include : includes) {
             try {
+                String fullIncludePath = buildFullIncludePath(basePath, include);
+                
                 List<SkillPackage> resolved;
                 
-                if (include.contains("*")) {
-                    resolved = resolveWildcardInclude(include, platform, owner, repo, branch, token);
+                if (fullIncludePath.contains("**")) {
+                    resolved = resolveRecursiveInclude(fullIncludePath, platform, owner, repo, branch, token);
+                } else if (fullIncludePath.contains("*")) {
+                    resolved = resolveWildcardInclude(fullIncludePath, platform, owner, repo, branch, token, recursive);
                 } else {
-                    resolved = resolveSingleInclude(include, platform, owner, repo, branch, token);
+                    resolved = resolveSingleInclude(fullIncludePath, platform, owner, repo, branch, token);
                 }
                 
                 allSkills.addAll(resolved);
@@ -525,8 +641,106 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         return allSkills;
     }
     
-    private List<SkillPackage> resolveWildcardInclude(String pattern, String platform, 
+    private String buildFullIncludePath(String basePath, String include) {
+        if (basePath == null || basePath.isEmpty()) {
+            return include;
+        }
+        if (include.startsWith("/")) {
+            return include.substring(1);
+        }
+        return basePath + "/" + include;
+    }
+    
+    private List<SkillPackage> resolveRecursiveInclude(String pattern, String platform, 
             String owner, String repo, String branch, String token) {
+        List<SkillPackage> skills = new ArrayList<>();
+        
+        String basePath = extractBasePath(pattern);
+        String filePattern = extractFilePattern(pattern);
+        
+        logger.debug("Recursive include: basePath={}, filePattern={}", basePath, filePattern);
+        
+        try {
+            collectSkillsRecursively(platform, owner, repo, branch, basePath, filePattern, token, skills);
+        } catch (Exception e) {
+            logger.warn("Failed to resolve recursive pattern '{}': {}", pattern, e.getMessage());
+        }
+        
+        return skills;
+    }
+    
+    private void collectSkillsRecursively(String platform, String owner, String repo,
+            String branch, String dirPath, String filePattern, String token, 
+            List<SkillPackage> collectedSkills) {
+        try {
+            String apiUrl;
+            Map<String, String> headers = new HashMap<>();
+            
+            if ("gitee".equals(platform)) {
+                apiUrl = String.format("%s/repos/%s/%s/contents/%s?ref=%s",
+                        GITEE_API_BASE, owner, repo, dirPath, branch);
+                if (token != null && !token.isEmpty()) {
+                    apiUrl += "&access_token=" + token;
+                }
+            } else {
+                apiUrl = String.format("%s/repos/%s/%s/contents/%s?ref=%s",
+                        GITHUB_API_BASE, owner, repo, dirPath, branch);
+                if (token != null && !token.isEmpty()) {
+                    headers.put("Authorization", "token " + token);
+                }
+                headers.put("Accept", "application/vnd.github.v3+json");
+            }
+            
+            String jsonResponse = fetchUrlContentWithHeaders(apiUrl, headers);
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                return;
+            }
+            
+            String trimmedResponse = jsonResponse.trim();
+            if (!trimmedResponse.startsWith("[")) {
+                logger.debug("Response is not an array for directory: {}", dirPath);
+                return;
+            }
+            
+            JSONArray items = JSON.parseArray(jsonResponse);
+            if (items == null) {
+                return;
+            }
+            
+            for (int i = 0; i < items.size(); i++) {
+                JSONObject item = items.getJSONObject(i);
+                String type = item.getString("type");
+                String name = item.getString("name");
+                
+                if ("file".equals(type)) {
+                    if (matchesPattern(name, filePattern)) {
+                        String filePath = dirPath.isEmpty() ? name : dirPath + "/" + name;
+                        List<SkillPackage> fileSkills = fetchAndParseYamlFile(platform, owner, repo, 
+                                branch, filePath, token);
+                        collectedSkills.addAll(fileSkills);
+                    }
+                } else if ("dir".equals(type)) {
+                    String subDirPath = dirPath.isEmpty() ? name : dirPath + "/" + name;
+                    collectSkillsRecursively(platform, owner, repo, branch, subDirPath, 
+                            filePattern, token, collectedSkills);
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.debug("Error collecting from directory '{}': {}", dirPath, e.getMessage());
+        }
+    }
+    
+    private String extractBasePath(String pattern) {
+        int doubleStarIndex = pattern.indexOf("**");
+        if (doubleStarIndex > 0) {
+            return pattern.substring(0, doubleStarIndex - 1);
+        }
+        return "";
+    }
+    
+    private List<SkillPackage> resolveWildcardInclude(String pattern, String platform, 
+            String owner, String repo, String branch, String token, boolean recursive) {
         List<SkillPackage> skills = new ArrayList<>();
         
         String dirPath = extractDirectory(pattern);
@@ -544,11 +758,73 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 }
             }
             
+            if (recursive) {
+                List<String> subDirs = listDirectorySubdirs(platform, owner, repo, branch, dirPath, token);
+                for (String subDir : subDirs) {
+                    String subDirPath = dirPath.isEmpty() ? subDir : dirPath + "/" + subDir;
+                    List<SkillPackage> subDirSkills = resolveWildcardInclude(
+                            subDirPath + "/*" + filePattern.substring(filePattern.lastIndexOf('.')),
+                            platform, owner, repo, branch, token, true);
+                    skills.addAll(subDirSkills);
+                }
+            }
+            
         } catch (Exception e) {
             logger.warn("Failed to resolve wildcard pattern '{}': {}", pattern, e.getMessage());
         }
         
         return skills;
+    }
+    
+    private List<String> listDirectorySubdirs(String platform, String owner, String repo,
+            String branch, String dirPath, String token) {
+        List<String> subdirs = new ArrayList<>();
+        
+        try {
+            String apiUrl;
+            Map<String, String> headers = new HashMap<>();
+            
+            if ("gitee".equals(platform)) {
+                apiUrl = String.format("%s/repos/%s/%s/contents/%s?ref=%s",
+                        GITEE_API_BASE, owner, repo, dirPath, branch);
+                if (token != null && !token.isEmpty()) {
+                    apiUrl += "&access_token=" + token;
+                }
+            } else {
+                apiUrl = String.format("%s/repos/%s/%s/contents/%s?ref=%s",
+                        GITHUB_API_BASE, owner, repo, dirPath, branch);
+                if (token != null && !token.isEmpty()) {
+                    headers.put("Authorization", "token " + token);
+                }
+                headers.put("Accept", "application/vnd.github.v3+json");
+            }
+            
+            String jsonResponse = fetchUrlContentWithHeaders(apiUrl, headers);
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                return subdirs;
+            }
+            
+            String trimmedResponse = jsonResponse.trim();
+            if (!trimmedResponse.startsWith("[")) {
+                return subdirs;
+            }
+            
+            JSONArray items = JSON.parseArray(jsonResponse);
+            for (int i = 0; i < items.size(); i++) {
+                JSONObject item = items.getJSONObject(i);
+                String type = item.getString("type");
+                if ("dir".equals(type)) {
+                    subdirs.add(item.getString("name"));
+                }
+            }
+            
+            logger.debug("Listed {} subdirectories in: {}", subdirs.size(), dirPath);
+            
+        } catch (Exception e) {
+            logger.debug("Failed to list subdirectories in '{}': {}", dirPath, e.getMessage());
+        }
+        
+        return subdirs;
     }
     
     private List<SkillPackage> resolveSingleInclude(String filePath, String platform,
@@ -585,7 +861,13 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             }
             
             String jsonResponse = fetchUrlContentWithHeaders(apiUrl, headers);
-            if (jsonResponse == null) {
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                return files;
+            }
+            
+            String trimmedResponse = jsonResponse.trim();
+            if (!trimmedResponse.startsWith("[")) {
+                logger.debug("Response is not an array for directory: {}", dirPath);
                 return files;
             }
             
@@ -613,40 +895,29 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         List<SkillPackage> skills = new ArrayList<>();
         
         try {
-            String apiUrl;
-            Map<String, String> headers = new HashMap<>();
+            String content;
             
             if ("gitee".equals(platform)) {
-                apiUrl = String.format("%s/repos/%s/%s/contents/%s?ref=%s",
-                        GITEE_API_BASE, owner, repo, filePath, branch);
-                if (token != null && !token.isEmpty()) {
-                    apiUrl += "&access_token=" + token;
-                }
+                content = fetchAndDecodeGiteeFile(owner, repo, branch, filePath, token);
             } else {
-                apiUrl = String.format("%s/repos/%s/%s/contents/%s?ref=%s",
+                String apiUrl = String.format("%s/repos/%s/%s/contents/%s?ref=%s",
                         GITHUB_API_BASE, owner, repo, filePath, branch);
+                
+                Map<String, String> headers = new HashMap<>();
                 if (token != null && !token.isEmpty()) {
                     headers.put("Authorization", "token " + token);
                 }
                 headers.put("Accept", "application/vnd.github.v3.raw");
-            }
-            
-            String content;
-            if ("gitee".equals(platform)) {
-                String jsonResponse = fetchUrlContent(apiUrl);
-                if (jsonResponse == null) {
-                    return skills;
-                }
-                content = decodeGiteeContent(jsonResponse);
-            } else {
+                
                 content = fetchUrlContentWithHeaders(apiUrl, headers);
             }
             
-            if (content == null) {
+            if (content == null || content.trim().isEmpty()) {
                 return skills;
             }
             
-            Map<String, Object> yamlDataMap = yamlMapper.readValue(content, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            Map<String, Object> yamlDataMap = yamlMapper.readValue(content, 
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
             JSONObject yamlData = new JSONObject(yamlDataMap);
             
             if (yamlData.containsKey("skills")) {

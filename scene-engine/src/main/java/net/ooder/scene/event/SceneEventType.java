@@ -183,7 +183,15 @@ public enum SceneEventType {
     SHARE_CREATED("share.created", "分享创建"),
     SHARE_CANCELED("share.canceled", "分享取消"),
     SHARE_UPDATED("share.updated", "分享更新"),
-    SHARE_ACCESSED("share.accessed", "分享访问");
+    SHARE_ACCESSED("share.accessed", "分享访问"),
+    
+    AGENT_REGISTERED("agent.registered", "Agent注册"),
+    AGENT_UNREGISTERED("agent.unregistered", "Agent注销"),
+    AGENT_ONLINE("agent.online", "Agent上线"),
+    AGENT_OFFLINE("agent.offline", "Agent离线"),
+    AGENT_HEARTBEAT("agent.heartbeat", "Agent心跳"),
+    AGENT_STATUS_CHANGED("agent.status.changed", "Agent状态变更"),
+    AGENT_CONTEXT_UPDATED("agent.context.updated", "Agent上下文更新");
     
     private final String code;
     private final String description;

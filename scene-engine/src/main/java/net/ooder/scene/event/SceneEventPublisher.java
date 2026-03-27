@@ -1,6 +1,8 @@
 package net.ooder.scene.event;
 
+import net.ooder.scene.event.agent.AgentEvent;
 import net.ooder.scene.event.capability.CapabilityEvent;
+import net.ooder.scene.event.session.SessionEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -71,6 +73,14 @@ public class SceneEventPublisher {
      * @param event 能力事件
      */
     public void publishCapabilityEvent(CapabilityEvent event) {
+        publisher.publishEvent(event);
+    }
+    
+    public void publishSessionEvent(SessionEvent event) {
+        publisher.publishEvent(event);
+    }
+    
+    public void publishAgentEvent(AgentEvent event) {
         publisher.publishEvent(event);
     }
 }

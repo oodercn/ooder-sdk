@@ -2,6 +2,7 @@ package net.ooder.scene.discovery.impl;
 
 import net.ooder.scene.discovery.*;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
