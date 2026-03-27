@@ -992,11 +992,19 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     @SuppressWarnings("unchecked")
     private SkillPackage createSkillPackage(JSONObject skillData) {
         try {
-            String skillId = skillData.getString("id");
+            String skillId = skillData.getString("skillId");
+            if (skillId == null) {
+                skillId = skillData.getString("id");
+            }
+            
             String name = skillData.getString("name");
             String version = skillData.getString("version");
             String description = skillData.getString("description");
-            String category = skillData.getString("category");
+            
+            String category = skillData.getString("capabilityCategory");
+            if (category == null) {
+                category = skillData.getString("category");
+            }
             
             if (skillId == null || name == null) {
                 return null;
