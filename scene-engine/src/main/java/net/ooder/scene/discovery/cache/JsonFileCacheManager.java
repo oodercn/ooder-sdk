@@ -69,6 +69,11 @@ public class JsonFileCacheManager {
             if (entry == null) {
                 entry = loadFromFile(key);
                 if (entry != null) {
+                    if (entry.isExpired()) {
+                        logger.debug("Cache expired for key: {}, removing", key);
+                        deleteFile(key);
+                        return null;
+                    }
                     cache.put(key, entry);
                 }
             }
@@ -79,7 +84,7 @@ public class JsonFileCacheManager {
         } catch (Exception e) {
             logger.error("Failed to get cached skills for key: " + key, e);
         }
-        return new ArrayList<>();
+        return null;
     }
 
     public boolean exists(String key) {
@@ -87,13 +92,18 @@ public class JsonFileCacheManager {
         if (entry != null && !entry.isExpired()) {
             return true;
         }
-
+        
         entry = loadFromFile(key);
         if (entry != null && !entry.isExpired()) {
             cache.put(key, entry);
             return true;
         }
-
+        
+        if (entry != null && entry.isExpired()) {
+            logger.debug("Cache expired for key: {}, will be removed", key);
+            deleteFile(key);
+        }
+        
         return false;
     }
 
