@@ -3,6 +3,8 @@ package net.ooder.scene.discovery;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.core.SceneEngine;
 import net.ooder.scene.discovery.api.DiscoveryRequest;
 import net.ooder.scene.discovery.api.DiscoveryResult;
@@ -64,6 +66,8 @@ import java.util.stream.Stream;
 public class SceneEngineIntegration {
     
     private static final Logger logger = LoggerFactory.getLogger(SceneEngineIntegration.class);
+    
+    private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
     
     private final SceneEngine sceneEngine;
     private final SceneEventPublisher eventPublisher;
@@ -434,7 +438,8 @@ public class SceneEngineIntegration {
             dto.setDiscoveredAt(System.currentTimeMillis());
             
             String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-            JSONObject yamlData = JSON.parseObject(content);
+            Map<String, Object> yamlDataMap = yamlMapper.readValue(content, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            JSONObject yamlData = new JSONObject(yamlDataMap);
             
             if (yamlData != null) {
                 dto.setId(yamlData.getString("id"));
@@ -479,7 +484,8 @@ public class SceneEngineIntegration {
             dto.setDiscoveredAt(System.currentTimeMillis());
             
             String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-            JSONObject yamlData = JSON.parseObject(content);
+            Map<String, Object> yamlDataMap = yamlMapper.readValue(content, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            JSONObject yamlData = new JSONObject(yamlDataMap);
             
             if (yamlData != null) {
                 dto.setId(yamlData.getString("id"));

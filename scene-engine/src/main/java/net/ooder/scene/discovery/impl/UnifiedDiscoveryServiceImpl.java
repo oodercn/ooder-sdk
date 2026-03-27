@@ -80,11 +80,19 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
      * 配置Gitee
      */
     public void configureGitee(String token, String owner, String repo, String branch, String skillsPath) {
-        giteeConfig.put("token", token);
-        giteeConfig.put("owner", owner);
-        giteeConfig.put("repo", repo);
+        if (token != null) {
+            giteeConfig.put("token", token);
+        }
+        if (owner != null) {
+            giteeConfig.put("owner", owner);
+        }
+        if (repo != null) {
+            giteeConfig.put("repo", repo);
+        }
         giteeConfig.put("branch", branch != null ? branch : "main");
-        giteeConfig.put("skillsPath", normalizePath(skillsPath));
+        if (skillsPath != null) {
+            giteeConfig.put("skillsPath", normalizePath(skillsPath));
+        }
         giteeConfig.put("_currentPlatform", "gitee");
         
         logger.info("Gitee configured: owner={}, repo={}, branch={}, skillsPath={}", 
@@ -95,9 +103,15 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
      * 配置GitHub
      */
     public void configureGithub(String token, String owner, String repo) {
-        githubConfig.put("token", token);
-        githubConfig.put("owner", owner);
-        githubConfig.put("repo", repo);
+        if (token != null) {
+            githubConfig.put("token", token);
+        }
+        if (owner != null) {
+            githubConfig.put("owner", owner);
+        }
+        if (repo != null) {
+            githubConfig.put("repo", repo);
+        }
         githubConfig.put("_currentPlatform", "github");
         
         logger.info("GitHub configured: owner={}, repo={}", owner, repo);

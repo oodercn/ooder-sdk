@@ -2,20 +2,14 @@ package net.ooder.scene.core.install;
 
 import net.ooder.scene.core.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * 安装控制器
- *
- * <p>提供安装相关的API</p>
- *
- * @author Ooder Team
- * @since 2.3.1
- */
 @RestController
 @RequestMapping("/api/v1/install")
+@ConditionalOnBean(InstallService.class)
 public class InstallController {
 
     private final InstallService installService;

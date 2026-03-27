@@ -5,6 +5,7 @@ import net.ooder.scene.discovery.api.DiscoveryResult;
 import net.ooder.scene.event.SceneEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.concurrent.Executors;
  * @see SceneEventPublisher
  */
 @Component
+@ConditionalOnBean(SceneEventPublisher.class)
 public class DiscoveryEventPublisher {
     
     private static final Logger logger = LoggerFactory.getLogger(DiscoveryEventPublisher.class);

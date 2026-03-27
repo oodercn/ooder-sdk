@@ -5,6 +5,7 @@ import net.ooder.scene.skill.engine.context.SkillSwitchHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,6 +22,7 @@ import java.util.Map;
  * @since 2.3.1
  */
 @Service
+@ConditionalOnBean(ContextStorageService.class)
 public class SkillSwitchHandlerImpl implements SkillSwitchHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SkillSwitchHandlerImpl.class);

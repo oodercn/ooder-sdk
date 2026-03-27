@@ -12,6 +12,7 @@ import net.ooder.sdk.api.scene.SceneGroupManager.VfsPermission;
 import net.ooder.sdk.common.enums.MemberRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  * @since 2.3.1
  */
 @Component
+@ConditionalOnBean(SceneGroupManager.class)
 public class SdkSceneGroupManagerAdapter implements net.ooder.sdk.api.scene.SceneGroupManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SdkSceneGroupManagerAdapter.class);

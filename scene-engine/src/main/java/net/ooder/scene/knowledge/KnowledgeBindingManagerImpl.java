@@ -4,6 +4,7 @@ import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SceneGroupManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@ConditionalOnBean(SceneGroupManager.class)
 public class KnowledgeBindingManagerImpl implements KnowledgeBindingManager {
 
     private static final Logger log = LoggerFactory.getLogger(KnowledgeBindingManagerImpl.class);

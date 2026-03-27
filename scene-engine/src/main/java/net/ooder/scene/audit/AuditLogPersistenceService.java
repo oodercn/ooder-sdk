@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  * @since 2.3.1
  */
 @Service
+@ConditionalOnProperty(prefix = "scene.engine.audit", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuditLogPersistenceService implements AuditService {
     
     private static final Logger log = LoggerFactory.getLogger(AuditLogPersistenceService.class);

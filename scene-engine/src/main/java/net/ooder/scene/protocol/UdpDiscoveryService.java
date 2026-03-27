@@ -47,6 +47,7 @@ import java.util.concurrent.Executors;
  * @see MdnsDiscoveryService
  */
 @Service
+@ConditionalOnProperty(prefix = "scene.engine.discovery.udp", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class UdpDiscoveryService {
 
     /** UDP 端口 */

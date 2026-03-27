@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
  * @since 0.8.0
  */
 @Service
+@ConditionalOnProperty(prefix = "scene.engine.discovery", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CapabilityDiscoveryServiceImpl implements CapabilityDiscoveryService {
 
     /** 发现提供者注册表 */

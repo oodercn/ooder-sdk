@@ -1,5 +1,6 @@
 package net.ooder.scene.skill.rag;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  * @since 2.3.0
  */
 @Component
+@ConditionalOnBean(RagPipeline.class)
 public class AdaptiveRag {
 
     private static final Logger logger = Logger.getLogger(AdaptiveRag.class.getName());
