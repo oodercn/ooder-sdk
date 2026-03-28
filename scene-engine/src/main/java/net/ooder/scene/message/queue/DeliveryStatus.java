@@ -9,11 +9,19 @@ package net.ooder.scene.message.queue;
  */
 public enum DeliveryStatus {
     
+    CREATED("created", "已创建"),
+    
+    SENDING("sending", "发送中"),
+    
     PENDING("pending", "待投递"),
     
     DELIVERED("delivered", "已投递"),
     
+    READ("read", "已读"),
+    
     FAILED("failed", "投递失败"),
+    
+    RETRYING("retrying", "重试中"),
     
     EXPIRED("expired", "已过期"),
     
@@ -42,5 +50,17 @@ public enum DeliveryStatus {
             }
         }
         return PENDING;
+    }
+    
+    public boolean isTerminal() {
+        return this == DELIVERED || this == READ || this == ACKNOWLEDGED || this == EXPIRED || this == FAILED;
+    }
+    
+    public boolean canRetry() {
+        return this == FAILED || this == RETRYING;
+    }
+    
+    public boolean isSuccess() {
+        return this == DELIVERED || this == READ || this == ACKNOWLEDGED;
     }
 }
