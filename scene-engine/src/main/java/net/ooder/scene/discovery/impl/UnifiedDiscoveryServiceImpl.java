@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.discovery.GiteeDiscoveryConfig;
 import net.ooder.scene.discovery.UnifiedDiscoveryService;
-import net.ooder.scene.discovery.cache.JsonFileCacheManager;
 import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +73,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
 
     private final Map<String, Object> giteeConfig = new ConcurrentHashMap<>();
     private final Map<String, Object> githubConfig = new ConcurrentHashMap<>();
-    private JsonFileCacheManager cacheManager;
+    private final Map<String, CacheEntry> memoryCache = new ConcurrentHashMap<>();
     private long giteeCacheTtl = 3600000;
     private long githubCacheTtl = 3600000;
     
@@ -82,7 +81,6 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     private static final String GITHUB_API_BASE = "https://api.github.com";
 
     public UnifiedDiscoveryServiceImpl() {
-        this.cacheManager = new JsonFileCacheManager();
     }
 
     /**
@@ -178,8 +176,9 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
      * 设置缓存配置
      */
     public void setCacheConfig(String dir, long ttlMs, int maxEntries) {
-        this.cacheManager = new JsonFileCacheManager(dir, maxEntries);
-        logger.info("Cache configured: dir={}, ttl={}ms, maxEntries={}", dir, ttlMs, maxEntries);
+        this.giteeCacheTtl = ttlMs;
+        this.githubCacheTtl = ttlMs;
+        logger.info("Cache configured: ttl={}ms", ttlMs);
     }
 
     @Override
@@ -191,14 +190,32 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     public CompletableFuture<List<SkillPackage>> discoverSkills(String repositoryUrl, String skillsPath) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                logger.info("Discovering skills from: {}", repositoryUrl);
+                logger.info("=== Discovery Request Start ===");
+                logger.info("Repository URL: {}", repositoryUrl);
+                logger.info("Skills Path: {}", skillsPath);
                 
-                if (repositoryUrl.contains("gitee.com")) {
-                    return discoverFromGitee(repositoryUrl, skillsPath);
-                } else if (repositoryUrl.contains("github.com")) {
-                    return discoverFromGithub(repositoryUrl, skillsPath);
+                if (repositoryUrl == null || repositoryUrl.isEmpty()) {
+                    logger.warn("Repository URL is null or empty");
+                    return new ArrayList<>();
+                }
+                
+                String normalizedUrl = repositoryUrl.toLowerCase().trim();
+                
+                if (normalizedUrl.contains("gitee.com")) {
+                    logger.info("Detected platform: Gitee");
+                    logger.debug("URL pattern matched: *.gitee.com*");
+                    List<SkillPackage> result = discoverFromGitee(repositoryUrl, skillsPath);
+                    logger.info("=== Discovery Complete: {} skills found ===", result.size());
+                    return result;
+                } else if (normalizedUrl.contains("github.com")) {
+                    logger.info("Detected platform: GitHub");
+                    logger.debug("URL pattern matched: *.github.com*");
+                    List<SkillPackage> result = discoverFromGithub(repositoryUrl, skillsPath);
+                    logger.info("=== Discovery Complete: {} skills found ===", result.size());
+                    return result;
                 } else {
-                    logger.warn("Unsupported repository URL: {}", repositoryUrl);
+                    logger.warn("Unsupported repository URL platform: {}", repositoryUrl);
+                    logger.warn("Supported platforms: gitee.com, github.com");
                     return new ArrayList<>();
                 }
             } catch (Exception e) {
@@ -248,30 +265,32 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     @Override
     public CompletableFuture<Boolean> refreshCache(String repositoryUrl) {
         return CompletableFuture.supplyAsync(() -> {
-            cacheManager.invalidate(repositoryUrl);
+            memoryCache.keySet().removeIf(key -> key.contains(repositoryUrl));
+            logger.info("Cache refreshed for: {}", repositoryUrl);
             return true;
         });
     }
 
     @Override
     public void clearAllCache() {
-        cacheManager.clearAll();
+        memoryCache.clear();
         logger.info("All discovery cache cleared");
     }
 
     @Override
     public CacheStatus getCacheStatus(String repositoryUrl) {
         CacheStatus status = new CacheStatus();
-        status.setCached(cacheManager.exists(repositoryUrl));
+        boolean cached = memoryCache.entrySet().stream()
+            .anyMatch(e -> e.getKey().contains(repositoryUrl) && !e.getValue().isExpired());
+        status.setCached(cached);
         return status;
     }
 
     @Override
     public void setCacheConfig(CacheConfig config) {
-        this.cacheManager = new JsonFileCacheManager(
-            config.getCacheDir(),
-            config.getMaxCacheEntries()
-        );
+        this.giteeCacheTtl = config.getTtlMs();
+        this.githubCacheTtl = config.getTtlMs();
+        logger.info("Cache config updated: ttl={}ms", config.getTtlMs());
     }
 
     private List<SkillPackage> discoverFromGitee(String repositoryUrl, String skillsPath) {
@@ -287,11 +306,12 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             List<String> fallbackIndexFiles = (List<String>) giteeConfig.getOrDefault("fallbackIndexFiles", 
                     Arrays.asList("index.yaml", "skill-index.yaml"));
             
-            String cacheKey = buildCacheKey("gitee", owner, repo, basePath);
+            String cacheKey = buildCacheKey("gitee", owner, repo, branch, basePath);
             
-            if (cacheManager.exists(cacheKey)) {
-                logger.info("Using cached skills for: {}/{}", owner, repo);
-                return cacheManager.get(cacheKey);
+            CacheEntry cachedEntry = memoryCache.get(cacheKey);
+            if (cachedEntry != null && !cachedEntry.isExpired()) {
+                logger.info("Using cached skills for: {}/{} (branch={})", owner, repo, branch);
+                return cachedEntry.skills;
             }
             
             logger.info("Discovering from Gitee: owner={}, repo={}, branch={}, basePath={}", 
@@ -300,7 +320,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             List<SkillPackage> skills = fetchSkillsFromGitee(owner, repo, branch, basePath, token, 
                     indexFileName, fallbackIndexFiles, recursive);
             
-            cacheManager.put(cacheKey, skills, giteeCacheTtl);
+            memoryCache.put(cacheKey, new CacheEntry(skills, giteeCacheTtl));
             logger.info("Discovered {} skills from Gitee", skills.size());
             
             return skills;
@@ -433,20 +453,22 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             String owner = (String) githubConfig.getOrDefault("owner", extractOwner(repositoryUrl));
             String repo = (String) githubConfig.getOrDefault("repo", extractRepo(repositoryUrl));
             String token = (String) githubConfig.get("token");
+            String branch = (String) githubConfig.getOrDefault("branch", "main");
             String basePath = skillsPath != null ? normalizePath(skillsPath) : "";
             
-            String cacheKey = buildCacheKey("github", owner, repo, basePath);
+            String cacheKey = buildCacheKey("github", owner, repo, branch, basePath);
             
-            if (cacheManager.exists(cacheKey)) {
-                logger.info("Using cached skills for: {}/{}", owner, repo);
-                return cacheManager.get(cacheKey);
+            CacheEntry cachedEntry = memoryCache.get(cacheKey);
+            if (cachedEntry != null && !cachedEntry.isExpired()) {
+                logger.info("Using cached skills for: {}/{} (branch={})", owner, repo, branch);
+                return cachedEntry.skills;
             }
             
-            logger.info("Discovering from GitHub: owner={}, repo={}, basePath={}", owner, repo, basePath);
+            logger.info("Discovering from GitHub: owner={}, repo={}, branch={}, basePath={}", owner, repo, branch, basePath);
             
-            List<SkillPackage> skills = fetchSkillsFromGithub(owner, repo, basePath, token);
+            List<SkillPackage> skills = fetchSkillsFromGithub(owner, repo, branch, basePath, token);
             
-            cacheManager.put(cacheKey, skills, githubCacheTtl);
+            memoryCache.put(cacheKey, new CacheEntry(skills, githubCacheTtl));
             logger.info("Discovered {} skills from GitHub", skills.size());
             
             return skills;
@@ -456,16 +478,16 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         }
     }
 
-    private List<SkillPackage> fetchSkillsFromGithub(String owner, String repo, 
+    private List<SkillPackage> fetchSkillsFromGithub(String owner, String repo, String branch,
             String basePath, String token) {
         try {
             String indexPath = buildIndexPath(basePath, "skill-index.yaml");
             String indexUrl = String.format(
-                "https://api.github.com/repos/%s/%s/contents/%s",
-                owner, repo, indexPath
+                "https://api.github.com/repos/%s/%s/contents/%s?ref=%s",
+                owner, repo, indexPath, branch
             );
             
-            logger.debug("Fetching skill-index from: {}", indexUrl);
+            logger.debug("Fetching skill-index from: {} (branch={})", indexUrl, branch);
             
             Map<String, String> headers = new HashMap<>();
             if (token != null && !token.isEmpty()) {
@@ -495,8 +517,8 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
         return basePath + "/" + fileName;
     }
 
-    private String buildCacheKey(String platform, String owner, String repo, String basePath) {
-        return String.format("%s:%s/%s/%s", platform, owner, repo, basePath != null ? basePath : "");
+    private String buildCacheKey(String platform, String owner, String repo, String branch, String basePath) {
+        return String.format("%s:%s/%s:%s:%s", platform, owner, repo, branch, basePath != null ? basePath : "");
     }
 
     private String normalizePath(String path) {
@@ -1068,5 +1090,21 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             return parts[4].replace(".git", "");
         }
         return "";
+    }
+    
+    private static class CacheEntry {
+        final List<SkillPackage> skills;
+        final long timestamp;
+        final long ttlMs;
+        
+        CacheEntry(List<SkillPackage> skills, long ttlMs) {
+            this.skills = skills;
+            this.timestamp = System.currentTimeMillis();
+            this.ttlMs = ttlMs;
+        }
+        
+        boolean isExpired() {
+            return System.currentTimeMillis() > timestamp + ttlMs;
+        }
     }
 }

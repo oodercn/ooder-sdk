@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SkillPackage {
@@ -32,6 +33,14 @@ public class SkillPackage {
     private String subCategory;
     private List<String> tags;
     private String resourcePath;
+    
+    private SkillForm form;
+    private SkillCategory skillCategory;
+    private Set<ServicePurpose> purposes;
+    private SceneRunMode sceneType;
+    private SceneStructure sceneStructure;
+    private String entryCapability;
+    private CollaborationConfig collaboration;
     
     public String getSkillId() {
         return skillId;
@@ -229,5 +238,77 @@ public class SkillPackage {
         }
         
         return Collections.emptyList();
+    }
+    
+    public SkillForm getForm() {
+        return form;
+    }
+    
+    public void setForm(SkillForm form) {
+        this.form = form;
+    }
+    
+    public SkillCategory getSkillCategory() {
+        return skillCategory;
+    }
+    
+    public void setSkillCategory(SkillCategory skillCategory) {
+        this.skillCategory = skillCategory;
+    }
+    
+    public Set<ServicePurpose> getPurposes() {
+        return purposes;
+    }
+    
+    public void setPurposes(Set<ServicePurpose> purposes) {
+        this.purposes = purposes;
+    }
+    
+    public SceneRunMode getSceneType() {
+        return sceneType;
+    }
+    
+    public void setSceneType(SceneRunMode sceneType) {
+        this.sceneType = sceneType;
+    }
+    
+    public SceneStructure getSceneStructure() {
+        return sceneStructure;
+    }
+    
+    public void setSceneStructure(SceneStructure sceneStructure) {
+        this.sceneStructure = sceneStructure;
+    }
+    
+    public String getEntryCapability() {
+        return entryCapability;
+    }
+    
+    public void setEntryCapability(String entryCapability) {
+        this.entryCapability = entryCapability;
+    }
+    
+    public CollaborationConfig getCollaboration() {
+        return collaboration;
+    }
+    
+    public void setCollaboration(CollaborationConfig collaboration) {
+        this.collaboration = collaboration;
+    }
+    
+    public boolean isScene() {
+        return form == SkillForm.SCENE;
+    }
+    
+    public boolean isStandalone() {
+        return form == SkillForm.STANDALONE;
+    }
+    
+    public boolean canSelfDrive() {
+        return isScene() && sceneType != null && sceneType.canSelfDrive();
+    }
+    
+    public boolean canBeTriggered() {
+        return isScene() && sceneType != null && sceneType.canBeTriggered();
     }
 }
