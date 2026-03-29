@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ooder.scene.discovery.GiteeDiscoveryConfig;
+import net.ooder.scene.discovery.GithubDiscoveryConfig;
 import net.ooder.scene.discovery.UnifiedDiscoveryService;
 import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
@@ -71,8 +72,8 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
 
     private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-    private final Map<String, Object> giteeConfig = new ConcurrentHashMap<>();
-    private final Map<String, Object> githubConfig = new ConcurrentHashMap<>();
+    private GiteeDiscoveryConfig giteeConfig;
+    private GithubDiscoveryConfig githubConfig;
     private final Map<String, CacheEntry> memoryCache = new ConcurrentHashMap<>();
     private long giteeCacheTtl = 3600000;
     private long githubCacheTtl = 3600000;
@@ -81,33 +82,22 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     private static final String GITHUB_API_BASE = "https://api.github.com";
 
     public UnifiedDiscoveryServiceImpl() {
+        this.giteeConfig = new GiteeDiscoveryConfig();
+        this.githubConfig = new GithubDiscoveryConfig();
     }
 
     /**
-     * 配置Gitee（兼容旧版本）
+     * 配置Gitee（兼容旧版本 - 已废弃）
+     * @deprecated 使用 {@link #configureGitee(GiteeDiscoveryConfig)} 替代
      */
+    @Deprecated
     public void configureGitee(String token, String owner, String repo, String branch, String skillsPath) {
-        if (token != null) {
-            giteeConfig.put("token", token);
-        }
-        if (owner != null) {
-            giteeConfig.put("owner", owner);
-        }
-        if (repo != null) {
-            giteeConfig.put("repo", repo);
-        }
-        giteeConfig.put("branch", branch != null ? branch : "main");
-        if (skillsPath != null) {
-            giteeConfig.put("skillsPath", normalizePath(skillsPath));
-        }
-        giteeConfig.put("_currentPlatform", "gitee");
-        
-        logger.info("Gitee configured: owner={}, repo={}, branch={}, skillsPath={}", 
-            owner, repo, branch, skillsPath);
+        GiteeDiscoveryConfig config = new GiteeDiscoveryConfig(token, owner, repo, branch, skillsPath);
+        configureGitee(config);
     }
 
     /**
-     * 配置Gitee（新版本 - 支持 GiteeDiscoveryConfig）
+     * 配置Gitee（推荐方式）
      *
      * @param config Gitee 发现配置
      */
@@ -117,45 +107,39 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             return;
         }
         
-        if (config.getToken() != null) {
-            giteeConfig.put("token", config.getToken());
-        }
-        if (config.getOwner() != null) {
-            giteeConfig.put("owner", config.getOwner());
-        }
-        if (config.getRepo() != null) {
-            giteeConfig.put("repo", config.getRepo());
-        }
-        giteeConfig.put("branch", config.getBranch() != null ? config.getBranch() : "main");
-        if (config.getSkillsPath() != null) {
-            giteeConfig.put("skillsPath", normalizePath(config.getSkillsPath()));
-        }
-        giteeConfig.put("indexFileName", config.getIndexFileName());
-        giteeConfig.put("recursive", config.isRecursive());
-        giteeConfig.put("fallbackIndexFiles", config.getFallbackIndexFiles());
-        giteeConfig.put("_currentPlatform", "gitee");
-        
+        this.giteeConfig = config;
         this.giteeCacheTtl = config.getCacheTtl();
         
-        logger.info("Gitee configured with GiteeDiscoveryConfig: {}", config);
+        logger.info("Gitee configured: owner={}, repo={}, branch={}, skillsPath={}", 
+            config.getOwner(), config.getRepo(), config.getBranch(), config.getSkillsPath());
     }
 
     /**
-     * 配置GitHub
+     * 配置GitHub（兼容旧版本 - 已废弃）
+     * @deprecated 使用 {@link #configureGithub(GithubDiscoveryConfig)} 替代
      */
+    @Deprecated
     public void configureGithub(String token, String owner, String repo) {
-        if (token != null) {
-            githubConfig.put("token", token);
+        GithubDiscoveryConfig config = new GithubDiscoveryConfig(token, owner, repo);
+        configureGithub(config);
+    }
+
+    /**
+     * 配置GitHub（推荐方式）
+     *
+     * @param config GitHub 发现配置
+     */
+    public void configureGithub(GithubDiscoveryConfig config) {
+        if (config == null) {
+            logger.warn("GithubDiscoveryConfig is null, skip configuration");
+            return;
         }
-        if (owner != null) {
-            githubConfig.put("owner", owner);
-        }
-        if (repo != null) {
-            githubConfig.put("repo", repo);
-        }
-        githubConfig.put("_currentPlatform", "github");
         
-        logger.info("GitHub configured: owner={}, repo={}", owner, repo);
+        this.githubConfig = config;
+        this.githubCacheTtl = config.getCacheTtl();
+        
+        logger.info("GitHub configured: owner={}, repo={}, branch={}", 
+            config.getOwner(), config.getRepo(), config.getBranch());
     }
 
     /**
@@ -288,23 +272,21 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
 
     @Override
     public void setCacheConfig(CacheConfig config) {
-        this.giteeCacheTtl = config.getTtlMs();
-        this.githubCacheTtl = config.getTtlMs();
-        logger.info("Cache config updated: ttl={}ms", config.getTtlMs());
+        this.giteeCacheTtl = config.getCacheTtlMs();
+        this.githubCacheTtl = config.getCacheTtlMs();
+        logger.info("Cache config updated: ttl={}ms", config.getCacheTtlMs());
     }
 
     private List<SkillPackage> discoverFromGitee(String repositoryUrl, String skillsPath) {
         try {
-            String owner = (String) giteeConfig.getOrDefault("owner", extractOwner(repositoryUrl));
-            String repo = (String) giteeConfig.getOrDefault("repo", extractRepo(repositoryUrl));
-            String token = (String) giteeConfig.get("token");
-            String branch = (String) giteeConfig.getOrDefault("branch", "main");
-            String basePath = skillsPath != null ? normalizePath(skillsPath) : (String) giteeConfig.get("skillsPath");
-            String indexFileName = (String) giteeConfig.getOrDefault("indexFileName", "skill-index.yaml");
-            boolean recursive = (Boolean) giteeConfig.getOrDefault("recursive", false);
-            @SuppressWarnings("unchecked")
-            List<String> fallbackIndexFiles = (List<String>) giteeConfig.getOrDefault("fallbackIndexFiles", 
-                    Arrays.asList("index.yaml", "skill-index.yaml"));
+            String owner = giteeConfig.getOwner() != null ? giteeConfig.getOwner() : extractOwner(repositoryUrl);
+            String repo = giteeConfig.getRepo() != null ? giteeConfig.getRepo() : extractRepo(repositoryUrl);
+            String token = giteeConfig.getToken();
+            String branch = giteeConfig.getBranch() != null ? giteeConfig.getBranch() : "main";
+            String basePath = skillsPath != null ? normalizePath(skillsPath) : giteeConfig.getSkillsPath();
+            String indexFileName = giteeConfig.getIndexFileName();
+            boolean recursive = giteeConfig.isRecursive();
+            List<String> fallbackIndexFiles = giteeConfig.getFallbackIndexFiles();
             
             String cacheKey = buildCacheKey("gitee", owner, repo, branch, basePath);
             
@@ -450,11 +432,11 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
 
     private List<SkillPackage> discoverFromGithub(String repositoryUrl, String skillsPath) {
         try {
-            String owner = (String) githubConfig.getOrDefault("owner", extractOwner(repositoryUrl));
-            String repo = (String) githubConfig.getOrDefault("repo", extractRepo(repositoryUrl));
-            String token = (String) githubConfig.get("token");
-            String branch = (String) githubConfig.getOrDefault("branch", "main");
-            String basePath = skillsPath != null ? normalizePath(skillsPath) : "";
+            String owner = githubConfig.getOwner() != null ? githubConfig.getOwner() : extractOwner(repositoryUrl);
+            String repo = githubConfig.getRepo() != null ? githubConfig.getRepo() : extractRepo(repositoryUrl);
+            String token = githubConfig.getToken();
+            String branch = githubConfig.getBranch() != null ? githubConfig.getBranch() : "main";
+            String basePath = skillsPath != null ? normalizePath(skillsPath) : githubConfig.getSkillsPath();
             
             String cacheKey = buildCacheKey("github", owner, repo, branch, basePath);
             
@@ -625,17 +607,11 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     private List<SkillPackage> resolveIncludes(List<String> includes, JSONObject indexData, boolean recursive, String basePath) {
         List<SkillPackage> allSkills = new ArrayList<>();
         
-        String platform = (String) giteeConfig.getOrDefault("_currentPlatform", "gitee");
-        String owner = (String) giteeConfig.get("owner");
-        String repo = (String) giteeConfig.get("repo");
-        String branch = (String) giteeConfig.getOrDefault("branch", "main");
-        String token = (String) giteeConfig.get("token");
-        
-        if (platform.equals("github")) {
-            owner = (String) githubConfig.get("owner");
-            repo = (String) githubConfig.get("repo");
-            token = (String) githubConfig.get("token");
-        }
+        String platform = giteeConfig.getOwner() != null ? "gitee" : "github";
+        String owner = giteeConfig.getOwner() != null ? giteeConfig.getOwner() : githubConfig.getOwner();
+        String repo = giteeConfig.getRepo() != null ? giteeConfig.getRepo() : githubConfig.getRepo();
+        String branch = giteeConfig.getBranch() != null ? giteeConfig.getBranch() : githubConfig.getBranch();
+        String token = giteeConfig.getToken() != null ? giteeConfig.getToken() : githubConfig.getToken();
         
         for (String include : includes) {
             try {
