@@ -1026,6 +1026,26 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 skill.setTags(tags);
             }
             
+            JSONObject spec = skillData.getJSONObject("spec");
+            if (spec != null) {
+                Map<String, Object> metadata = new HashMap<>();
+                
+                String skillForm = spec.getString("skillForm");
+                if (skillForm != null) {
+                    metadata.put("skillForm", skillForm);
+                    metadata.put("type", skillForm);
+                }
+                
+                String sceneType = spec.getString("sceneType");
+                if (sceneType != null) {
+                    metadata.put("sceneType", sceneType);
+                }
+                
+                metadata.put("spec", new HashMap<>(spec));
+                
+                skill.setMetadata(metadata);
+            }
+            
             return skill;
             
         } catch (Exception e) {
