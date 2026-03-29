@@ -1,6 +1,8 @@
 package net.ooder.scene.discovery.impl;
 
+import net.ooder.scene.core.InstalledSkillInfo;
 import net.ooder.scene.discovery.UnifiedSkillRegistry;
+import net.ooder.scene.skill.source.InstallSource;
 import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +16,7 @@ import java.util.stream.Collectors;
  * 统一Skill注册中心实现
  *
  * @author ooder
- * @since 2.3.1
+ * @since 3.0.1
  */
 public class UnifiedSkillRegistryImpl implements UnifiedSkillRegistry {
 
@@ -23,6 +25,7 @@ public class UnifiedSkillRegistryImpl implements UnifiedSkillRegistry {
     private final Map<String, SkillPackage> skills = new ConcurrentHashMap<>();
     private final Map<String, ChannelConfig> channels = new ConcurrentHashMap<>();
     private final Map<String, List<String>> skillChannels = new ConcurrentHashMap<>();
+    private final Map<String, InstalledSkillInfo> skillSources = new ConcurrentHashMap<>();
 
     @Override
     public CompletableFuture<RegisterResult> register(String channelId, List<SkillPackage> packages) {
@@ -261,6 +264,85 @@ public class UnifiedSkillRegistryImpl implements UnifiedSkillRegistry {
             result.setErrors(Arrays.asList("Import not implemented"));
             return result;
         });
+    }
+
+    // ========== 来源追踪方法实现 ==========
+
+    @Override
+    public List<InstalledSkillInfo> getSkillsBySource(String source) {
+        return skillSources.values().stream()
+                .filter(info -> source.equals(info.getInstallSource()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InstalledSkillInfo> getSkillsByInstaller(String userId) {
+        return skillSources.values().stream()
+                .filter(info -> userId.equals(info.getInstalledBy()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InstalledSkillInfo> getSkillsBySharer(String userId) {
+        return skillSources.values().stream()
+                .filter(info -> userId.equals(info.getSharedBy()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void recordInstallSource(String skillId, String source, Map<String, Object> metadata) {
+        InstalledSkillInfo info = skillSources.computeIfAbsent(skillId, k -> new InstalledSkillInfo());
+        info.setSkillId(skillId);
+        info.setInstallSource(source);
+        info.setInstalledAt(System.currentTimeMillis());
+        if (metadata != null) {
+            info.setSourceMetadata(metadata);
+            if (metadata.containsKey("installedBy")) {
+                info.setInstalledBy(String.valueOf(metadata.get("installedBy")));
+            }
+            if (metadata.containsKey("sharedBy")) {
+                info.setSharedBy(String.valueOf(metadata.get("sharedBy")));
+            }
+            if (metadata.containsKey("delegatedBy")) {
+                info.setDelegatedBy(String.valueOf(metadata.get("delegatedBy")));
+            }
+            if (metadata.containsKey("pushTime")) {
+                Object pushTime = metadata.get("pushTime");
+                if (pushTime instanceof Long) {
+                    info.setPushTime((Long) pushTime);
+                } else if (pushTime instanceof Number) {
+                    info.setPushTime(((Number) pushTime).longValue());
+                }
+            }
+            if (metadata.containsKey("pushMessage")) {
+                info.setPushMessage(String.valueOf(metadata.get("pushMessage")));
+            }
+        }
+        logger.info("Recorded install source for skill {}: {}", skillId, source);
+    }
+
+    @Override
+    public void updateSource(String skillId, String source, String fromUserId) {
+        InstalledSkillInfo info = skillSources.get(skillId);
+        if (info == null) {
+            info = new InstalledSkillInfo();
+            info.setSkillId(skillId);
+            info.setInstalledAt(System.currentTimeMillis());
+            skillSources.put(skillId, info);
+        }
+        info.setInstallSource(source);
+        InstallSource installSource = InstallSource.fromCode(source);
+        switch (installSource) {
+            case SHARE:
+                info.setSharedBy(fromUserId);
+                break;
+            case DELEGATE:
+                info.setDelegatedBy(fromUserId);
+                break;
+            default:
+                info.setInstalledBy(fromUserId);
+        }
+        logger.info("Updated source for skill {}: {} from {}", skillId, source, fromUserId);
     }
 
     private boolean isNewerVersion(SkillPackage newSkill, SkillPackage existingSkill) {

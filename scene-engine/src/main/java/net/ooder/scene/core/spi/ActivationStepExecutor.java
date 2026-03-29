@@ -74,6 +74,8 @@ public interface ActivationStepExecutor {
         private boolean success;         // 是否成功
         private String message;          // 结果消息
         private Map<String, Object> data; // 附加数据
+        private String errorCode;        // 错误码
+        private Map<String, Object> errorDetails; // 错误详情
         
         public StepResult(boolean success, String message) {
             this.success = success;
@@ -101,6 +103,18 @@ public interface ActivationStepExecutor {
             return new StepResult(false, message, data);
         }
         
+        public static StepResult failure(String errorCode, String message) {
+            StepResult result = new StepResult(false, message);
+            result.errorCode = errorCode;
+            return result;
+        }
+        
+        public static StepResult failure(String errorCode, String message, Map<String, Object> details) {
+            StepResult result = failure(errorCode, message);
+            result.errorDetails = details;
+            return result;
+        }
+        
         // Getters and Setters
         
         public boolean isSuccess() {
@@ -125,6 +139,22 @@ public interface ActivationStepExecutor {
         
         public void setData(Map<String, Object> data) {
             this.data = data;
+        }
+        
+        public String getErrorCode() {
+            return errorCode;
+        }
+        
+        public void setErrorCode(String errorCode) {
+            this.errorCode = errorCode;
+        }
+        
+        public Map<String, Object> getErrorDetails() {
+            return errorDetails;
+        }
+        
+        public void setErrorDetails(Map<String, Object> errorDetails) {
+            this.errorDetails = errorDetails;
         }
     }
 }

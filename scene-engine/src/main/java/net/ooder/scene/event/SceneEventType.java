@@ -191,7 +191,16 @@ public enum SceneEventType {
     AGENT_OFFLINE("agent.offline", "Agent离线"),
     AGENT_HEARTBEAT("agent.heartbeat", "Agent心跳"),
     AGENT_STATUS_CHANGED("agent.status.changed", "Agent状态变更"),
-    AGENT_CONTEXT_UPDATED("agent.context.updated", "Agent上下文更新");
+    AGENT_CONTEXT_UPDATED("agent.context.updated", "Agent上下文更新"),
+    
+    TODO_CREATED("todo.created", "待办创建"),
+    TODO_ACCEPTED("todo.accepted", "待办接受"),
+    TODO_REJECTED("todo.rejected", "待办拒绝"),
+    TODO_COMPLETED("todo.completed", "待办完成"),
+    TODO_APPROVED("todo.approved", "待办审批"),
+    TODO_EXPIRED("todo.expired", "待办过期"),
+    TODO_CANCELLED("todo.cancelled", "待办取消"),
+    TODO_DELETED("todo.deleted", "待办删除");
     
     private final String code;
     private final String description;

@@ -1,9 +1,11 @@
 package net.ooder.scene.bridge;
 
+import net.ooder.scene.event.SceneEvent;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SeSceneGroup;
 import net.ooder.scene.group.SceneGroupManager;
 import net.ooder.scene.participant.Participant;
+import net.ooder.scene.todo.TodoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,6 +240,46 @@ public class SceneGroupBridgeImpl implements SceneGroupBridge {
                 details
             );
         }
+    }
+    
+    @Override
+    public void syncTodoToSe(TodoDTO todo) {
+        if (todo == null) {
+            return;
+        }
+        logger.debug("Syncing todo to SE: {}", todo.getId());
+    }
+    
+    @Override
+    public List<TodoDTO> getTodosFromSe(String sceneGroupId, String userId) {
+        return Collections.emptyList();
+    }
+    
+    @Override
+    public void forwardEventToSdk(SceneEvent event) {
+        if (event == null) {
+            return;
+        }
+        logger.debug("Forwarding event to SDK: {}", event.getEventType());
+    }
+    
+    @Override
+    public void forwardEventToSe(SceneEvent event) {
+        if (event == null) {
+            return;
+        }
+        logger.debug("Forwarding event to SE: {}", event.getEventType());
+    }
+    
+    @Override
+    public SceneGroupFullState getFullState(String sceneGroupId) {
+        SceneGroup sceneGroup = seSceneGroupManager.getSceneGroup(sceneGroupId);
+        if (sceneGroup == null) {
+            return null;
+        }
+        
+        SceneGroupFullState state = new SceneGroupFullState(sceneGroup);
+        return state;
     }
     
     public void registerMapping(String sdkSceneGroupId, String seSceneGroupId) {

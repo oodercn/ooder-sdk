@@ -54,7 +54,7 @@
     </scm>
 
     <properties>
-        <agent-sdk.version>3.0.0</agent-sdk.version>
+        <agent-sdk.version>3.0.1</agent-sdk.version>
         <ooder-common.version>3.0.0</ooder-common.version>
         <spring-boot.version>3.2.5</spring-boot.version>
         <maven.javadoc.skip>false</maven.javadoc.skip>

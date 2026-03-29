@@ -1,8 +1,10 @@
 package net.ooder.scene.bridge;
 
+import net.ooder.scene.event.SceneEvent;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SeSceneGroup;
 import net.ooder.scene.participant.Participant;
+import net.ooder.scene.todo.TodoDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -70,6 +72,50 @@ public interface SceneGroupBridge {
      * @return 健康状态
      */
     BridgeHealthStatus healthCheck();
+    
+    // ========== 待办同步接口 ==========
+    
+    /**
+     * 同步待办到 SE
+     * 
+     * @param todo 待办数据
+     */
+    void syncTodoToSe(TodoDTO todo);
+    
+    /**
+     * 从 SE 获取待办
+     * 
+     * @param sceneGroupId 场景组ID
+     * @param userId 用户ID
+     * @return 待办列表
+     */
+    List<TodoDTO> getTodosFromSe(String sceneGroupId, String userId);
+    
+    // ========== 事件转发接口 ==========
+    
+    /**
+     * 转发事件到 SDK
+     * 
+     * @param event 场景事件
+     */
+    void forwardEventToSdk(SceneEvent event);
+    
+    /**
+     * 转发事件到 SE
+     * 
+     * @param event 场景事件
+     */
+    void forwardEventToSe(SceneEvent event);
+    
+    // ========== 完整状态接口 ==========
+    
+    /**
+     * 获取场景组完整状态（包含待办）
+     * 
+     * @param sceneGroupId 场景组ID
+     * @return 完整状态
+     */
+    SceneGroupFullState getFullState(String sceneGroupId);
     
     /**
      * 桥接健康状态

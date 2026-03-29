@@ -1,5 +1,6 @@
 package net.ooder.scene.discovery;
 
+import net.ooder.scene.core.InstalledSkillInfo;
 import net.ooder.skills.api.SkillPackage;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
  * 2. 渠道管理 - 支持多个GitHub/Gitee仓库
  * 3. 历史发现记录 - 追踪发现历史
  * 4. 统一存储策略 - 与SDK存储层集成
+ * 5. 来源追踪 - 记录技能安装来源
  * 
  * 设计原则：
  * - 统一入口：所有发现结果统一注册到此中心
@@ -22,8 +24,8 @@ import java.util.concurrent.CompletableFuture;
  * - 历史保留：保留历史发现记录，支持回滚
  *
  * @author Ooder Team
- * @version 2.3
- * @since 2.3.0
+ * @version 3.0
+ * @since 3.0.1
  */
 public interface UnifiedSkillRegistry {
     
@@ -191,6 +193,50 @@ public interface UnifiedSkillRegistry {
      * @return 导入结果
      */
     CompletableFuture<ImportResult> importRegistry(String content, String format);
+
+    // ========== 来源追踪方法 ==========
+
+    /**
+     * 按来源类型查询已安装技能
+     *
+     * @param source 来源类型 (download/share/delegate/push/registry/dev)
+     * @return 该来源的所有已安装技能
+     */
+    List<InstalledSkillInfo> getSkillsBySource(String source);
+
+    /**
+     * 按安装人查询已安装技能
+     *
+     * @param userId 用户ID
+     * @return 该用户安装的所有技能
+     */
+    List<InstalledSkillInfo> getSkillsByInstaller(String userId);
+
+    /**
+     * 按分享人查询已安装技能
+     *
+     * @param userId 分享人ID
+     * @return 该用户分享的所有技能
+     */
+    List<InstalledSkillInfo> getSkillsBySharer(String userId);
+
+    /**
+     * 记录技能安装来源
+     *
+     * @param skillId 技能ID
+     * @param source 来源类型
+     * @param metadata 来源元数据
+     */
+    void recordInstallSource(String skillId, String source, Map<String, Object> metadata);
+
+    /**
+     * 更新技能来源信息
+     *
+     * @param skillId 技能ID
+     * @param source 新的来源类型
+     * @param fromUserId 来源用户ID（分享人/委派人）
+     */
+    void updateSource(String skillId, String source, String fromUserId);
     
     // ========== 数据类定义 ==========
     
@@ -206,7 +252,6 @@ public interface UnifiedSkillRegistry {
         private List<String> errors;
         private long timestamp;
         
-        // Getters and Setters
         public boolean isSuccess() { return success; }
         public void setSuccess(boolean success) { this.success = success; }
         public int getTotalCount() { return totalCount; }
@@ -229,7 +274,7 @@ public interface UnifiedSkillRegistry {
     class ChannelConfig {
         private String channelId;
         private String name;
-        private String type;  // github, gitee, local, etc.
+        private String type;
         private String repositoryUrl;
         private String skillsPath;
         private String token;
@@ -237,7 +282,6 @@ public interface UnifiedSkillRegistry {
         private long lastRefreshTime;
         private Map<String, Object> metadata;
         
-        // Getters and Setters
         public String getChannelId() { return channelId; }
         public void setChannelId(String channelId) { this.channelId = channelId; }
         public String getName() { return name; }
@@ -267,10 +311,9 @@ public interface UnifiedSkillRegistry {
         private long discoverTime;
         private int skillCount;
         private List<String> skillIds;
-        private String status;  // success, partial, failed
+        private String status;
         private String message;
         
-        // Getters and Setters
         public String getHistoryId() { return historyId; }
         public void setHistoryId(String historyId) { this.historyId = historyId; }
         public String getChannelId() { return channelId; }
@@ -298,7 +341,6 @@ public interface UnifiedSkillRegistry {
         private long size;
         private Map<String, Object> metadata;
         
-        // Getters and Setters
         public String getVersion() { return version; }
         public void setVersion(String version) { this.version = version; }
         public String getChannelId() { return channelId; }
@@ -324,7 +366,6 @@ public interface UnifiedSkillRegistry {
         private long duration;
         private String message;
         
-        // Getters and Setters
         public String getChannelId() { return channelId; }
         public void setChannelId(String channelId) { this.channelId = channelId; }
         public boolean isSuccess() { return success; }
@@ -350,7 +391,6 @@ public interface UnifiedSkillRegistry {
         private long lastUpdateTime;
         private Map<String, Integer> skillsByChannel;
         
-        // Getters and Setters
         public int getTotalChannels() { return totalChannels; }
         public void setTotalChannels(int totalChannels) { this.totalChannels = totalChannels; }
         public int getActiveChannels() { return activeChannels; }
@@ -374,7 +414,6 @@ public interface UnifiedSkillRegistry {
         private int importedSkills;
         private List<String> errors;
         
-        // Getters and Setters
         public boolean isSuccess() { return success; }
         public void setSuccess(boolean success) { this.success = success; }
         public int getImportedChannels() { return importedChannels; }

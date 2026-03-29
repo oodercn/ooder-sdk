@@ -1,5 +1,7 @@
 package net.ooder.scene.core;
 
+import java.util.Map;
+
 /**
  * 已安装技能信息
  */
@@ -12,6 +14,14 @@ public class InstalledSkillInfo {
     private String installPath;
     private long installedAt;
     private long lastUsedAt;
+
+    private String installSource;
+    private String installedBy;
+    private String sharedBy;
+    private String delegatedBy;
+    private Long pushTime;
+    private String pushMessage;
+    private Map<String, Object> sourceMetadata;
 
     public InstalledSkillInfo() {}
 
@@ -31,4 +41,25 @@ public class InstalledSkillInfo {
     public void setInstalledAt(long installedAt) { this.installedAt = installedAt; }
     public long getLastUsedAt() { return lastUsedAt; }
     public void setLastUsedAt(long lastUsedAt) { this.lastUsedAt = lastUsedAt; }
+
+    public String getInstallSource() { return installSource; }
+    public void setInstallSource(String installSource) { this.installSource = installSource; }
+
+    public String getInstalledBy() { return installedBy; }
+    public void setInstalledBy(String installedBy) { this.installedBy = installedBy; }
+
+    public String getSharedBy() { return sharedBy; }
+    public void setSharedBy(String sharedBy) { this.sharedBy = sharedBy; }
+
+    public String getDelegatedBy() { return delegatedBy; }
+    public void setDelegatedBy(String delegatedBy) { this.delegatedBy = delegatedBy; }
+
+    public Long getPushTime() { return pushTime; }
+    public void setPushTime(Long pushTime) { this.pushTime = pushTime; }
+
+    public String getPushMessage() { return pushMessage; }
+    public void setPushMessage(String pushMessage) { this.pushMessage = pushMessage; }
+
+    public Map<String, Object> getSourceMetadata() { return sourceMetadata; }
+    public void setSourceMetadata(Map<String, Object> sourceMetadata) { this.sourceMetadata = sourceMetadata; }
 }

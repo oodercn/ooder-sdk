@@ -5,9 +5,6 @@ import net.ooder.scene.event.session.SessionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,8 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version 3.0.1
  * @since 3.0.1
  */
-@Component
-@ConditionalOnMissingBean(UnifiedSessionManager.class)
 public class UnifiedSessionManagerImpl implements UnifiedSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(UnifiedSessionManagerImpl.class);
