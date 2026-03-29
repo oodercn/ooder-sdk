@@ -1,7 +1,7 @@
 # SDK 密钥管理集成开发说明
 
 **版本**: v2.3.1  
-**日期**: 2026-03-20  
+**日期**: 2026-03-21  
 **状态**: SDK 已完成实现
 
 ---
@@ -31,6 +31,18 @@ SDK 团队已完成以下功能的实现：
 1. **入网审批默认不需要** - 自动签发密钥
 2. **勾选需要后启用手工审批** - 需要管理员批准
 3. **安全 KEY 与组网接口结合** - 通过 NexusService 统一调用
+
+### 1.4 v3.0.1 重命名变更
+
+| 原名称 | 新名称 | 包路径 | 说明 |
+|--------|--------|--------|------|
+| `TokenManager` | `AuthTokenManager` | `net.ooder.sdk.service.security.auth` | 认证令牌管理器 |
+| `SceneGroupManager` | `CollaborativeSceneGroupManager` | `net.ooder.skills.api` | 协作场景组管理器 |
+
+**删除的重复类：**
+- `api.security.impl.SecurityServiceImpl` → 保留 `service.security.SecurityServiceImpl`
+- `api.network.impl.NetworkServiceImpl` → 保留 `service.network.NetworkServiceImpl`
+- `service.llm.LlmService` (类) → 保留 `llm.service.LlmService` (接口)
 
 ---
 
