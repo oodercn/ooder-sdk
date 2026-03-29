@@ -40,29 +40,43 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             try {
                 notifyDiscoveryStarted(request);
 
-                String source = request.getSource();
                 String repositoryUrl = request.getRepositoryUrl();
                 List<SkillPackage> discoveredSkills = new ArrayList<>();
 
-                if ("gitee".equalsIgnoreCase(source) || "all".equalsIgnoreCase(source)) {
-                    List<SkillPackage> giteeSkills = unifiedDiscoveryService
-                        .discoverSkills(repositoryUrl, request.getSkillsPath())
-                        .get(request.getTimeout(), java.util.concurrent.TimeUnit.MILLISECONDS);
-                    discoveredSkills.addAll(giteeSkills);
+                if (repositoryUrl == null || repositoryUrl.isEmpty()) {
+                    logger.warn("Repository URL is null or empty");
+                    result.setSuccess(false);
+                    result.setMessage("Repository URL is required");
+                    result.setDuration(System.currentTimeMillis() - startTime);
+                    return result;
                 }
 
-                if ("github".equalsIgnoreCase(source) || "all".equalsIgnoreCase(source)) {
-                    List<SkillPackage> githubSkills = unifiedDiscoveryService
-                        .discoverSkills(repositoryUrl, request.getSkillsPath())
-                        .get(request.getTimeout(), java.util.concurrent.TimeUnit.MILLISECONDS);
-                    discoveredSkills.addAll(githubSkills);
+                String normalizedUrl = repositoryUrl.toLowerCase().trim();
+                String detectedPlatform = "unknown";
+
+                if (normalizedUrl.contains("gitee.com")) {
+                    detectedPlatform = "gitee";
+                } else if (normalizedUrl.contains("github.com")) {
+                    detectedPlatform = "github";
+                } else {
+                    logger.warn("Unsupported repository URL: {}", repositoryUrl);
+                    result.setSuccess(false);
+                    result.setMessage("Unsupported repository URL platform: " + repositoryUrl);
+                    result.setDuration(System.currentTimeMillis() - startTime);
+                    return result;
                 }
+
+                logger.info("Discovering from {} : {}", detectedPlatform, repositoryUrl);
+
+                discoveredSkills = unifiedDiscoveryService
+                    .discoverSkills(repositoryUrl, request.getSkillsPath())
+                    .get(request.getTimeout(), java.util.concurrent.TimeUnit.MILLISECONDS);
 
                 UnifiedSkillRegistry.RegisterResult registerResult = 
-                    skillRegistry.register("discovery:" + source, discoveredSkills).get();
+                    skillRegistry.register("discovery:" + detectedPlatform, discoveredSkills).get();
 
                 result.setSuccess(true);
-                result.setSource(source);
+                result.setSource(detectedPlatform);
                 result.setSkills(convertToSkillInfo(discoveredSkills));
                 result.setTotalCount(discoveredSkills.size());
                 result.setFromNetwork(discoveredSkills.size());
