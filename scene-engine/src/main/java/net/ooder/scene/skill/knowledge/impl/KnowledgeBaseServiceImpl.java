@@ -540,7 +540,9 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
             filters.put("tags", request.getTags());
         }
         
-        filters.putAll(request.getFilters());
+        if (request.getFilters() != null) {
+            filters.putAll(request.getFilters());
+        }
         return filters;
     }
     
