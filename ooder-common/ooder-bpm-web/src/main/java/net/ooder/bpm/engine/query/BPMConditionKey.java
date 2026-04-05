@@ -1,0 +1,206 @@
+/**
+ * $RCSfile: ConditionKey.java,v $
+ * $Revision: 1.1 $
+ * $Date: 2014/07/08 00:26:08 $
+ *
+ * Copyright (C) 2003 itjds, Inc. All rights reserved.
+ *
+ * This software is the proprietary information of itjds, Inc.
+ * Use is subject to license terms.
+ */
+package net.ooder.bpm.engine.query;
+
+
+import net.ooder.common.ConditionKey;
+
+/**
+ * <p>
+ * Title: JDS系统管理系统
+ * </p>
+ * <p>
+ * Description: 可以进行查询或排序的数据库字段。
+ * </p>
+ * <p>
+ * Copyright: Copyright (c) 2006
+ * </p>
+ * <p>
+ * Company: www.justdos.net
+ * </p>
+ * 
+ * @see BPMConditionKey
+ * @author wenzhang li
+ * @version 1.0
+ */
+public  enum BPMConditionKey  implements ConditionKey {
+
+
+
+	/** 可用于查询或排序的数据库字段 */
+	// ADD BY LXL 2004-01-09
+	// 流程定义表（BPM_PROCESSDEF）
+	/** 流程定义UUID */
+	PROCESSDEF_ID ("BPM_PROCESSDEF.PROCESSDEF_ID"),
+
+	/** 流程所属应用系统 */
+	PROCESSDEF_SYSTEMCODE("BPM_PROCESSDEF.SYSTEMCODE"),
+
+	/** 流程定义的分类 */
+	PROCESSDEF_CLASSIFICATION (	"BPM_PROCESSDEF.CLASSIFICATION"),
+
+	/** 流程类型 */
+    PROCESSDEF_ACCESSLEVEL ("BPM_PROCESSDEF.ACCESSLEVEL"),
+
+	// 流程定义版本表（BPM_PROCESSDEF_VERSION）
+	/** 流程定义版本表UUID */
+	PROCESSDEF_VERSION_VERSION_ID(
+			"BPM_PROCESSDEF_VERSION.PROCESSDEF_VERSION_ID"),
+
+	/** 流程定义版本表发布状态 */
+	PROCESSDEF_VERSION_PUBLICATIONSTATUS (
+			"BPM_PROCESSDEF_VERSION.PUBLICATIONSTATUS"),
+
+	/** 流程定义版本所属流程UUID */
+	PROCESSDEF_VERSION_PROCESSDEF_ID("BPM_PROCESSDEF_VERSION.PROCESSDEF_ID"),
+
+	// 活动定义表（BPM_ACTIVITYDEF）
+	/** 活动定义UUID */
+	 ACTIVITYDEF_ID("BPM_ACTIVITYDEF.ACTIVITYDEF_ID"),
+
+	/** 活动定义所属流程定义UUID */
+	ACTIVITYDEF_PROCESSDEF_ID  ("BPM_ACTIVITYDEF.PROCESSDEF_ID"),
+
+	// 路由定义表（BPM_ROUTEDEF）
+	/** 路由定义UUID */
+	ROUTEDEF_ID (
+			"BPM_ROUTEDEF.ROUTEDEF_ID"),
+
+	/** 路由定义所属流程定义UUID */
+	ROUTEDEF_PROCESSDEF_ID (
+			"BPM_ROUTEDEF.PROCESSDEF_ID"),
+
+	// 流程实例表（BPM_PROCESSINSTANCE）
+	/** 流程实例UUID */
+	PROCESSINST_ID (
+			"BPM_PROCESSINSTANCE.PROCESSINST_ID"),
+
+	/** 流程实例所在流程定义UUID */
+	PROCESSINST_PROCESSDEF_ID (
+			"BPM_PROCESSINSTANCE.PROCESSDEF_ID"),
+
+	/** 流程实例所在流程版本定义UUID */
+	PROCESSINST_PROCESSDEF_VERSION_ID (
+			"BPM_PROCESSINSTANCE.PROCESSDEF_VERSION_ID"),
+
+	/** 流程实例当前状态 */
+	PROCESSINST_STATE (
+			"BPM_PROCESSINSTANCE.PROCESSINST_STATE"),
+
+	/** 流程实例运行状态 */
+	PROCESSINST_RUNSTATUS (
+			"BPM_PROCESSINSTANCE.RUNSTATUS"),
+
+	/** 流程实例名称 */
+	PROCESSINST_NAME (
+			"BPM_PROCESSINSTANCE.PROCESSINST_NAME"),
+
+	/** 流程实例启动时间 */
+	PROCESSINST_STARTTIME (
+			"BPM_PROCESSINSTANCE.STARTTIME"),
+	/** 流程实例结束时间 */
+	PROCESSINST_ENDTIME (
+			"BPM_PROCESSINSTANCE.ENDTIME"),
+
+
+	// 活动实例表（BPM_ACTIVITYINSTANCE）
+	/** 活动实例UUID */
+	ACTIVITYINST_ID (
+			"BPM_ACTIVITYINSTANCE.ACTIVITYINST_ID"),
+
+	/** 活动实例所在流程定义UUID */
+	ACTIVITYINST_PROCESSDEF_ID (
+			"BPM_ACTIVITYINSTANCE.PROCESSDEF_ID"),
+
+	/** 活动实例所属流程实例UUID */
+	ACTIVITYINST_PROCESSINST_ID (
+			"BPM_ACTIVITYINSTANCE.PROCESSINST_ID"),
+	/** 活动实例所属活动定义UUID */
+	ACTIVITYINST_ACTIVITYDEF_ID (
+			"BPM_ACTIVITYINSTANCE.ACTIVITYDEF_ID "),
+
+	/** 活动实例状态 */
+	ACTIVITYINST_STATE (
+			"BPM_ACTIVITYINSTANCE.ACTIVITYINST_STATE"),
+
+	/** 活动实例到达时间 */
+	ACTIVITYINST_ARRIVEDTIME (
+			"BPM_ACTIVITYINSTANCE.ARRIVEDTIME"),
+
+	/** 活动实例开始时间 */
+	ACTIVITYINST_STARTTIME (
+			"BPM_ACTIVITYINSTANCE.STARTTIME"),
+
+	/** 活动实例运行时间状况 */
+	ACTIVITYINST_RUNSTATUS (
+			"BPM_ACTIVITYINSTANCE.RUNSTATUS"),
+	
+	/** 活动实例运行时间状况 */
+	ACTIVITYINST_DEALMETHOD (
+			"BPM_ACTIVITYINSTANCE.DEALMETHOD"),
+
+	// 活动实例历史表（BPM_ACTIVITYHISTORY）
+	/** 活动实例历史UUID */
+	ACTIVITYHISTORY_ID (
+			"BPM_ACTIVITYHISTORY.ACTIVITYHISTORY_ID"),
+	
+	/** 活动实例历史到達ID */
+	ACTIVITYHISTORY_ARRIVEDTIME (
+			"BPM_ACTIVITYHISTORY.ARRIVEDTIME"),
+
+
+	/** 活动实例历史所属流程定义UUID */
+	ACTIVITYHISTORY_PROCESSDEF_ID (
+			"BPM_ACTIVITYHISTORY.PROCESSDEF_ID"),
+	
+	/** 活动实例历史所属活动定义UUID */
+	ACTIVITYHISTORY_ACTIVITYDEF_ID (
+			"BPM_ACTIVITYHISTORY.ACTIVITYDEF_ID"),
+	
+	/** 活动实例历史处理方式 */
+	ACTIVITYHISTORY_DEALMETHOD(
+			"BPM_ACTIVITYHISTORY.DEALMETHOD"),
+	
+	/** 活动实例历史定义UUID */
+	ACTIVITYHISTORY_HISTORY_ID(
+			"BPM_ACTIVITYHISTORY.ACTIVITYHISTORY_ID"),
+	
+	
+	/** 活动实例历史流程实例UUID */
+	ACTIVITYHISTORY_PROCESSINST_ID(
+			"BPM_ACTIVITYHISTORY.PROCESSINST_ID"),
+
+
+	// 流程定义监控人表（RT_PROCESSDEF_SUPERVISOR）
+	/** 流程定义版本表UUID */
+	PROCESSDEF_SUPERVISOR_VERSION_ID (
+			"RT_PROCESSDEF_SUPERVISOR.PROCESSDEF_VERSION_ID"),
+
+	/** 流程定义版本所属流程UUID */
+	PROCESSDEF_SUPERVISOR_PROCESSDEF_ID (
+			"RT_PROCESSDEF_SUPERVISOR.PROCESSDEF_ID"),
+
+	/** 监控人ID */
+	PROCESSDEF_SUPERVISOR_SUPERVISOR_ID (
+			"RT_PROCESSDEF_SUPERVISOR.SUPERVISOR_ID");
+
+
+	private BPMConditionKey(String conditionKey) {
+		this.conditionKey = conditionKey;
+	}
+
+	public String  getValue(){
+		return conditionKey;
+	}
+
+	private String conditionKey;
+
+}

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>ooder-bpm-web</artifactId>
+    <groupId>net.ooder</groupId>
+    <name>ooder-bpm-web</name>
+    <description>Ooder BPM workflow web module - Web to BPMServer interaction driver</description>
+
+    <parent>
+        <groupId>net.ooder</groupId>
+        <artifactId>ooder-common-all</artifactId>
+        <version>3.0.1</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <dependencies>
+        <!-- Core dependencies -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-common-client</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- Server dependency for HTTP interaction -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-server</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- VFS for file operations -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-vfs-web</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- Index service for BPM search -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-index-web</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- Database support -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-database</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- IoT web client for Device/Command support -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-iot-webclient</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- ooder-annotation for esd types (ViewType, ComboInputType, etc.) -->
+        <dependency>
+            <groupId>net.ooder</groupId>
+            <artifactId>ooder-annotation</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <!-- Spring context -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <!-- Jakarta Servlet API -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <source>21</source>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                    <failOnError>false</failOnError>
+                    <charset>UTF-8</charset>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
