@@ -14,17 +14,17 @@ import java.util.Map;
  * <h3>使用示例</h3>
  * <pre>
  * public class ConfirmJoinExecutor implements ActivationStepExecutor {
- *     @Override
+ *     &#64;Override
  *     public String getStepType() {
  *         return "CONFIRM_JOIN";
  *     }
  *     
- *     @Override
+ *     &#64;Override
  *     public boolean canExecute(ActivationStepConfig stepConfig) {
  *         return true;
  *     }
  *     
- *     @Override
+ *     &#64;Override
  *     public StepResult execute(ActivationStepConfig stepConfig, 
  *                              ActivationProcess process,
  *                              Map&lt;String, Object&gt; context) {
@@ -35,7 +35,7 @@ import java.util.Map;
  * </pre>
  *
  * @author Ooder Team
- * @version 2.3.1
+ * @version 3.1.0
  * @since 2.3.1
  */
 public interface ActivationStepExecutor {
@@ -66,6 +66,17 @@ public interface ActivationStepExecutor {
     StepResult execute(ActivationStepConfig stepConfig, 
                        ActivationProcess process, 
                        Map<String, Object> context);
+    
+    /**
+     * 是否支持自动执行
+     * 
+     * <p>如果返回 true，则在自动激活模式下会自动执行此步骤</p>
+     * 
+     * @return true 如果支持自动执行
+     */
+    default boolean supportsAutoExecute() {
+        return false;
+    }
     
     /**
      * 步骤执行结果

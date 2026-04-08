@@ -26,4 +26,37 @@ public enum LogLevel {
     public boolean isAtLeast(LogLevel level) {
         return this.severity >= level.severity;
     }
+    
+    public static LogLevel fromCode(String code) {
+        if (code == null) {
+            return null;
+        }
+        for (LogLevel level : values()) {
+            if (level.name().equalsIgnoreCase(code)) {
+                return level;
+            }
+        }
+        return INFO;
+    }
+    
+    public static LogLevel fromCode(String code, LogLevel defaultValue) {
+        if (code == null) {
+            return defaultValue;
+        }
+        for (LogLevel level : values()) {
+            if (level.name().equalsIgnoreCase(code)) {
+                return level;
+            }
+        }
+        return defaultValue;
+    }
+    
+    public static LogLevel fromSeverity(int severity) {
+        for (LogLevel level : values()) {
+            if (level.severity == severity) {
+                return level;
+            }
+        }
+        return INFO;
+    }
 }

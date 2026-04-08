@@ -29,6 +29,8 @@ public class InstalledSkill {
     private boolean autoStart;
     private long healthCheckInterval;
     private long lastHealthCheckTime;
+    private String category;
+    private SkillForm form;
     
     public String getSkillId() {
         return skillId;
@@ -212,6 +214,30 @@ public class InstalledSkill {
 
     public void setLastHealthCheckTime(long lastHealthCheckTime) {
         this.lastHealthCheckTime = lastHealthCheckTime;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public SkillForm getForm() {
+        return form;
+    }
+
+    public void setForm(SkillForm form) {
+        this.form = form;
+    }
+
+    /**
+     * 获取技能形态的字符串表示
+     * @return skillForm 字符串，如果 form 为 null 则返回 null
+     */
+    public String getSkillForm() {
+        return form != null ? form.name() : null;
     }
 
     /**

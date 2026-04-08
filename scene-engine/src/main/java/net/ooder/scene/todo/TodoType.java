@@ -46,6 +46,18 @@ public enum TodoType {
                 return type;
             }
         }
-        return null;
+        return REMINDER;
+    }
+    
+    public static TodoType fromCode(String code, TodoType defaultValue) {
+        if (code == null) {
+            return defaultValue;
+        }
+        for (TodoType type : values()) {
+            if (type.code.equals(code)) {
+                return type;
+            }
+        }
+        return defaultValue;
     }
 }

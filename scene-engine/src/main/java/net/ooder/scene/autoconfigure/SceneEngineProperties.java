@@ -210,12 +210,37 @@ public class SceneEngineProperties {
     public static class VectorStoreProperties {
         private String type = "memory";
         private int dimension = 1536;
+        private String metricType = "COSINE";
+
+        private String milvusHost = "localhost";
+        private int milvusPort = 19530;
+        private String milvusDatabase = "default";
+        private String milvusCollection = "knowledge_vectors";
+        private String milvusToken;
 
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
 
         public int getDimension() { return dimension; }
         public void setDimension(int dimension) { this.dimension = dimension; }
+
+        public String getMetricType() { return metricType; }
+        public void setMetricType(String metricType) { this.metricType = metricType; }
+
+        public String getMilvusHost() { return milvusHost; }
+        public void setMilvusHost(String milvusHost) { this.milvusHost = milvusHost; }
+
+        public int getMilvusPort() { return milvusPort; }
+        public void setMilvusPort(int milvusPort) { this.milvusPort = milvusPort; }
+
+        public String getMilvusDatabase() { return milvusDatabase; }
+        public void setMilvusDatabase(String milvusDatabase) { this.milvusDatabase = milvusDatabase; }
+
+        public String getMilvusCollection() { return milvusCollection; }
+        public void setMilvusCollection(String milvusCollection) { this.milvusCollection = milvusCollection; }
+
+        public String getMilvusToken() { return milvusToken; }
+        public void setMilvusToken(String milvusToken) { this.milvusToken = milvusToken; }
     }
 
     /**

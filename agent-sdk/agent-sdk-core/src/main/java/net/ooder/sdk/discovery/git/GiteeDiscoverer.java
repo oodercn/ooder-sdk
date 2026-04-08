@@ -2,6 +2,9 @@ package net.ooder.sdk.discovery.git;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import net.ooder.skills.api.SkillForm;
+import net.ooder.skills.api.SkillManifest;
 import net.ooder.skills.api.SkillPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +38,13 @@ public class GiteeDiscoverer implements GitRepositoryDiscoverer {
 
     private final GitDiscoveryConfig config;
     private final ObjectMapper objectMapper;
+    private final ObjectMapper yamlMapper;
     private final ConcurrentHashMap<String, CacheEntry> cache;
 
     public GiteeDiscoverer(GitDiscoveryConfig config) {
         this.config = config;
         this.objectMapper = new ObjectMapper();
+        this.yamlMapper = new ObjectMapper(new YAMLFactory());
         this.cache = new ConcurrentHashMap<>();
     }
 
@@ -330,11 +335,43 @@ public class GiteeDiscoverer implements GitRepositoryDiscoverer {
             pkg.setSkillId(dir.getName());
             pkg.setName(dir.getName());
             pkg.setSource(config.getPlatform());
-            
+
+            // 获取并解析 skill-manifest.yaml 以读取 spec.skillForm
+            String manifestContent = getSkillManifestContent(owner, dir.getName()).get();
+            if (manifestContent != null && !manifestContent.isEmpty()) {
+                try {
+                    SkillManifest manifest = yamlMapper.readValue(manifestContent, SkillManifest.class);
+
+                    // 从 manifest 中读取 skillType (spec.skillForm) 并转换为 SkillForm
+                    String skillType = manifest.getSkillType();
+                    if (skillType != null && !skillType.isEmpty()) {
+                        SkillForm form = SkillForm.fromCode(skillType);
+                        if (form != null) {
+                            pkg.setForm(form);
+                            logger.debug("Loaded spec.skillForm: {} for skill: {}", skillType, pkg.getSkillId());
+                        } else {
+                            logger.warn("Unknown skillForm '{}' for skill: {}, using default", skillType, pkg.getSkillId());
+                        }
+                    } else {
+                        logger.warn("Skill {} has no spec.skillForm, using fallback inference", pkg.getSkillId());
+                    }
+
+                    // 从 manifest 中读取其他元数据
+                    if (manifest.getDescription() != null) {
+                        pkg.setDescription(manifest.getDescription());
+                    }
+                    if (manifest.getTags() != null) {
+                        pkg.setTags(manifest.getTags());
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to parse skill-manifest.yaml for {}/{}: {}", owner, dir.getName(), e.getMessage());
+                }
+            }
+
             if (config.isSingleRepoMode()) {
-                pkg.setDownloadUrl(config.getWebBaseUrl() + "/" + owner + "/" + config.getSkillsRepo() 
+                pkg.setDownloadUrl(config.getWebBaseUrl() + "/" + owner + "/" + config.getSkillsRepo()
                     + "/repository/archive/master.zip");
-                
+
                 ReleaseInfo latestRelease = getLatestRelease(owner, config.getSkillsRepo()).get();
                 if (latestRelease != null) {
                     pkg.setVersion(latestRelease.getTagName());
@@ -351,9 +388,9 @@ public class GiteeDiscoverer implements GitRepositoryDiscoverer {
                     pkg.setVersion("latest");
                 }
             } else {
-                pkg.setDownloadUrl(config.getWebBaseUrl() + "/" + owner + "/" + dir.getName() 
+                pkg.setDownloadUrl(config.getWebBaseUrl() + "/" + owner + "/" + dir.getName()
                     + "/repository/archive/master.zip");
-                
+
                 ReleaseInfo latestRelease = getLatestRelease(owner, dir.getName()).get();
                 if (latestRelease != null) {
                     pkg.setVersion(latestRelease.getTagName());
@@ -367,6 +404,7 @@ public class GiteeDiscoverer implements GitRepositoryDiscoverer {
                 }
             }
 
+            logger.debug("Built skill package: {} v{}, form: {}", pkg.getSkillId(), pkg.getVersion(), pkg.getForm());
             return pkg;
         } catch (Exception e) {
             logger.error("Failed to build skill package for {}/{}", owner, dir.getName(), e);

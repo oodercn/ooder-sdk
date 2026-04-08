@@ -5,6 +5,7 @@ import java.util.Map;
 public class LogStatistics {
 
     private long totalCount;
+    private long successCount;
     private long errorCount;
     private long warnCount;
     private long infoCount;
@@ -17,6 +18,9 @@ public class LogStatistics {
 
     public long getTotalCount() { return totalCount; }
     public void setTotalCount(long totalCount) { this.totalCount = totalCount; }
+
+    public long getSuccessCount() { return successCount; }
+    public void setSuccessCount(long successCount) { this.successCount = successCount; }
 
     public long getErrorCount() { return errorCount; }
     public void setErrorCount(long errorCount) { this.errorCount = errorCount; }

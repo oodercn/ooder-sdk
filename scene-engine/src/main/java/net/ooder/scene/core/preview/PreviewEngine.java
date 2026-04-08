@@ -75,7 +75,7 @@ public class PreviewEngine {
      */
     private BasicInfoPreview previewBasicInfo(SkillPackage skillPackage) {
         BasicInfoPreview preview = new BasicInfoPreview();
-        
+
         Map<String, Object> metadata = skillPackage.getMetadata();
         if (metadata != null) {
             preview.setName((String) metadata.getOrDefault("name", skillPackage.getSkillId()));
@@ -83,10 +83,12 @@ public class PreviewEngine {
             preview.setDescription((String) metadata.get("description"));
             preview.setVersion((String) metadata.getOrDefault("version", "1.0.0"));
             preview.setType((String) metadata.get("type"));
-            preview.setCategory((String) metadata.get("category"));
             preview.setAuthor((String) metadata.get("author"));
             preview.setTags((List<String>) metadata.get("tags"));
         }
+
+        // V3规范：使用 SDK 的 getCategory() 方法（已处理 spec.capability.category 优先级）
+        preview.setCategory(skillPackage.getCategory());
 
         preview.setSkillId(skillPackage.getSkillId());
         preview.setInstallSize(estimateSize(skillPackage));

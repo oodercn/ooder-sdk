@@ -113,6 +113,8 @@ public abstract class LogFactory {
      */
     protected static Map factories = new HashMap();
 
+    private static volatile LogFactory mockFactory = null;
+
     // --------------------------------------------------------- Static Methods
 
     /**
@@ -121,6 +123,10 @@ public abstract class LogFactory {
      *  available or cannot be instantiated.
      */
     public static LogFactory getFactory(final String configKey) throws LogConfigurationException {
+
+        if (mockFactory != null) {
+            return mockFactory;
+        }
 
         // Identify the class loader we will be using
         ClassLoader contextClassLoader = (ClassLoader) AccessController.doPrivileged(new PrivilegedAction() {
@@ -386,4 +392,13 @@ public abstract class LogFactory {
 
         return (LogFactory) result;
     }
+
+    public static void setTestFactory(LogFactory factory) {
+        mockFactory = factory;
+    }
+
+    public static void clearTestFactory() {
+        mockFactory = null;
+    }
+
 }

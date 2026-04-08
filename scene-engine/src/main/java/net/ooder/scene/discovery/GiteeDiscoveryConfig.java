@@ -29,7 +29,7 @@ public class GiteeDiscoveryConfig {
     private String token;
     private String owner;
     private String repo;
-    private String branch = "main";
+    private String branch = "master";
     private String skillsPath;
     private String indexFileName = "skill-index.yaml";
     private boolean recursive = false;

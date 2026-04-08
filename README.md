@@ -1,7 +1,7 @@
 # Ooder SDK
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](https://img.shields.io/badge/Java-8+-green.svg)](https://openjdk.org/)
+[![Java](https://img.shields.io/badge/Java-21+-green.svg)](https://openjdk.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.6+-blue.svg)](https://maven.apache.org/)
 
 Ooder Agent 平台软件开发工具包，包含 Agent SDK、通用组件和场景引擎。
@@ -10,16 +10,15 @@ Ooder Agent 平台软件开发工具包，包含 Agent SDK、通用组件和场�
 
 ```
 ooder-sdk/
-├── agent-sdk/              # Agent SDK 核心模块 (v2.3.1)
-│   ├── agent-sdk-api/      # API 接口层
+├── agent-sdk/              # Agent SDK 核心模块 (v3.0.2)
 │   ├── agent-sdk-core/     # 核心实现层
+│   ├── agent-sdk-spring-boot-starter/ # Spring Boot Starter
 │   ├── skills-framework/   # Skills 框架
-│   ├── llm-sdk-api/        # LLM SDK API
 │   └── llm-sdk/            # LLM SDK 实现
-├── ooder-api/              # 基础 API 接口
-├── ooder-util/             # 工具类模块
-├── ooder-annotation/       # 注解模块 (v2.3.1)
-├── ooder-common/                 # 通用组件模块 (v2.3.1)
+├── ooder-api/              # 基础 API 接口 (v3.0.2)
+├── ooder-util/             # 工具类模块 (v3.0.2)
+├── ooder-annotation/       # 注解模块 (v3.0.2)
+├── ooder-common/           # 通用组件模块 (v3.0.2)
 │   ├── ooder-config/       # 场景配置管理
 │   ├── ooder-database/     # 数据库访问层
 │   ├── ooder-common-client/# 客户端核心组件
@@ -27,18 +26,17 @@ ooder-sdk/
 │   ├── ooder-vfs-web/      # VFS Web 服务
 │   ├── ooder-org-web/      # 组织人员服务
 │   └── ooder-msg-web/      # 消息服务
-├── scene-engine/           # 场景引擎 (v2.3.1)
+├── scene-engine/           # 场景引擎 (v3.0.2)
+├── docs/                   # 文档目录
+│   └── archive/            # 归档文档
 ├── pom.xml                 # 父 POM
-├── README.md                     # 项目说明
-├── ARCHITECTURE_GUIDE.md         # 架构指南
-├── MODULE_DIVISION.md            # 模块分工
-├── DEVELOPMENT_GUIDE.md          # 二次开发手册
-├── NAVIGATION.md                 # 文档导航
-├── SKILLS_COLLABORATION.md       # Skills 协作
-├── RELEASE_NOTES_v2.3.md         # 发布说明
-├── CHANGELOG.md                  # 变更日志
-├── CONTRIBUTING.md               # 贡献指南
-└── LICENSE                       # 许可证
+├── README.md               # 项目说明
+├── ARCHITECTURE_GUIDE.md   # 架构指南
+├── DEVELOPMENT_GUIDE.md    # 二次开发手册
+├── RELEASE_NOTES_v3.0.2.md # 发布说明
+├── CHANGELOG.md            # 变更日志
+├── CONTRIBUTING.md         # 贡献指南
+└── LICENSE                 # 许可证
 ```
 
 ## 模块说明
@@ -108,26 +106,17 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，采用分层架构设
 
 ### 环境要求
 
-- JDK 8+
+- JDK 21+
 - Maven 3.6+
 
 ### 添加依赖
-
-**Agent SDK API:**
-```xml
-<dependency>
-    <groupId>net.ooder</groupId>
-    <artifactId>agent-sdk-api</artifactId>
-    <version>2.3</version>
-</dependency>
-```
 
 **Agent SDK Core:**
 ```xml
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>agent-sdk-core</artifactId>
-    <version>2.3</version>
+    <version>3.0.2</version>
 </dependency>
 ```
 
@@ -136,7 +125,7 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，采用分层架构设
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>scene-engine</artifactId>
-    <version>2.3</version>
+    <version>3.0.2</version>
 </dependency>
 ```
 
@@ -145,16 +134,16 @@ Agent SDK 是 Ooder Agent 平台的核心开发工具包，采用分层架构设
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>ooder-annotation</artifactId>
-    <version>2.3</version>
+    <version>3.0.2</version>
 </dependency>
 ```
 
-**ooder-database:**
+**Ooder Config:**
 ```xml
 <dependency>
     <groupId>net.ooder</groupId>
-    <artifactId>ooder-database</artifactId>
-    <version>2.3</version>
+    <artifactId>ooder-config</artifactId>
+    <version>3.0.2</version>
 </dependency>
 ```
 
@@ -211,6 +200,8 @@ mvn clean install
 
 | 版本 | 说明 |
 |------|------|
+| 3.0.2 | 版本统一：所有模块版本统一到 3.0.2，清理归档 |
+| 3.0.0 | 架构升级：Java 21、Spring Boot 3.2、模块重构 |
 | 2.3 | 架构重构：agent-sdk 拆分为 api/core/skills-framework/llm-sdk 模块 |
 | 2.2 | ooder-common 和 ooder-annotation 版本升级 |
 | 1.0.0 | 统一 SDK 发布 |
@@ -219,14 +210,15 @@ mvn clean install
 
 | 模块 | 版本 |
 |------|------|
-| agent-sdk-api | 2.3 |
-| agent-sdk-core | 2.3 |
-| skills-framework | 2.3 |
-| llm-sdk-api | 2.3 |
-| llm-sdk | 2.3 |
-| ooder-annotation | 2.3 |
-| ooder-common-all | 2.3 |
-| scene-engine | 2.3 |
+| agent-sdk-core | 3.0.2 |
+| skills-framework | 3.0.2 |
+| llm-sdk | 3.0.2 |
+| ooder-api | 3.0.2 |
+| ooder-util | 3.0.2 |
+| ooder-annotation | 3.0.2 |
+| ooder-common-all | 3.0.2 |
+| ooder-config | 3.0.2 |
+| scene-engine | 3.0.2 |
 
 详细变更请参阅 [CHANGELOG.md](CHANGELOG.md)
 
@@ -235,11 +227,10 @@ mvn clean install
 | 文档 | 说明 | 目标读者 |
 |------|------|----------|
 | [ARCHITECTURE_GUIDE.md](ARCHITECTURE_GUIDE.md) | 架构指南、依赖关系 | 架构师 |
-| [MODULE_DIVISION.md](MODULE_DIVISION.md) | 模块详细分工、接口列表 | 开发者 |
 | [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) | 二次开发手册 | SDK 开发者 |
-| [NAVIGATION.md](NAVIGATION.md) | 完整文档导航 | 所有用户 |
 | [SKILLS_COLLABORATION.md](SKILLS_COLLABORATION.md) | Skills 协作规范 | Skills 开发者 |
-| [RELEASE_NOTES_v2.3.md](RELEASE_NOTES_v2.3.md) | v2.3 发布说明 | 所有用户 |
+| [RELEASE_NOTES_v3.0.2.md](RELEASE_NOTES_v3.0.2.md) | v3.0.2 发布说明 | 所有用户 |
+| [CHANGELOG.md](CHANGELOG.md) | 变更日志 | 所有用户 |
 
 ## 相关项目
 

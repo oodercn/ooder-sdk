@@ -435,8 +435,6 @@ public class SkillCenterDiscoverer implements SkillDiscoverer {
         pkg.setDownloadUrl(getString(data, "downloadUrl"));
         pkg.setChecksum(getString(data, "checksum"));
         pkg.setSource("skillcenter:" + endpoint);
-        pkg.setCategory(getString(data, "category"));
-        pkg.setSubCategory(getString(data, "subCategory"));
         
         Object tagsObj = data.get("tags");
         if (tagsObj instanceof String) {
@@ -470,8 +468,6 @@ public class SkillCenterDiscoverer implements SkillDiscoverer {
         manifest.setMainClass(getString(data, "mainClass"));
         manifest.setAuthor(getString(data, "author"));
         manifest.setLicense(getString(data, "license"));
-        manifest.setCategory(pkg.getCategory());
-        manifest.setSubCategory(pkg.getSubCategory());
         manifest.setTags(pkg.getTags());
         
         pkg.setManifest(manifest);

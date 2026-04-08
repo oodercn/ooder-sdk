@@ -1,37 +1,42 @@
 package net.ooder.sdk.a2a.capability;
 
+import net.ooder.skills.api.*;
+
 import java.util.*;
 
 /**
- * Skill卡片
+ * Skill卡片（统一版本）
  *
- * <p>根据Ooder-A2A规范v1.0定义的Skill能力声明卡片</p>
+ * <p>合并自 SkillCard (v2.3) 和 SkillCardV3 (v3.0)</p>
  *
  * <p>Skill卡片是Skill的元数据和能力声明，用于:</p>
  * <ul>
  *   <li>AI理解Skill的功能</li>
  *   <li>动态发现和调用Skill</li>
  *   <li>用户了解Skill的能力</li>
+ *   <li>技能形态与运行时管理</li>
  * </ul>
  *
  * @author Ooder Team
- * @version 2.3
- * @since 2.3
+ * @version 3.0.2
+ * @since 3.0.2
  */
 public class SkillCard {
 
+    // ========== 基础信息（保留） ==========
+    
     /**
      * Skill唯一标识
      */
     private String skillId;
 
     /**
-     * 显示名称
+     * 显示名称（多语言支持）
      */
     private Map<String, String> name;
 
     /**
-     * 描述
+     * 描述（多语言支持）
      */
     private Map<String, String> description;
 
@@ -50,20 +55,39 @@ public class SkillCard {
      */
     private String license;
 
+    private SkillCategory skillCategory;
+    
     /**
-     * 分类
+     * 技能形态
      */
-    private String category;
+    private SkillForm form;
+    
+    /**
+     * 场景类型
+     */
+    private SceneType sceneType;
+    
+    /**
+     * 服务目的
+     */
+    private Set<ServicePurpose> purposes;
 
     /**
      * 标签
      */
     private List<String> tags;
 
+    // ========== 能力声明（保留+扩展） ==========
+    
     /**
      * 能力列表
      */
     private List<Capability> capabilities;
+    
+    /**
+     * 能力端点列表
+     */
+    private List<CapabilityEndpoint> capabilityEndpoints;
 
     /**
      * 支持的输入格式
@@ -80,6 +104,8 @@ public class SkillCard {
      */
     private List<String> authMethods;
 
+    // ========== UI 和端点（保留） ==========
+    
     /**
      * UI配置
      */
@@ -90,17 +116,51 @@ public class SkillCard {
      */
     private EndpointInfo endpoint;
 
+    // ========== Agent 信息（新增） ==========
+    
+    /**
+     * Agent ID
+     */
+    private String agentId;
+    
+    /**
+     * Agent 端点地址（A2A 通信用）
+     */
+    private String agentEndpoint;
+
+    // ========== 状态管理（新增） ==========
+    
+    /**
+     * 技能状态
+     */
+    private SkillStatus status;
+    
+    /**
+     * 最后心跳时间
+     */
+    private long lastHeartbeat;
+
+    // ========== 元数据（保留） ==========
+    
+    /**
+     * 元数据
+     */
+    private Map<String, Object> metadata;
+
     public SkillCard() {
         this.name = new HashMap<>();
         this.description = new HashMap<>();
         this.tags = new ArrayList<>();
         this.capabilities = new ArrayList<>();
+        this.capabilityEndpoints = new ArrayList<>();
         this.inputFormats = new ArrayList<>();
         this.outputFormats = new ArrayList<>();
         this.authMethods = new ArrayList<>();
+        this.purposes = new HashSet<>();
+        this.metadata = new HashMap<>();
     }
 
-    // ==================== 便捷方法 ====================
+    // ==================== 便捷方法（保留） ====================
 
     /**
      * 添加名称（多语言）
@@ -135,6 +195,29 @@ public class SkillCard {
      */
     public void addCapability(Capability capability) {
         this.capabilities.add(capability);
+    }
+    
+    /**
+     * 添加能力端点
+     */
+    public void addCapabilityEndpoint(CapabilityEndpoint endpoint) {
+        this.capabilityEndpoints.add(endpoint);
+    }
+
+    // ==================== 便捷方法（新增） ====================
+    
+    /**
+     * 是否为场景技能
+     */
+    public boolean isScene() {
+        return form == SkillForm.SCENE;
+    }
+    
+    /**
+     * 是否可自驱动
+     */
+    public boolean canSelfDrive() {
+        return isScene() && sceneType != null && sceneType.canSelfDrive();
     }
 
     // ==================== Getters and Setters ====================
@@ -187,12 +270,36 @@ public class SkillCard {
         this.license = license;
     }
 
-    public String getCategory() {
-        return category;
+    public SkillCategory getSkillCategory() {
+        return skillCategory;
     }
-
-    public void setCategory(String category) {
-        this.category = category;
+    
+    public void setSkillCategory(SkillCategory skillCategory) {
+        this.skillCategory = skillCategory;
+    }
+    
+    public SkillForm getForm() {
+        return form;
+    }
+    
+    public void setForm(SkillForm form) {
+        this.form = form;
+    }
+    
+    public SceneType getSceneType() {
+        return sceneType;
+    }
+    
+    public void setSceneType(SceneType sceneType) {
+        this.sceneType = sceneType;
+    }
+    
+    public Set<ServicePurpose> getPurposes() {
+        return purposes;
+    }
+    
+    public void setPurposes(Set<ServicePurpose> purposes) {
+        this.purposes = purposes;
     }
 
     public List<String> getTags() {
@@ -209,6 +316,14 @@ public class SkillCard {
 
     public void setCapabilities(List<Capability> capabilities) {
         this.capabilities = capabilities;
+    }
+    
+    public List<CapabilityEndpoint> getCapabilityEndpoints() {
+        return capabilityEndpoints;
+    }
+    
+    public void setCapabilityEndpoints(List<CapabilityEndpoint> capabilityEndpoints) {
+        this.capabilityEndpoints = capabilityEndpoints;
     }
 
     public List<String> getInputFormats() {
@@ -250,6 +365,46 @@ public class SkillCard {
     public void setEndpoint(EndpointInfo endpoint) {
         this.endpoint = endpoint;
     }
+    
+    public String getAgentId() {
+        return agentId;
+    }
+    
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
+    
+    public String getAgentEndpoint() {
+        return agentEndpoint;
+    }
+    
+    public void setAgentEndpoint(String agentEndpoint) {
+        this.agentEndpoint = agentEndpoint;
+    }
+    
+    public SkillStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(SkillStatus status) {
+        this.status = status;
+    }
+    
+    public long getLastHeartbeat() {
+        return lastHeartbeat;
+    }
+    
+    public void setLastHeartbeat(long lastHeartbeat) {
+        this.lastHeartbeat = lastHeartbeat;
+    }
+    
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+    
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
 
     @Override
     public String toString() {
@@ -257,7 +412,8 @@ public class SkillCard {
                 "skillId='" + skillId + '\'' +
                 ", name=" + name +
                 ", version='" + version + '\'' +
-                ", category='" + category + '\'' +
+                ", form=" + form +
+                ", skillCategory=" + skillCategory +
                 ", capabilities=" + capabilities.size() +
                 '}';
     }

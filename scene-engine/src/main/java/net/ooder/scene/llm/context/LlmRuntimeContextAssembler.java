@@ -2,6 +2,8 @@ package net.ooder.scene.llm.context;
 
 import net.ooder.scene.discovery.UnifiedSkillRegistry;
 import net.ooder.scene.llm.knowledge.SkillsMdLoader;
+import net.ooder.scene.llm.session.LlmSessionMessage;
+import net.ooder.scene.llm.session.LlmSessionService;
 import net.ooder.skills.api.SkillPackage;
 
 import org.slf4j.Logger;
@@ -44,13 +46,23 @@ import java.util.concurrent.CompletableFuture;
 public class LlmRuntimeContextAssembler {
 
     private static final Logger log = LoggerFactory.getLogger(LlmRuntimeContextAssembler.class);
+    
+    private static final int DEFAULT_HISTORY_LIMIT = 50;
 
     private final UnifiedSkillRegistry skillRegistry;
     private final SkillsMdLoader skillsMdLoader;
+    private final LlmSessionService sessionService;
 
     public LlmRuntimeContextAssembler(UnifiedSkillRegistry skillRegistry) {
         this.skillRegistry = skillRegistry;
         this.skillsMdLoader = new SkillsMdLoader(skillRegistry);
+        this.sessionService = null;
+    }
+
+    public LlmRuntimeContextAssembler(UnifiedSkillRegistry skillRegistry, LlmSessionService sessionService) {
+        this.skillRegistry = skillRegistry;
+        this.skillsMdLoader = new SkillsMdLoader(skillRegistry);
+        this.sessionService = sessionService;
     }
 
     /**
@@ -176,14 +188,35 @@ public class LlmRuntimeContextAssembler {
      * 加载记忆上下文
      */
     private MemoryContext loadMemoryContext(String sessionId) {
-        // 从会话存储中加载记忆
-        // 这里可以实现从数据库或缓存加载历史消息
         MemoryContext memory = new MemoryContext();
         memory.setSessionId(sessionId);
         
-        // TODO: 从持久化存储加载历史消息
-        // List<Map<String, Object>> history = sessionService.getHistory(sessionId);
-        // memory.setHistory(history);
+        if (sessionId == null || sessionId.isEmpty()) {
+            return memory;
+        }
+        
+        if (sessionService != null) {
+            try {
+                List<LlmSessionMessage> messages = sessionService.getSessionMessages(sessionId, DEFAULT_HISTORY_LIMIT);
+                
+                for (LlmSessionMessage msg : messages) {
+                    Map<String, Object> historyItem = new HashMap<>();
+                    historyItem.put("role", msg.getRole().name().toLowerCase());
+                    historyItem.put("content", msg.getContent());
+                    historyItem.put("timestamp", msg.getTimestamp());
+                    
+                    if (msg.getMetadata() != null && !msg.getMetadata().isEmpty()) {
+                        historyItem.put("metadata", msg.getMetadata());
+                    }
+                    
+                    memory.getHistoryList().add(historyItem);
+                }
+                
+                log.debug("Loaded {} history messages for session: {}", messages.size(), sessionId);
+            } catch (Exception e) {
+                log.warn("Failed to load history for session {}: {}", sessionId, e.getMessage());
+            }
+        }
         
         return memory;
     }

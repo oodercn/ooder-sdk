@@ -97,17 +97,40 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class JDSServer implements Runnable {
 
-    private static final Classpath classPath = new Classpath(System.getProperty("java.class.path"));
-    private static final Log logger = LogFactory.getLog(JDSConstants.CONFIG_KEY, JDSServer.class);
-
-    static {
-        // load the config director
+    private static volatile boolean mockMode = false;
+    private static volatile boolean initialized = false;
+    private static final Object INIT_LOCK = new Object();
+    
+    private static Classpath classPath;
+    private static Log logger;
+    
+    private static void ensureInitialized() {
+        if (!initialized && !mockMode) {
+            synchronized (INIT_LOCK) {
+                if (!initialized && !mockMode) {
+                    doInitialize();
+                    initialized = true;
+                }
+            }
+        }
+    }
+    
+    private static void doInitialize() {
+        classPath = new Classpath(System.getProperty("java.class.path"));
         classPath.addComponent(Config.libPath());
         if (Config.libPath().exists() && Config.libPath().isDirectory()) {
             loadLibs(Config.libPath());
         }
         initPoolClassPah(Config.rootServerHome());
         System.setProperty("java.class.path", classPath.toString());
+        logger = LogFactory.getLog(JDSConstants.CONFIG_KEY, JDSServer.class);
+    }
+    
+    private static Log getLogger() {
+        if (logger == null) {
+            logger = LogFactory.getLog(JDSConstants.CONFIG_KEY, JDSServer.class);
+        }
+        return logger;
     }
 
     private final static SerializeConfig config = new SerializeConfig();
@@ -208,6 +231,7 @@ public class JDSServer implements Runnable {
      * @throws JDSException
      */
     public static JDSServer getInstance() throws JDSException {
+        ensureInitialized();
         if (instance == null) {
             synchronized (THREAD_LOCK) {
                 if (instance == null) {
@@ -1400,5 +1424,26 @@ public class JDSServer implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void setMockMode(boolean mode) {
+        mockMode = mode;
+        if (mode) {
+            initialized = true;
+            if (logger == null) {
+                logger = LogFactory.getLog(JDSConstants.CONFIG_KEY, JDSServer.class);
+            }
+        }
+    }
+
+    public static boolean isMockMode() {
+        return mockMode;
+    }
+    
+    public static void reset() {
+        mockMode = false;
+        initialized = false;
+        classPath = null;
+        logger = null;
     }
 }

@@ -61,6 +61,11 @@ public class TodoDTO {
         this.type = type;
     }
     
+    @Deprecated
+    public String getTypeCode() {
+        return type != null ? type.getCode() : null;
+    }
+    
     public String getTitle() {
         return title;
     }
@@ -83,6 +88,11 @@ public class TodoDTO {
     
     public void setStatus(TodoStatus status) {
         this.status = status;
+    }
+    
+    @Deprecated
+    public String getStatusCode() {
+        return status != null ? status.getCode() : null;
     }
     
     public String getPriority() {

@@ -1,6 +1,8 @@
 
 package net.ooder.skills.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +13,7 @@ import java.util.Map;
  * @author ooder
  * @since 2.3
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Capability {
     
     private String capId;
@@ -183,6 +186,7 @@ public class Capability {
     /**
      * 自驱入口配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MainFirstConfig {
         private List<SelfCheck> selfChecks;
         private List<SelfStart> selfStarts;
@@ -204,6 +208,7 @@ public class Capability {
     /**
      * 自检配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SelfCheck {
         private String checkType;
         private java.util.Map<String, Object> params;
@@ -217,6 +222,7 @@ public class Capability {
     /**
      * 自启配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SelfStart {
         private String startType;
         private java.util.Map<String, Object> params;
@@ -230,6 +236,7 @@ public class Capability {
     /**
      * 自驱配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SelfDriveConfig {
         private String driveMode;
         private long interval;
@@ -246,6 +253,7 @@ public class Capability {
     /**
      * 协作启动配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CollaborationStart {
         private String collaborativeCapabilityId;
         private java.util.Map<String, Object> initParams;
@@ -261,6 +269,7 @@ public class Capability {
     /**
      * 协作能力引用
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CollaborativeCapabilityRef {
         private String capabilityId;
         private String role;
@@ -277,6 +286,7 @@ public class Capability {
     /**
      * 能力链定义
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CapabilityChain {
         private String chainId;
         private String name;

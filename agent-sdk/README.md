@@ -1,11 +1,11 @@
-# Ooder Agent SDK 3.0.0
+# Ooder Agent SDK 3.0.1
 
-[![Maven Central](https://img.shields.io/badge/Maven%20Central-v3.0.0-blue)](https://central.sonatype.com/artifact/net.ooder/agent-sdk)
+[![Maven Central](https://img.shields.io/badge/Maven%20Central-v3.0.1-blue)](https://central.sonatype.com/artifact/net/ooder/agent-sdk)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-21%2B-orange)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.1-brightgreen)](https://spring.io/projects/spring-boot)
 
-> **重要变更**: 3.0.0 版本已升级到 JDK 21 和 Spring Boot 3.x，并新增 Spring Boot Starter 支持。
+> **重要变更**: 3.0.1 版本修复了 `GitRepositoryDiscovererAdapter` 占位实现问题，完成 Gitee/GitHub API 集成。
 
 ## 简介
 
@@ -16,7 +16,7 @@ Ooder Agent SDK 是一个面向南向协议实现的轻量级 Agent SDK，提供
 ### 1. 模块化设计
 
 ```
-agent-sdk (父工程) 3.0.0
+agent-sdk (父工程) 3.0.1
 ├── llm-sdk                              # LLM SDK
 ├── skills-framework                     # 技能框架
 ├── agent-sdk-core                       # 核心实现
@@ -55,7 +55,7 @@ agent-sdk (父工程) 3.0.0
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>agent-sdk-spring-boot-starter</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 ```
 
@@ -97,7 +97,7 @@ public void executeTask() {
 <dependency>
     <groupId>net.ooder</groupId>
     <artifactId>agent-sdk-core</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 ```
 
@@ -205,7 +205,15 @@ mvn clean deploy -DskipTests
 
 ## 版本历史
 
-### 3.0.0 (当前版本)
+### 3.0.1 (当前版本)
+
+- **GitRepositoryDiscovererAdapter 修复** - 完成 Gitee/GitHub API 集成
+  - 实现所有发现方法的实际功能
+  - 添加缓存机制
+  - 完善错误处理
+  - 添加单元测试
+
+### 3.0.0
 
 - **JDK 21 升级** - 支持 JDK 21 新特性
 - **Spring Boot 3.x 升级** - 兼容 Spring Boot 3.4.1

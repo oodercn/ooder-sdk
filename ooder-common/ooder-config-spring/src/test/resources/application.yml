@@ -1,0 +1,24 @@
+ooder:
+  jds:
+    home: ${JDS_HOME:/opt/jds}
+    config-name: test-config
+  server:
+    port: 8081
+    admin:
+      enabled: true
+      port: 9090
+      key: test-admin-key
+  cluster:
+    enabled: false
+    udp:
+      enabled: true
+      port: 8087
+      code: utf-8
+  session:
+    enabled: true
+    expire-time: 30
+    check-interval: 5
+    single-login: true
+  user:
+    server-url: http://localhost:8081
+    system-code: TEST-SYSTEM

@@ -1,6 +1,7 @@
 package net.ooder.scene.group;
 
 import net.ooder.scene.capability.CapabilityBinding;
+import net.ooder.scene.llm.config.SceneLlmConfigInfo;
 import net.ooder.scene.skill.knowledge.KnowledgeBinding;
 import net.ooder.scene.participant.Participant;
 import net.ooder.scene.snapshot.SceneSnapshot;
@@ -527,6 +528,77 @@ public class SceneGroup {
     public List<SceneGroupEvent> getAllEventLog() {
         return new ArrayList<>(eventLog);
     }
+
+    /**
+     * 根据查询条件获取事件日志
+     *
+     * <p>支持按事件类型、时间范围、参与者等条件过滤。</p>
+     *
+     * @param query 查询条件
+     * @return 符合条件的事件日志列表
+     */
+    public List<SceneGroupEvent> getEventLog(EventLogQuery query) {
+        if (query == null) {
+            return getAllEventLog();
+        }
+
+        List<SceneGroupEvent> result = new ArrayList<>();
+
+        for (SceneGroupEvent event : eventLog) {
+            // 事件类型过滤
+            if (!query.includesEventType(event.getType().name())) {
+                continue;
+            }
+
+            // 时间范围过滤
+            if (!query.isInTimeRange(event.getTimestamp())) {
+                continue;
+            }
+
+            // 参与者ID过滤 (使用 relatedId 作为参与者ID)
+            if (query.getParticipantId() != null &&
+                !query.getParticipantId().equals(event.getRelatedId())) {
+                continue;
+            }
+
+            // 相关对象ID过滤
+            if (query.getRelatedId() != null &&
+                !query.getRelatedId().equals(event.getRelatedId())) {
+                continue;
+            }
+
+            // 关键词过滤 (使用 description 作为内容)
+            if (query.getKeyword() != null && !query.getKeyword().isEmpty()) {
+                String description = event.getDescription();
+                if (description == null || !description.toLowerCase().contains(query.getKeyword().toLowerCase())) {
+                    continue;
+                }
+            }
+
+            result.add(event);
+        }
+
+        // 排序
+        if (!query.isDescending()) {
+            java.util.Collections.reverse(result);
+        }
+
+        // 分页
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        if (offset > 0 || limit >= 0) {
+            int fromIndex = Math.min(offset, result.size());
+            int toIndex = limit < 0 ? result.size() : Math.min(offset + limit, result.size());
+            if (fromIndex < toIndex) {
+                result = result.subList(fromIndex, toIndex);
+            } else {
+                result = new ArrayList<>();
+            }
+        }
+
+        return result;
+    }
     
     /**
      * 记录参与者加入事件
@@ -625,7 +697,200 @@ public class SceneGroup {
     public Map<String, Object> getAllLlmConfig() {
         return new HashMap<>(llmConfig);
     }
-    
+
+    /**
+     * 设置结构化LLM配置
+     *
+     * <p>将 {@link SceneLlmConfigInfo} 对象转换为 Map 存储。</p>
+     *
+     * @param config LLM 配置信息
+     */
+    public void setLlmConfig(SceneLlmConfigInfo config) {
+        if (config == null) {
+            return;
+        }
+        if (config.getProvider() != null) {
+            llmConfig.put("provider", config.getProvider());
+        }
+        if (config.getModel() != null) {
+            llmConfig.put("model", config.getModel());
+        }
+        llmConfig.put("temperature", config.getTemperature());
+        llmConfig.put("maxTokens", config.getMaxTokens());
+        llmConfig.put("timeout", config.getTimeout());
+        if (config.getExtensions() != null && !config.getExtensions().isEmpty()) {
+            llmConfig.putAll(config.getExtensions());
+        }
+        updateTime();
+    }
+
+    /**
+     * 获取结构化LLM配置
+     *
+     * @return LLM 配置信息
+     */
+    public SceneLlmConfigInfo getLlmConfigInfo() {
+        SceneLlmConfigInfo config = new SceneLlmConfigInfo();
+        config.setSceneGroupId(this.sceneGroupId);
+        config.setProvider((String) llmConfig.get("provider"));
+        config.setModel((String) llmConfig.get("model"));
+
+        Object temperature = llmConfig.get("temperature");
+        if (temperature instanceof Number) {
+            config.setTemperature(((Number) temperature).doubleValue());
+        }
+
+        Object maxTokens = llmConfig.get("maxTokens");
+        if (maxTokens instanceof Number) {
+            config.setMaxTokens(((Number) maxTokens).intValue());
+        }
+
+        Object timeout = llmConfig.get("timeout");
+        if (timeout instanceof Number) {
+            config.setTimeout(((Number) timeout).longValue());
+        }
+
+        // 收集扩展配置
+        Map<String, Object> extensions = new HashMap<>();
+        for (Map.Entry<String, Object> entry : llmConfig.entrySet()) {
+            String key = entry.getKey();
+            if (!key.equals("provider") && !key.equals("model") &&
+                !key.equals("temperature") && !key.equals("maxTokens") &&
+                !key.equals("timeout")) {
+                extensions.put(key, entry.getValue());
+            }
+        }
+        config.setExtensions(extensions);
+
+        return config;
+    }
+
+    /**
+     * 重置LLM配置为默认值
+     */
+    public void resetLlmConfig() {
+        llmConfig.clear();
+        updateTime();
+    }
+
+    // ========== 快照管理 ==========
+
+    /**
+     * 创建快照
+     *
+     * <p>保存场景组当前状态的快照。</p>
+     *
+     * @param name 快照名称
+     * @param description 快照描述
+     * @return 创建的快照
+     */
+    public SceneSnapshot createSnapshot(String name, String description) {
+        // 使用快照管理器创建快照
+        // 注意：实际实现需要通过 SceneSnapshotManager
+        SceneSnapshot snapshot = new SceneSnapshot();
+        snapshot.setSnapshotId(java.util.UUID.randomUUID().toString().replace("-", ""));
+        snapshot.setSceneGroupId(this.sceneGroupId);
+        snapshot.setName(name);
+        snapshot.setDescription(description);
+        snapshot.setStatus(net.ooder.scene.snapshot.SnapshotStatus.ACTIVE);
+        snapshot.setCreateTime(java.time.LocalDateTime.now());
+
+        // 捕获当前状态
+        captureSnapshotState(snapshot);
+
+        return snapshot;
+    }
+
+    /**
+     * 从快照恢复
+     *
+     * <p>将场景组恢复到指定快照的状态。</p>
+     *
+     * @param snapshot 要恢复的快照
+     * @return 是否成功
+     */
+    public boolean restoreFromSnapshot(SceneSnapshot snapshot) {
+        if (snapshot == null || !snapshot.isAvailable()) {
+            return false;
+        }
+
+        // 恢复元数据
+        if (snapshot.getMetadata() != null) {
+            Object name = snapshot.getMetadata().get("name");
+            if (name != null) {
+                this.name = name.toString();
+            }
+            Object desc = snapshot.getMetadata().get("description");
+            if (desc != null) {
+                this.description = desc.toString();
+            }
+        }
+
+        // 恢复参与者
+        if (snapshot.getParticipants() != null) {
+            this.participants.clear();
+            for (net.ooder.scene.snapshot.ParticipantSnapshot ps : snapshot.getParticipants()) {
+                Participant p = new Participant(ps.getParticipantId(), ps.getUserId(), 
+                    ps.getUserId(), Participant.Type.USER);
+                try {
+                    p.setRole(Participant.Role.valueOf(ps.getRole()));
+                } catch (IllegalArgumentException e) {
+                    p.setRole(Participant.Role.EMPLOYEE);
+                }
+                // 状态通过 activate 方法设置
+                if ("ACTIVE".equals(ps.getStatus())) {
+                    p.activate();
+                } else if ("JOINED".equals(ps.getStatus())) {
+                    p.join();
+                }
+                this.participants.add(p);
+            }
+        }
+
+        // 恢复扩展配置
+        if (snapshot.getExtendedConfig() != null) {
+            this.config.clear();
+            this.config.putAll(snapshot.getExtendedConfig());
+        }
+
+        updateTime();
+        return true;
+    }
+
+    /**
+     * 捕获快照状态
+     */
+    private void captureSnapshotState(SceneSnapshot snapshot) {
+        // 元数据
+        java.util.Map<String, Object> metadata = new java.util.HashMap<>();
+        metadata.put("name", this.name);
+        metadata.put("description", this.description);
+        metadata.put("status", this.status);
+        metadata.put("templateId", this.templateId);
+        snapshot.setMetadata(metadata);
+
+        // 参与者
+        java.util.List<net.ooder.scene.snapshot.ParticipantSnapshot> participantSnapshots =
+            new java.util.ArrayList<>();
+        for (Participant p : this.participants) {
+            net.ooder.scene.snapshot.ParticipantSnapshot ps =
+                new net.ooder.scene.snapshot.ParticipantSnapshot();
+            ps.setParticipantId(p.getParticipantId());
+            ps.setUserId(p.getUserId());
+            ps.setRole(p.getRole().name());
+            ps.setStatus(p.getStatus().name());
+            // joinTime 是 Instant 类型，需要转换为时间戳
+            if (p.getJoinTime() != null) {
+                ps.setJoinTime(p.getJoinTime().toEpochMilli());
+            }
+            participantSnapshots.add(ps);
+        }
+        snapshot.setParticipants(participantSnapshots);
+
+        // 扩展配置
+        snapshot.setExtendedConfig(new java.util.HashMap<>(this.config));
+    }
+
     // ========== 时间相关 ==========
     
     /**

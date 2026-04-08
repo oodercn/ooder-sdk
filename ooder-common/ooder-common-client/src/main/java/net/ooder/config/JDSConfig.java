@@ -62,7 +62,14 @@ public class JDSConfig {
 
     public static final String THREAD_LOCK = "Thread Lock";
 
+    private static volatile boolean testMode = false;
+    private static Properties testProps = null;
+    private static final Object TEST_LOCK = new Object();
+
     public static String getServerHome() {
+        if (testMode && jdsHome != null) {
+            return jdsHome;
+        }
         initProps();
         File rootfile = new File(getAbsolutePath("", null));
         if (jdsHome == null) {
@@ -128,6 +135,9 @@ public class JDSConfig {
     }
 
     public static String getValue(String name) {
+        if (testMode && testProps != null && testProps.getProperty(name) != null) {
+            return testProps.getProperty(name);
+        }
         init();
         if (xmlProperties != null && xmlProperties.getProperty(name) != null) {
             return xmlProperties.getProperty(name);
@@ -443,6 +453,37 @@ public class JDSConfig {
         }
 
         return classPath;
+    }
+
+    public static synchronized void initForTest(Properties props) {
+        synchronized (TEST_LOCK) {
+            testProps = props;
+            testMode = true;
+            if (jdsHome == null && props != null) {
+                jdsHome = props.getProperty(JDSHomeName, System.getProperty("java.io.tmpdir"));
+            }
+        }
+    }
+
+    public static synchronized void reset() {
+        synchronized (TEST_LOCK) {
+            testProps = null;
+            testMode = false;
+            xmlProperties = null;
+            JDSConfig.props = null;
+            jdsHome = null;
+        }
+    }
+
+    public static boolean isTestMode() {
+        return testMode;
+    }
+
+    public static void setTestValue(String key, String value) {
+        if (testProps == null) {
+            testProps = new Properties();
+        }
+        testProps.setProperty(key, value);
     }
 
 }

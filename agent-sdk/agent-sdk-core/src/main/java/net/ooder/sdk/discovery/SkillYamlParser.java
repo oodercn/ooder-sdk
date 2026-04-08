@@ -2,6 +2,7 @@ package net.ooder.sdk.discovery;
 
 import net.ooder.sdk.plugin.SkillDependency;
 import net.ooder.sdk.plugin.SkillMetadata;
+import net.ooder.skills.api.SkillCategory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -185,7 +186,14 @@ public class SkillYamlParser {
         metadata.setType(getString(yamlData, "type", "service"));
 
         // 解析分类信息（可选）
-        metadata.setCategory(getString(yamlData, "category", ""));
+        String categoryStr = getString(yamlData, "category", null);
+        if (categoryStr != null) {
+            try {
+                metadata.setSkillCategory(SkillCategory.valueOf(categoryStr.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                // 忽略无效的分类值
+            }
+        }
         metadata.setTags(getStringList(yamlData, "tags"));
 
         // 解析依赖（可选）

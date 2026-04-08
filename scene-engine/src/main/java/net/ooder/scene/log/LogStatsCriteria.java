@@ -14,6 +14,26 @@ public class LogStatsCriteria {
 
     public List<LogCategory> getCategories() { return categories; }
     public void setCategories(List<LogCategory> categories) { this.categories = categories; }
+    
+    @Deprecated
+    public void setCategoriesFromStrings(List<String> categoryCodes) {
+        if (categoryCodes != null) {
+            this.categories = categoryCodes.stream()
+                .map(LogCategory::fromCode)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toList());
+        }
+    }
+    
+    @Deprecated
+    public void setCategory(LogCategory category) {
+        this.categories = category != null ? java.util.Collections.singletonList(category) : null;
+    }
+
+    @Deprecated
+    public LogCategory getCategory() {
+        return categories != null && !categories.isEmpty() ? categories.get(0) : null;
+    }
 
     public Long getStartTime() { return startTime; }
     public void setStartTime(Long startTime) { this.startTime = startTime; }

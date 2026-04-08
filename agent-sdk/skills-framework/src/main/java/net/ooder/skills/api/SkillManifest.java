@@ -1,11 +1,35 @@
 
 package net.ooder.skills.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SkillManifest {
     
+    /**
+     * API 版本
+     */
+    private String apiVersion;
+    
+    /**
+     * 资源类型 (SkillPackage, Skill)
+     */
+    private String kind;
+    
+    /**
+     * 嵌套的 metadata 对象（Kubernetes 风格）
+     */
+    private Metadata metadata;
+    
+    /**
+     * 嵌套的 spec 对象（Kubernetes 风格）
+     */
+    private Spec spec;
+    
+    // 兼容旧格式的根级别字段
     private String skillId;
     private String name;
     private String description;
@@ -15,6 +39,7 @@ public class SkillManifest {
     private String skillType;
     private List<Capability> capabilities;
     private List<Dependency> dependencies;
+    
     /**
      * @deprecated 使用 {@link #collaborativeCapabilities} 替代
      */
@@ -57,15 +82,54 @@ public class SkillManifest {
     private String author;
     private String license;
     private String homepage;
-    private String category;
-    private String subCategory;
     private List<String> tags;
     private List<String> providedInterfaces;
     private List<String> requiredInterfaces;
     private PromptConfig prompt;
     private LlmConfig llmConfig;
     
+    // ==================== 智能 Getter 方法 ====================
+    
+    public String getApiVersion() {
+        return apiVersion;
+    }
+    
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+    }
+    
+    public String getKind() {
+        return kind;
+    }
+    
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+    
+    public Metadata getMetadata() {
+        return metadata;
+    }
+    
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
+    
+    public Spec getSpec() {
+        return spec;
+    }
+    
+    public void setSpec(Spec spec) {
+        this.spec = spec;
+    }
+    
+    /**
+     * 智能获取 skillId
+     * 优先级: metadata.id > skillId
+     */
     public String getSkillId() {
+        if (metadata != null && metadata.getId() != null) {
+            return metadata.getId();
+        }
         return skillId;
     }
     
@@ -73,7 +137,14 @@ public class SkillManifest {
         this.skillId = skillId;
     }
     
+    /**
+     * 智能获取 name
+     * 优先级: metadata.name > name
+     */
     public String getName() {
+        if (metadata != null && metadata.getName() != null) {
+            return metadata.getName();
+        }
         return name;
     }
     
@@ -81,7 +152,14 @@ public class SkillManifest {
         this.name = name;
     }
     
+    /**
+     * 智能获取 description
+     * 优先级: metadata.description > description
+     */
     public String getDescription() {
+        if (metadata != null && metadata.getDescription() != null) {
+            return metadata.getDescription();
+        }
         return description;
     }
     
@@ -89,7 +167,14 @@ public class SkillManifest {
         this.description = description;
     }
     
+    /**
+     * 智能获取 version
+     * 优先级: metadata.version > version
+     */
     public String getVersion() {
+        if (metadata != null && metadata.getVersion() != null) {
+            return metadata.getVersion();
+        }
         return version;
     }
     
@@ -113,7 +198,17 @@ public class SkillManifest {
         this.mainClass = mainClass;
     }
     
+    /**
+     * 智能获取 skillType
+     * 优先级: spec.skillForm > spec.type > skillType
+     */
     public String getSkillType() {
+        if (spec != null && spec.getSkillForm() != null) {
+            return spec.getSkillForm();
+        }
+        if (spec != null && spec.getType() != null) {
+            return spec.getType();
+        }
         return skillType;
     }
     
@@ -121,7 +216,14 @@ public class SkillManifest {
         this.skillType = skillType;
     }
     
+    /**
+     * 智能获取 capabilities
+     * 优先级: spec.capabilities > capabilities
+     */
     public List<Capability> getCapabilities() {
+        if (spec != null && spec.getCapabilities() != null) {
+            return spec.getCapabilities();
+        }
         return capabilities;
     }
     
@@ -129,7 +231,14 @@ public class SkillManifest {
         this.capabilities = capabilities;
     }
     
+    /**
+     * 智能获取 dependencies
+     * 优先级: spec.dependencies > dependencies
+     */
     public List<Dependency> getDependencies() {
+        if (spec != null && spec.getDependencies() != null) {
+            return spec.getDependencies();
+        }
         return dependencies;
     }
     
@@ -262,7 +371,17 @@ public class SkillManifest {
         this.parameters = parameters;
     }
     
+    /**
+     * 智能获取 config
+     * 优先级: spec.config > spec.configSchema > config
+     */
     public Map<String, Object> getConfig() {
+        if (spec != null && spec.getConfig() != null) {
+            return spec.getConfig();
+        }
+        if (spec != null && spec.getConfigSchema() != null) {
+            return spec.getConfigSchema();
+        }
         return config;
     }
     
@@ -270,7 +389,14 @@ public class SkillManifest {
         this.config = config;
     }
     
+    /**
+     * 智能获取 author
+     * 优先级: metadata.author > author
+     */
     public String getAuthor() {
+        if (metadata != null && metadata.getAuthor() != null) {
+            return metadata.getAuthor();
+        }
         return author;
     }
     
@@ -294,23 +420,35 @@ public class SkillManifest {
         this.homepage = homepage;
     }
     
+    /**
+     * 智能获取 category（V3规范）
+     * 优先级: spec.capability.category
+     */
     public String getCategory() {
-        return category;
+        if (spec != null && spec.getCapability() != null && 
+            spec.getCapability().getCategory() != null) {
+            return spec.getCapability().getCategory();
+        }
+        return null;
     }
     
-    public void setCategory(String category) {
-        this.category = category;
-    }
-    
+    /**
+     * 智能获取 subCategory（已废弃）
+     * @deprecated V3规范中已移除 subCategory 概念
+     */
+    @Deprecated
     public String getSubCategory() {
-        return subCategory;
+        return null;
     }
     
-    public void setSubCategory(String subCategory) {
-        this.subCategory = subCategory;
-    }
-    
+    /**
+     * 智能获取 tags
+     * 优先级: metadata.tags > tags
+     */
     public List<String> getTags() {
+        if (metadata != null && metadata.getTags() != null) {
+            return metadata.getTags();
+        }
         return tags;
     }
     
@@ -350,6 +488,111 @@ public class SkillManifest {
         this.llmConfig = llmConfig;
     }
     
+    // ==================== 嵌套类定义 ====================
+    
+    /**
+     * Metadata 嵌套类（Kubernetes 风格）
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Metadata {
+        private String id;
+        private String name;
+        private String version;
+        private String description;
+        private String author;
+        private String type;
+        private String icon;
+        private List<String> tags;
+        
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getVersion() { return version; }
+        public void setVersion(String version) { this.version = version; }
+        
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        
+        public String getAuthor() { return author; }
+        public void setAuthor(String author) { this.author = author; }
+        
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        
+        public String getIcon() { return icon; }
+        public void setIcon(String icon) { this.icon = icon; }
+        
+        public List<String> getTags() { return tags; }
+        public void setTags(List<String> tags) { this.tags = tags; }
+    }
+    
+    /**
+     * Spec 嵌套类（Kubernetes 风格）
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Spec {
+        private String skillForm;
+        private String type;
+        private List<Capability> capabilities;
+        private List<Dependency> dependencies;
+        private Map<String, Object> config;
+        private Map<String, Object> configSchema;
+        private Map<String, Object> estimatedResources;
+        private Integer timeout;
+        private CapabilityInfo capability;
+        
+        public String getSkillForm() { return skillForm; }
+        public void setSkillForm(String skillForm) { this.skillForm = skillForm; }
+        
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        
+        public List<Capability> getCapabilities() { return capabilities; }
+        public void setCapabilities(List<Capability> capabilities) { this.capabilities = capabilities; }
+        
+        public List<Dependency> getDependencies() { return dependencies; }
+        public void setDependencies(List<Dependency> dependencies) { this.dependencies = dependencies; }
+        
+        public Map<String, Object> getConfig() { return config; }
+        public void setConfig(Map<String, Object> config) { this.config = config; }
+        
+        public Map<String, Object> getConfigSchema() { return configSchema; }
+        public void setConfigSchema(Map<String, Object> configSchema) { this.configSchema = configSchema; }
+        
+        public Map<String, Object> getEstimatedResources() { return estimatedResources; }
+        public void setEstimatedResources(Map<String, Object> estimatedResources) { this.estimatedResources = estimatedResources; }
+        
+        public Integer getTimeout() { return timeout; }
+        public void setTimeout(Integer timeout) { this.timeout = timeout; }
+        
+        public CapabilityInfo getCapability() { return capability; }
+        public void setCapability(CapabilityInfo capability) { this.capability = capability; }
+    }
+    
+    /**
+     * 能力信息（V3规范）
+     * 包含 category 和 code 字段
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CapabilityInfo {
+        private String category;
+        private String code;
+        private List<String> operations;
+        
+        public String getCategory() { return category; }
+        public void setCategory(String category) { this.category = category; }
+        
+        public String getCode() { return code; }
+        public void setCode(String code) { this.code = code; }
+        
+        public List<String> getOperations() { return operations; }
+        public void setOperations(List<String> operations) { this.operations = operations; }
+    }
+    
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Dependency {
         private String skillId;
         private String versionRange;
@@ -367,6 +610,7 @@ public class SkillManifest {
      * 场景能力定义
      * 用于定义场景能力的配置信息
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SceneCapabilityDef {
         private String capabilityId;
         private boolean mainFirst;
@@ -391,6 +635,7 @@ public class SkillManifest {
     /**
      * 自检配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SelfCheck {
         private String checkType;
         private Map<String, Object> params;
@@ -404,6 +649,7 @@ public class SkillManifest {
     /**
      * 自启配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SelfStart {
         private String startType;
         private Map<String, Object> params;
@@ -417,6 +663,7 @@ public class SkillManifest {
     /**
      * 自驱配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SelfDriveConfig {
         private String driveMode;
         private long interval;
@@ -433,6 +680,7 @@ public class SkillManifest {
     /**
      * 协作启动配置
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CollaborationStart {
         private String collaborativeCapabilityId;
         private Map<String, Object> initParams;
@@ -448,6 +696,7 @@ public class SkillManifest {
     /**
      * 协作能力引用
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CollaborativeCapabilityRef {
         private String capabilityId;
         private String role;
@@ -461,6 +710,7 @@ public class SkillManifest {
         public void setConfig(Map<String, Object> config) { this.config = config; }
     }
     
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PromptConfig {
         private String systemPromptFile;
         private String rolePromptsDir;
@@ -477,6 +727,7 @@ public class SkillManifest {
         public void setVariables(Map<String, String> variables) { this.variables = variables; }
     }
     
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class LlmConfig {
         private String systemPrompt;
         private Double temperature;
@@ -493,6 +744,7 @@ public class SkillManifest {
         public void setFunctions(List<FunctionConfig> functions) { this.functions = functions; }
     }
     
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class FunctionConfig {
         private String name;
         private String description;

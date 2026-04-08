@@ -2,6 +2,28 @@
 
 所有重要的变更都将记录在此文件中。
 
+## [3.0.2] - 2026-04-08
+
+### 变更
+
+#### 版本统一
+- 所有 ooder 依赖版本统一到 3.0.2
+- ooder-sdk-parent 版本更新到 3.0.2
+- agent-sdk 版本更新到 3.0.2
+- scene-engine 版本更新到 3.0.2
+- llm-sdk 版本更新到 3.0.2
+- skills-framework 版本更新到 3.0.2
+- ooder-annotation 版本更新到 3.0.2
+- ooder-common-all 版本更新到 3.0.2
+- ooder-api 版本更新到 3.0.2
+- ooder-util 版本更新到 3.0.2
+
+#### 清理
+- 移除 META-INF/maven 下的旧版本 pom.xml 归档文件
+- 归档 v2.3.x 版本文档到 docs/archive 目录
+
+---
+
 ## [3.0.0] - 2026-03-25
 
 ### 新增

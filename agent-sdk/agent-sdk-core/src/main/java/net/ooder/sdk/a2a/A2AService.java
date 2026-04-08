@@ -1,6 +1,6 @@
 package net.ooder.sdk.a2a;
 
-import net.ooder.sdk.a2a.capability.SkillCardV3;
+import net.ooder.sdk.a2a.capability.SkillCard;
 import net.ooder.skills.api.SkillCategory;
 import net.ooder.skills.api.SkillForm;
 import net.ooder.skills.api.SceneType;
@@ -76,33 +76,33 @@ public interface A2AService {
      * @param sceneType 场景类型过滤（可选）
      * @return 匹配的技能列表
      */
-    List<SkillCardV3> discoverSkills(SkillForm form, SkillCategory category, SceneType sceneType);
+    List<SkillCard> discoverSkills(SkillForm form, SkillCategory category, SceneType sceneType);
 
     /**
      * 发现场景技能
      */
-    default List<SkillCardV3> discoverSceneSkills() {
+    default List<SkillCard> discoverSceneSkills() {
         return discoverSkills(SkillForm.SCENE, null, null);
     }
 
     /**
      * 发现自主场景
      */
-    default List<SkillCardV3> discoverAutoScenes() {
+    default List<SkillCard> discoverAutoScenes() {
         return discoverSkills(SkillForm.SCENE, null, SceneType.AUTO);
     }
 
     /**
      * 发现触发场景
      */
-    default List<SkillCardV3> discoverTriggerScenes() {
+    default List<SkillCard> discoverTriggerScenes() {
         return discoverSkills(SkillForm.SCENE, null, SceneType.TRIGGER);
     }
 
     /**
      * 发现独立技能
      */
-    default List<SkillCardV3> discoverStandaloneSkills() {
+    default List<SkillCard> discoverStandaloneSkills() {
         return discoverSkills(SkillForm.STANDALONE, null, null);
     }
 

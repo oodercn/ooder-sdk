@@ -14,3 +14,17 @@ replay_pid*.log
 *.swo
 *~
 .DS_Store
+
+# Maven build output
+central-publishing/
+central-staging/
+
+# Temporary files
+.temp/
+*.tmp
+*.bak
+*.patch
+
+# META-INF generated files (keep source META-INF)
+**/src/**/META-INF/
+!**/src/main/resources/META-INF/**

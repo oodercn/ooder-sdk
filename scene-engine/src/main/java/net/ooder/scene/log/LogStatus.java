@@ -24,4 +24,28 @@ public enum LogStatus {
 
     public String getCode() { return code; }
     public String getName() { return name; }
+    
+    public static LogStatus fromCode(String code) {
+        if (code == null) {
+            return null;
+        }
+        for (LogStatus status : values()) {
+            if (status.code.equals(code)) {
+                return status;
+            }
+        }
+        return PENDING;
+    }
+    
+    public static LogStatus fromCode(String code, LogStatus defaultValue) {
+        if (code == null) {
+            return defaultValue;
+        }
+        for (LogStatus status : values()) {
+            if (status.code.equals(code)) {
+                return status;
+            }
+        }
+        return defaultValue;
+    }
 }

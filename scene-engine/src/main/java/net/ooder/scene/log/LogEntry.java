@@ -123,6 +123,30 @@ public class LogEntry {
     public Map<String, Object> getMetadata() { return metadata; }
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
 
+    public String getMetadataValue(String key, String defaultValue) {
+        if (metadata == null) return defaultValue;
+        Object value = metadata.get(key);
+        return value != null ? value.toString() : defaultValue;
+    }
+
+    public long getMetadataValue(String key, long defaultValue) {
+        if (metadata == null) return defaultValue;
+        Object value = metadata.get(key);
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        return defaultValue;
+    }
+
+    public double getMetadataValue(String key, double defaultValue) {
+        if (metadata == null) return defaultValue;
+        Object value = metadata.get(key);
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+        return defaultValue;
+    }
+
     public String getResourceType() { return resourceType; }
     public void setResourceType(String resourceType) { this.resourceType = resourceType; }
 

@@ -210,11 +210,14 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
             String owner = extractOwner(repositoryUrl);
             String repo = extractRepo(repositoryUrl);
             String token = giteeConfig.getToken();
-            String branch = "main";
+            String branch = giteeConfig.getBranch() != null ? giteeConfig.getBranch() : "master";
             String basePath = skillsPath != null ? normalizePath(skillsPath) : "";
-            String indexFileName = "skill-index.yaml";
-            boolean recursive = false;
-            List<String> fallbackIndexFiles = Arrays.asList("index.yaml", "skill-index.yaml");
+            String indexFileName = giteeConfig.getIndexFileName() != null ? giteeConfig.getIndexFileName() : "skill-index.yaml";
+            boolean recursive = giteeConfig.isRecursive();
+            List<String> fallbackIndexFiles = giteeConfig.getFallbackIndexFiles();
+            if (fallbackIndexFiles == null || fallbackIndexFiles.isEmpty()) {
+                fallbackIndexFiles = Arrays.asList("index.yaml", "skill-index.yaml");
+            }
             
             logger.info("Discovering from Gitee: owner={}, repo={}, branch={}, basePath={}", 
                 owner, repo, branch, basePath);
@@ -261,7 +264,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 return new ArrayList<>();
             }
             
-            return parseSkillIndex(yamlContent, recursive, basePath);
+            return parseSkillIndex(yamlContent, recursive, basePath, "gitee", owner, repo, branch, token);
             
         } catch (Exception e) {
             logger.error("Failed to fetch skills from Gitee: {}/{} - {}", owner, repo, e.getMessage());
@@ -393,7 +396,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 return new ArrayList<>();
             }
             
-            return parseSkillIndex(content, false, basePath);
+            return parseSkillIndex(content, false, basePath, "github", owner, repo, branch, token);
             
         } catch (Exception e) {
             logger.error("Failed to fetch skills from GitHub: {}/{} - {}", owner, repo, e.getMessage());
@@ -468,7 +471,8 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
 
     @SuppressWarnings("unchecked")
-    private List<SkillPackage> parseSkillIndex(String content, boolean recursive, String basePath) {
+    private List<SkillPackage> parseSkillIndex(String content, boolean recursive, String basePath, 
+            String platform, String owner, String repo, String branch, String token) {
         List<SkillPackage> skills = new ArrayList<>();
         
         if (content == null || content.trim().isEmpty()) {
@@ -486,7 +490,7 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
                 JSONArray includesArray = spec.getJSONArray("includes");
                 List<String> includes = includesArray.toJavaList(String.class);
                 logger.info("Detected includes format with {} patterns", includes.size());
-                return resolveIncludes(includes, indexData, recursive, basePath);
+                return resolveIncludes(includes, indexData, recursive, basePath, platform, owner, repo, branch, token);
             }
             
             JSONArray skillsArray = indexData.getJSONArray("skills");
@@ -510,14 +514,11 @@ public class UnifiedDiscoveryServiceImpl implements UnifiedDiscoveryService {
     }
     
     @SuppressWarnings("unchecked")
-    private List<SkillPackage> resolveIncludes(List<String> includes, JSONObject indexData, boolean recursive, String basePath) {
+    private List<SkillPackage> resolveIncludes(List<String> includes, JSONObject indexData, boolean recursive, 
+            String basePath, String platform, String owner, String repo, String branch, String token) {
         List<SkillPackage> allSkills = new ArrayList<>();
         
-        String platform = giteeConfig.getOwner() != null ? "gitee" : "github";
-        String owner = giteeConfig.getOwner() != null ? giteeConfig.getOwner() : githubConfig.getOwner();
-        String repo = giteeConfig.getRepo() != null ? giteeConfig.getRepo() : githubConfig.getRepo();
-        String branch = giteeConfig.getBranch() != null ? giteeConfig.getBranch() : githubConfig.getBranch();
-        String token = giteeConfig.getToken() != null ? giteeConfig.getToken() : githubConfig.getToken();
+        logger.debug("resolveIncludes: platform={}, owner={}, repo={}, branch={}", platform, owner, repo, branch);
         
         for (String include : includes) {
             try {

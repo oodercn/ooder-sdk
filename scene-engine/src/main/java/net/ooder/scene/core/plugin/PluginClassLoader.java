@@ -3,10 +3,19 @@ package net.ooder.scene.core.plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -19,6 +28,13 @@ import java.util.concurrent.ConcurrentMap;
  *   <li>优先从主应用加载 SE 核心类，确保类型一致性</li>
  *   <li>支持插件加载自定义类</li>
  *   <li>线程安全的类加载</li>
+ *   <li>支持模块自声明核心包（META-INF/se-core-packages）</li>
+ * </ul>
+ *
+ * <p>SE 核心包配置来源：</p>
+ * <ul>
+ *   <li>静态配置：SE_CORE_PACKAGES 常量</li>
+ *   <li>动态配置：各模块的 META-INF/se-core-packages 文件</li>
  * </ul>
  *
  * <p>使用场景：</p>
@@ -40,8 +56,10 @@ public class PluginClassLoader extends URLClassLoader {
 
     private static final Logger log = LoggerFactory.getLogger(PluginClassLoader.class);
 
+    private static final String SE_CORE_PACKAGES_RESOURCE = "META-INF/se-core-packages";
+
     /**
-     * SE 核心包 - 必须从主应用加载，确保类型一致性
+     * SE 核心包 - 必须从主应用加载，确保类型一致性（静态配置）
      */
     private static final List<String> SE_CORE_PACKAGES = Arrays.asList(
             // SPI 接口
@@ -59,6 +77,59 @@ public class PluginClassLoader extends URLClassLoader {
             // 基础接口
             "net.ooder.scene.skill."
     );
+
+    private static volatile Set<String> dynamicCorePackages = new HashSet<>();
+
+    static {
+        loadDynamicCorePackages();
+    }
+
+    private static void loadDynamicCorePackages() {
+        Set<String> packages = new HashSet<>();
+        
+        try {
+            ClassLoader classLoader = PluginClassLoader.class.getClassLoader();
+            if (classLoader == null) {
+                classLoader = ClassLoader.getSystemClassLoader();
+            }
+            
+            Enumeration<URL> resources = classLoader.getResources(SE_CORE_PACKAGES_RESOURCE);
+            
+            while (resources.hasMoreElements()) {
+                URL url = resources.nextElement();
+                try (InputStream is = url.openStream();
+                     BufferedReader reader = new BufferedReader(
+                         new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                    
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (!line.isEmpty() && !line.startsWith("#")) {
+                            packages.add(line);
+                        }
+                    }
+                } catch (IOException e) {
+                    log.warn("Failed to read se-core-packages from: {}", url, e);
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Failed to load dynamic core packages", e);
+        }
+        
+        dynamicCorePackages = Collections.unmodifiableSet(packages);
+        if (!packages.isEmpty()) {
+            log.info("Loaded {} dynamic core packages from META-INF/se-core-packages: {}", 
+                packages.size(), packages);
+        }
+    }
+
+    public static void reloadDynamicCorePackages() {
+        loadDynamicCorePackages();
+    }
+
+    public static Set<String> getDynamicCorePackages() {
+        return dynamicCorePackages;
+    }
 
     /**
      * 父类加载器（主应用）
@@ -144,6 +215,12 @@ public class PluginClassLoader extends URLClassLoader {
 
     /**
      * 检查是否为 SE 核心类
+     * 
+     * <p>检查顺序：</p>
+     * <ol>
+     *   <li>静态配置（SE_CORE_PACKAGES）</li>
+     *   <li>动态配置（META-INF/se-core-packages）</li>
+     * </ol>
      *
      * @param className 类名
      * @return 是否为 SE 核心类
@@ -154,6 +231,13 @@ public class PluginClassLoader extends URLClassLoader {
                 return true;
             }
         }
+        
+        for (String pkg : dynamicCorePackages) {
+            if (className.startsWith(pkg)) {
+                return true;
+            }
+        }
+        
         return false;
     }
 

@@ -3,7 +3,7 @@ package net.ooder.scene.bridge;
 import net.ooder.scene.capability.CapabilityBinding;
 import net.ooder.scene.group.SceneGroup;
 import net.ooder.scene.group.SceneGroupEvent;
-import net.ooder.scene.knowledge.KnowledgeBindingInfo;
+import net.ooder.scene.skill.knowledge.KnowledgeBinding;
 import net.ooder.scene.participant.Participant;
 import net.ooder.scene.todo.TodoDTO;
 
@@ -26,7 +26,7 @@ public class SceneGroupFullState {
     private SceneGroup sceneGroup;
     private List<Participant> participants = new ArrayList<>();
     private List<CapabilityBinding> capabilityBindings = new ArrayList<>();
-    private List<KnowledgeBindingInfo> knowledgeBindings = new ArrayList<>();
+    private List<KnowledgeBinding> knowledgeBindings = new ArrayList<>();
     private List<TodoDTO> pendingTodos = new ArrayList<>();
     private List<SceneGroupEvent> recentEvents = new ArrayList<>();
     private Map<String, Object> businessContext = new HashMap<>();
@@ -66,11 +66,11 @@ public class SceneGroupFullState {
         this.capabilityBindings = capabilityBindings != null ? capabilityBindings : new ArrayList<>();
     }
     
-    public List<KnowledgeBindingInfo> getKnowledgeBindings() {
+    public List<KnowledgeBinding> getKnowledgeBindings() {
         return knowledgeBindings;
     }
     
-    public void setKnowledgeBindings(List<KnowledgeBindingInfo> knowledgeBindings) {
+    public void setKnowledgeBindings(List<KnowledgeBinding> knowledgeBindings) {
         this.knowledgeBindings = knowledgeBindings != null ? knowledgeBindings : new ArrayList<>();
     }
     
@@ -114,7 +114,7 @@ public class SceneGroupFullState {
         this.capabilityBindings.add(binding);
     }
     
-    public void addKnowledgeBinding(KnowledgeBindingInfo binding) {
+    public void addKnowledgeBinding(KnowledgeBinding binding) {
         this.knowledgeBindings.add(binding);
     }
     
@@ -166,12 +166,12 @@ public class SceneGroupFullState {
             return this;
         }
         
-        public Builder knowledgeBindings(List<KnowledgeBindingInfo> knowledgeBindings) {
+        public Builder knowledgeBindings(List<KnowledgeBinding> knowledgeBindings) {
             state.setKnowledgeBindings(knowledgeBindings);
             return this;
         }
         
-        public Builder addKnowledgeBinding(KnowledgeBindingInfo binding) {
+        public Builder addKnowledgeBinding(KnowledgeBinding binding) {
             state.addKnowledgeBinding(binding);
             return this;
         }

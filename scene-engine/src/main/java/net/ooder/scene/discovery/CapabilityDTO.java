@@ -17,6 +17,9 @@ public class CapabilityDTO {
     /** 能力/场景唯一标识 */
     private String id;
     
+    /** 技能ID */
+    private String skillId;
+    
     /** 名称 */
     private String name;
     
@@ -91,6 +94,9 @@ public class CapabilityDTO {
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    
+    public String getSkillId() { return skillId; }
+    public void setSkillId(String skillId) { this.skillId = skillId; }
     
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

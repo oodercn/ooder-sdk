@@ -39,4 +39,20 @@ public class PageResult<T> {
 
     public boolean hasNext() { return pageNum < totalPages; }
     public boolean hasPrevious() { return pageNum > 1; }
+    
+    @Deprecated
+    public List<T> getData() { return items; }
+    
+    @Deprecated
+    public void setData(List<T> data) { this.items = data; }
+    
+    @Deprecated
+    public static <T> PageResult<T> create(List<T> items, long total, int pageNum, int pageSize) {
+        return of(items, total, pageNum, pageSize);
+    }
+    
+    @Deprecated
+    public static <T> PageResult<T> empty() {
+        return new PageResult<>(java.util.Collections.emptyList(), 0, 1, 10);
+    }
 }

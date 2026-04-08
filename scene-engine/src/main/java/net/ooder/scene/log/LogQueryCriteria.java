@@ -33,15 +33,45 @@ public class LogQueryCriteria {
 
     public List<LogCategory> getCategories() { return categories; }
     public void setCategories(List<LogCategory> categories) { this.categories = categories; }
+    
+    @Deprecated
+    public LogCategory getCategory() {
+        return categories != null && !categories.isEmpty() ? categories.get(0) : null;
+    }
+    
+    @Deprecated
+    public void setCategory(LogCategory category) {
+        this.categories = category != null ? java.util.Collections.singletonList(category) : null;
+    }
 
     public String getSubType() { return subType; }
     public void setSubType(String subType) { this.subType = subType; }
 
     public List<LogLevel> getLevels() { return levels; }
     public void setLevels(List<LogLevel> levels) { this.levels = levels; }
+    
+    @Deprecated
+    public LogLevel getLevel() {
+        return levels != null && !levels.isEmpty() ? levels.get(0) : null;
+    }
+    
+    @Deprecated
+    public void setLevel(LogLevel level) {
+        this.levels = level != null ? java.util.Collections.singletonList(level) : null;
+    }
 
     public List<LogStatus> getStatuses() { return statuses; }
     public void setStatuses(List<LogStatus> statuses) { this.statuses = statuses; }
+    
+    @Deprecated
+    public LogStatus getStatus() {
+        return statuses != null && !statuses.isEmpty() ? statuses.get(0) : null;
+    }
+    
+    @Deprecated
+    public void setStatus(LogStatus status) {
+        this.statuses = status != null ? java.util.Collections.singletonList(status) : null;
+    }
 
     public Long getStartTime() { return startTime; }
     public void setStartTime(Long startTime) { this.startTime = startTime; }

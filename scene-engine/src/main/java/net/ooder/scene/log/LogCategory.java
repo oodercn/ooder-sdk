@@ -46,11 +46,26 @@ public enum LogCategory {
     public int getDefaultRetentionDays() { return defaultRetentionDays; }
 
     public static LogCategory fromCode(String code) {
+        if (code == null) {
+            return null;
+        }
         for (LogCategory category : values()) {
             if (category.code.equals(code)) {
                 return category;
             }
         }
-        return null;
+        return SYSTEM;
+    }
+    
+    public static LogCategory fromCode(String code, LogCategory defaultValue) {
+        if (code == null) {
+            return defaultValue;
+        }
+        for (LogCategory category : values()) {
+            if (category.code.equals(code)) {
+                return category;
+            }
+        }
+        return defaultValue;
     }
 }

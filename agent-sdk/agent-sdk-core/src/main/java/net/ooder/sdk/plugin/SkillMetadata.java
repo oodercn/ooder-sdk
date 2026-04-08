@@ -1,7 +1,11 @@
 package net.ooder.sdk.plugin;
 
+import net.ooder.skills.api.*;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Skill 元数据
@@ -13,7 +17,24 @@ public class SkillMetadata {
     private String description;
     private String author;
     private String type;
-    private String category;
+    
+    private SkillCategory skillCategory;
+    
+    /**
+     * 技能形态
+     */
+    private SkillForm form;
+    
+    /**
+     * 场景类型
+     */
+    private SceneType sceneType;
+    
+    /**
+     * 服务目的
+     */
+    private Set<ServicePurpose> purposes = new HashSet<>();
+    
     private List<String> tags = new ArrayList<>();
     private List<SkillDependency> dependencies = new ArrayList<>();
     private List<java.util.Map<String, Object>> capabilities = new ArrayList<>();
@@ -72,13 +93,37 @@ public class SkillMetadata {
     public void setType(String type) {
         this.type = type;
     }
-
-    public String getCategory() {
-        return category;
+    
+    public SkillCategory getSkillCategory() {
+        return skillCategory;
     }
-
-    public void setCategory(String category) {
-        this.category = category;
+    
+    public void setSkillCategory(SkillCategory skillCategory) {
+        this.skillCategory = skillCategory;
+    }
+    
+    public SkillForm getForm() {
+        return form;
+    }
+    
+    public void setForm(SkillForm form) {
+        this.form = form;
+    }
+    
+    public SceneType getSceneType() {
+        return sceneType;
+    }
+    
+    public void setSceneType(SceneType sceneType) {
+        this.sceneType = sceneType;
+    }
+    
+    public Set<ServicePurpose> getPurposes() {
+        return purposes;
+    }
+    
+    public void setPurposes(Set<ServicePurpose> purposes) {
+        this.purposes = purposes != null ? purposes : new HashSet<>();
     }
 
     public List<String> getTags() {

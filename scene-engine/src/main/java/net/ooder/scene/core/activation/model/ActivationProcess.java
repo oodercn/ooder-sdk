@@ -1,8 +1,12 @@
 package net.ooder.scene.core.activation.model;
 
+import net.ooder.scene.core.template.SceneTemplate;
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -11,33 +15,56 @@ import java.util.UUID;
  * <p>表示一个场景技能的激活流程实例，记录完整的激活过程</p>
  *
  * @author Ooder Team
- * @version 2.3.1
+ * @version 3.1.0
  * @since 2.3.1
  */
 public class ActivationProcess implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
-    private String processId;           // 流程ID
-    private String templateId;          // 模板ID
-    private String sceneGroupId;        // 场景组ID
-    private String userId;              // 用户ID
-    private String roleId;              // 角色ID
+    private String processId;
+    private String templateId;
+    private String sceneGroupId;
+    private String userId;
+    private String roleId;
+    private String roleName;
     
-    private ProcessStatus status;       // 流程状态
-    private List<StepExecution> steps;  // 步骤执行记录
+    private ProcessStatus status;
+    private List<StepExecution> steps;
+    private int currentStepIndex;
+    private int totalSteps;
     
-    private long createdAt;             // 创建时间
-    private long startedAt;             // 开始时间
-    private long completedAt;           // 完成时间
+    private String keyId;
+    private String keyStatus;
     
-    private String errorMessage;        // 错误信息
+    private List<NetworkAction> networkActions;
+    private List<SceneTemplate.PrivateCapabilityConfig> privateCapabilities;
+    private List<String> enabledPrivateCapabilities;
+    
+    private String leaderId;
+    private List<String> collaboratorIds;
+    private Map<String, Object> config;
+    
+    private long createdAt;
+    private long startedAt;
+    private long completedAt;
+    private long updatedAt;
+    
+    private String errorMessage;
     
     public ActivationProcess() {
         this.processId = generateProcessId();
         this.status = ProcessStatus.CREATED;
         this.steps = new ArrayList<>();
+        this.networkActions = new ArrayList<>();
+        this.privateCapabilities = new ArrayList<>();
+        this.enabledPrivateCapabilities = new ArrayList<>();
+        this.collaboratorIds = new ArrayList<>();
+        this.config = new HashMap<>();
         this.createdAt = System.currentTimeMillis();
+        this.updatedAt = this.createdAt;
+        this.currentStepIndex = 0;
+        this.totalSteps = 0;
     }
     
     private static String generateProcessId() {
@@ -128,6 +155,72 @@ public class ActivationProcess implements Serializable {
         return steps.size();
     }
     
+    /**
+     * 获取进度百分比
+     */
+    public int getProgress() {
+        if (totalSteps == 0) return 0;
+        return (currentStepIndex * 100) / totalSteps;
+    }
+    
+    /**
+     * 是否已完成
+     */
+    public boolean isCompleted() {
+        return status == ProcessStatus.COMPLETED;
+    }
+    
+    /**
+     * 是否进行中
+     */
+    public boolean isInProgress() {
+        return status == ProcessStatus.EXECUTING;
+    }
+    
+    /**
+     * 是否失败
+     */
+    public boolean isFailed() {
+        return status == ProcessStatus.FAILED;
+    }
+    
+    /**
+     * 更新时间戳
+     */
+    public void touch() {
+        this.updatedAt = System.currentTimeMillis();
+    }
+    
+    /**
+     * 获取当前步骤索引对应的步骤
+     */
+    public StepExecution getCurrentStepByIndex() {
+        if (steps == null || currentStepIndex < 0 || currentStepIndex >= steps.size()) {
+            return null;
+        }
+        return steps.get(currentStepIndex);
+    }
+    
+    /**
+     * 移动到下一步
+     */
+    public void moveToNextStep() {
+        if (currentStepIndex < steps.size() - 1) {
+            currentStepIndex++;
+            touch();
+        }
+    }
+    
+    /**
+     * 查找指定步骤
+     */
+    public StepExecution findStep(String stepId) {
+        return steps.stream()
+                .filter(s -> s.getStepId().equals(stepId))
+                .findFirst()
+                .orElse(null);
+    }
+    
     // Getters and Setters
     
     public String getProcessId() {
@@ -172,6 +265,102 @@ public class ActivationProcess implements Serializable {
     
     public void setRoleId(String roleId) {
         this.roleId = roleId;
+    }
+    
+    public String getRoleName() {
+        return roleName;
+    }
+    
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+    
+    public int getCurrentStepIndex() {
+        return currentStepIndex;
+    }
+    
+    public void setCurrentStepIndex(int currentStepIndex) {
+        this.currentStepIndex = currentStepIndex;
+    }
+    
+    public int getTotalSteps() {
+        return totalSteps;
+    }
+    
+    public void setTotalSteps(int totalSteps) {
+        this.totalSteps = totalSteps;
+    }
+    
+    public String getKeyId() {
+        return keyId;
+    }
+    
+    public void setKeyId(String keyId) {
+        this.keyId = keyId;
+    }
+    
+    public String getKeyStatus() {
+        return keyStatus;
+    }
+    
+    public void setKeyStatus(String keyStatus) {
+        this.keyStatus = keyStatus;
+    }
+    
+    public List<NetworkAction> getNetworkActions() {
+        return networkActions != null ? networkActions : new ArrayList<>();
+    }
+    
+    public void setNetworkActions(List<NetworkAction> networkActions) {
+        this.networkActions = networkActions;
+    }
+    
+    public List<SceneTemplate.PrivateCapabilityConfig> getPrivateCapabilities() {
+        return privateCapabilities != null ? privateCapabilities : new ArrayList<>();
+    }
+    
+    public void setPrivateCapabilities(List<SceneTemplate.PrivateCapabilityConfig> privateCapabilities) {
+        this.privateCapabilities = privateCapabilities;
+    }
+    
+    public List<String> getEnabledPrivateCapabilities() {
+        return enabledPrivateCapabilities != null ? enabledPrivateCapabilities : new ArrayList<>();
+    }
+    
+    public void setEnabledPrivateCapabilities(List<String> enabledPrivateCapabilities) {
+        this.enabledPrivateCapabilities = enabledPrivateCapabilities;
+    }
+    
+    public String getLeaderId() {
+        return leaderId;
+    }
+    
+    public void setLeaderId(String leaderId) {
+        this.leaderId = leaderId;
+    }
+    
+    public List<String> getCollaboratorIds() {
+        return collaboratorIds != null ? collaboratorIds : new ArrayList<>();
+    }
+    
+    public void setCollaboratorIds(List<String> collaboratorIds) {
+        this.collaboratorIds = collaboratorIds;
+    }
+    
+    public Map<String, Object> getConfig() {
+        return config;
+    }
+    
+    public void setConfig(Map<String, Object> config) {
+        this.config = config != null ? config : new HashMap<>();
+    }
+    
+    public long getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(long updatedAt) {
+        this.updatedAt = updatedAt;
     }
     
     public ProcessStatus getStatus() {

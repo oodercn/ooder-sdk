@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import net.ooder.sdk.discovery.SkillDiscoveryService;
 import net.ooder.sdk.plugin.SkillMetadata;
+import net.ooder.skills.api.SkillCategory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,9 +112,9 @@ public class SkillCardManager {
      * @param category 分类
      * @return Skill卡片列表
      */
-    public List<SkillCard> getSkillCardsByCategory(String category) {
+    public List<SkillCard> getSkillCardsByCategory(SkillCategory category) {
         return skillCards.values().stream()
-                .filter(card -> category.equals(card.getCategory()))
+                .filter(card -> category.equals(card.getSkillCategory()))
                 .collect(Collectors.toList());
     }
 
@@ -239,7 +240,13 @@ public class SkillCardManager {
         }
 
         // 分类和标签
-        card.setCategory(metadata.getCategory());
+        if (metadata.getSkillCategory() != null) {
+            card.setSkillCategory(metadata.getSkillCategory());
+        }
+        card.setForm(metadata.getForm());
+        card.setSceneType(metadata.getSceneType());
+        card.setPurposes(metadata.getPurposes());
+        
         if (metadata.getTags() != null) {
             card.setTags(metadata.getTags());
         }

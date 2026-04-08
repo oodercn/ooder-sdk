@@ -63,7 +63,13 @@ public class CommonConfig {
 
     private static XMLProperties properties = null;
 
+    private static volatile boolean testMode = false;
+    private static Properties testProps = null;
+
     public static String getValue(String name) {
+        if (testMode && testProps != null && testProps.getProperty(name) != null) {
+            return testProps.getProperty(name);
+        }
         init();
         if (properties != null) {
             return properties.getProperty(name);
@@ -137,6 +143,22 @@ public class CommonConfig {
             }
         }
 
+    }
+
+    public static synchronized void initForTest(Properties props) {
+        testProps = props;
+        testMode = true;
+    }
+
+    public static synchronized void reset() {
+        testProps = null;
+        testMode = false;
+        properties = null;
+        CommonConfig.props = null;
+    }
+
+    public static boolean isTestMode() {
+        return testMode;
     }
 
 }

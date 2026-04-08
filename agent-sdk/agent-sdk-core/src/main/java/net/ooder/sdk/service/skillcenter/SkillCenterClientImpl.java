@@ -741,8 +741,6 @@ public class SkillCenterClientImpl implements SkillCenterClient {
         pkg.setSceneId(getString(data, "sceneId"));
         pkg.setDownloadUrl(getString(data, "downloadUrl"));
         pkg.setChecksum(getString(data, "checksum"));
-        pkg.setCategory(getString(data, "category"));
-        pkg.setSubCategory(getString(data, "subCategory"));
         pkg.setSource("skillcenter:" + endpoint);
         
         Object tagsObj = data.get("tags");
@@ -770,8 +768,6 @@ public class SkillCenterClientImpl implements SkillCenterClient {
         manifest.setDescription(pkg.getDescription());
         manifest.setVersion(pkg.getVersion());
         manifest.setSceneId(pkg.getSceneId());
-        manifest.setCategory(pkg.getCategory());
-        manifest.setSubCategory(pkg.getSubCategory());
         manifest.setTags(pkg.getTags());
         pkg.setManifest(manifest);
         
