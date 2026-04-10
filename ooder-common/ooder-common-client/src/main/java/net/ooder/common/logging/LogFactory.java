@@ -141,7 +141,15 @@ public abstract class LogFactory {
         if (factory != null)
             return factory;
 
-        String ref = CommonConfig.getValue(configKey + ".log.ref");
+        String ref = null;
+        String factoryClass = null;
+        
+        try {
+            ref = CommonConfig.getValue(configKey + ".log.ref");
+        } catch (Exception e) {
+            System.err.println("Warning: Failed to get log ref from CommonConfig: " + e.getMessage());
+        }
+        
         if (ref != null) {
             factory = getCachedFactory(ref);
             if (factory == null) {
@@ -150,7 +158,11 @@ public abstract class LogFactory {
         }
 
         if (factory == null) {
-            String factoryClass = CommonConfig.getValue(configKey + ".log.logFactory");
+            try {
+                factoryClass = CommonConfig.getValue(configKey + ".log.logFactory");
+            } catch (Exception e) {
+                System.err.println("Warning: Failed to get logFactory class from CommonConfig: " + e.getMessage());
+            }
             if (factory == null && factoryClass != null) {
                 factory = newFactory(factoryClass, contextClassLoader);
             }

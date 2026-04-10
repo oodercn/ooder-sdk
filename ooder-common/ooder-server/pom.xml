@@ -11,7 +11,7 @@
     <parent>
         <groupId>net.ooder</groupId>
         <artifactId>ooder-common-all</artifactId>
-        <version>3.0.2</version>
+        <version>3.0.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-common-client</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
@@ -42,6 +42,18 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore-nio</artifactId>
             <version>4.4.16</version>
+        </dependency>
+        <!-- Freemarker 模板引擎 - 显式依赖（从 ooder-common-client 变为 optional） -->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.32</version>
+        </dependency>
+        <!-- MVEL 表达式引擎 - 显式依赖（从 ooder-common-client 变为 optional） -->
+        <dependency>
+            <groupId>org.mvel</groupId>
+            <artifactId>mvel2</artifactId>
+            <version>2.5.2.Final</version>
         </dependency>
     </dependencies>
 

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ooder - 注解驱动全栈开发框架</title>
+    <link rel="stylesheet" href="css/theme-vars.css">
+    <link rel="stylesheet" href="css/block-themes.css">
+    <link rel="stylesheet" href="css/buttonviews-themes.css">
+    <link rel="stylesheet" href="css/input-themes.css">
+    <link rel="stylesheet" href="css/layout-themes.css">
+    <link rel="stylesheet" href="iconfont/iconfont.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--ood-text);
+            background-color: var(--ood-bg);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--ood-primary) 0%, var(--ood-primary-hover) 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--ood-radius-md);
+            transition: background-color 0.3s;
+        }
+
+        .nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--ood-primary), var(--ood-primary-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--ood-text-light);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: var(--ood-radius-lg);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--ood-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--ood-primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--ood-primary);
+            border: 2px solid var(--ood-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--ood-primary);
+            color: white;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: var(--ood-text-light);
+            font-size: 1.2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--ood-bg);
+            padding: 2rem;
+            border-radius: var(--ood-radius-lg);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--ood-primary);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* Code Example */
+        .code-example {
+            background: var(--ood-bg-light);
+            padding: 80px 0;
+        }
+
+        .code-container {
+            background: var(--ood-bg);
+            border-radius: var(--ood-radius-lg);
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .code-header {
+            background: var(--ood-bg-lighter);
+            padding: 1rem;
+            border-bottom: 1px solid var(--ood-border);
+        }
+
+        .code-content {
+            padding: 2rem;
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            overflow-x: auto;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--ood-bg-lighter);
+            padding: 3rem 0;
+            text-align: center;
+            color: var(--ood-text-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="iconfont icon-ooder"></i>
+                    Ooder
+                </div>
+                <nav class="nav">
+                    <a href="#features">特性</a>
+                    <a href="#docs">文档</a>
+                    <a href="#examples">示例</a>
+                    <a href="#community">社区</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Ooder 注解驱动框架</h1>
+            <p>基于注解驱动的全栈开发框架，通过丰富的注解体系实现前后端强映射关系，简化企业级应用开发</p>
+            <div class="cta-buttons">
+                <a href="#getting-started" class="btn btn-primary">快速开始</a>
+                <a href="#docs" class="btn btn-secondary">查看文档</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>核心特性</h2>
+                <p>Ooder 框架提供完整的全栈开发解决方案</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="iconfont icon-annotation"></i>
+                    </div>
+                    <h3>注解驱动开发</h3>
+                    <p>通过声明式注解配置实现视图结构和行为定义，将配置与业务逻辑分离，提高代码可维护性</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="iconfont icon-component"></i>
+                    </div>
+                    <h3>组件化设计</h3>
+                    <p>采用"干-支-叶"结构化设计模式，将复杂功能拆分为可复用的组件模块，支持复杂业务场景</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="iconfont icon-fullstack"></i>
+                    </div>
+                    <h3>全栈架构</h3>
+                    <p>后端注解与前端映射无缝集成，提供统一的技术栈和开发体验，降低技术复杂度</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="iconfont icon-theme"></i>
+                    </div>
+                    <h3>多主题支持</h3>
+                    <p>内置亮色、暗色、高对比度等多种主题，支持自定义主题扩展，满足不同用户需求</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="iconfont icon-responsive"></i>
+                    </div>
+                    <h3>响应式设计</h3>
+                    <p>完美适配桌面、平板、手机等多种设备，提供一致的用户体验</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="iconfont icon-enterprise"></i>
+                    </div>
+                    <h3>企业级特性</h3>
+                    <p>提供权限管理、数据验证、国际化等企业级功能，支持大规模应用开发</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="code-example">
+        <div class="container">
+            <div class="section-title">
+                <h2>代码示例</h2>
+                <p>体验 Ooder 框架的简洁语法</p>
+            </div>
+            <div class="code-container">
+                <div class="code-header">
+                    <span>BusinessModule.java</span>
+                </div>
+                <div class="code-content">
+                    <pre><code>@BusinessModule(
+    value = "客户管理",
+    desc = "客户信息管理和维护模块",
+    moduleCode = "CRM-CUSTOMER",
+    version = "1.0.0"
+)
+public class CustomerModule {
+    
+    @Agent(
+        name = "客户列表",
+        desc = "客户信息查询和展示"
+    )
+    public void listCustomers() {
+        // 业务逻辑实现
+    }
+    
+    @AgentAction(
+        name = "添加客户",
+        desc = "新增客户信息"
+    )
+    public void addCustomer() {
+        // 添加客户逻辑
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Getting Started -->
+    <section id="getting-started" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>快速开始</h2>
+                <p>几分钟内开始使用 Ooder 框架</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>1. 安装依赖</h3>
+                    <p>在 Maven 项目中添加依赖：</p>
+                    <div class="code-content" style="margin-top: 1rem; padding: 1rem; border-radius: 4px;">
+                        <code>&lt;dependency&gt;
+  &lt;groupId&gt;net.ooder&lt;/groupId&gt;
+  &lt;artifactId&gt;ooder-annotation&lt;/artifactId&gt;
+  &lt;version&gt;1.0.1&lt;/version&gt;
+&lt;/dependency&gt;</code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>2. 创建业务模块</h3>
+                    <p>使用注解定义业务模块：</p>
+                    <div class="code-content" style="margin-top: 1rem; padding: 1rem; border-radius: 4px;">
+                        <code>@BusinessModule("示例模块")
+public class ExampleModule {
+    // 业务逻辑实现
+}</code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>3. 配置前端映射</h3>
+                    <p>在 resource/static/ood 目录下配置前端资源：</p>
+                    <div class="code-content" style="margin-top: 1rem; padding: 1rem; border-radius: 4px;">
+                        <code>// 前端组件配置
+// 自动映射后端注解</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Ooder Framework. All rights reserved.</p>
+            <p>基于 MIT 许可证开源</p>
+            <div style="margin-top: 1rem;">
+                <a href="https://github.com/oodercn" style="color: var(--ood-primary); margin: 0 10px;">GitHub</a>
+                <a href="#" style="color: var(--ood-primary); margin: 0 10px;">文档</a>
+                <a href="#" style="color: var(--ood-primary); margin: 0 10px;">社区</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 主题切换功能
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // 初始化主题
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

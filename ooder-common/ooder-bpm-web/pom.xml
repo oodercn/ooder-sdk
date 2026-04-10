@@ -11,7 +11,7 @@
     <parent>
         <groupId>net.ooder</groupId>
         <artifactId>ooder-common-all</artifactId>
-        <version>3.0.2</version>
+        <version>3.0.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -20,49 +20,49 @@
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-common-client</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- Server dependency for HTTP interaction -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-server</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- VFS for file operations -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-vfs-web</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- Index service for BPM search -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-index-web</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- Database support -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-database</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- IoT web client for Device/Command support -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-iot-webclient</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- ooder-annotation for esd types (ViewType, ComboInputType, etc.) -->
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-annotation</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- Spring context -->

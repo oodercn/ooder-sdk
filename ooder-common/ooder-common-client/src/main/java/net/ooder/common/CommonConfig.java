@@ -129,17 +129,22 @@ public class CommonConfig {
         }
 
         if (properties == null) {
-            File engineConfigFile = new File(Config.configPath(), CONFIG_FILENAME);
-            if (!engineConfigFile.exists()) {
-                engineConfigFile = new File(Config.publicConfigPath(), CONFIG_FILENAME);
-            }
+            try {
+                File engineConfigFile = new File(Config.configPath(), CONFIG_FILENAME);
+                if (!engineConfigFile.exists()) {
+                    engineConfigFile = new File(Config.publicConfigPath(), CONFIG_FILENAME);
+                }
 
-            if (!engineConfigFile.exists()) {
-                String path = JDSConfig.getAbsolutePath("/");
-                engineConfigFile = new File(path, CONFIG_FILENAME);
-            }
-            if (engineConfigFile.exists()) {
-                properties = ConfigFactory.getXML(engineConfigFile.getAbsolutePath());
+                if (!engineConfigFile.exists()) {
+                    String path = JDSConfig.getAbsolutePath("/");
+                    engineConfigFile = new File(path, CONFIG_FILENAME);
+                }
+                if (engineConfigFile.exists()) {
+                    properties = ConfigFactory.getXML(engineConfigFile.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                System.err.println("Warning: Failed to initialize CommonConfig: " + e.getMessage());
+                // 初始化失败时不抛出异常，允许应用继续启动
             }
         }
 

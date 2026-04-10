@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ooder 官网启动页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-primary {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .btn-primary:hover {
+            background: #ff5252;
+            border-color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Ooder 官网</h1>
+        <p>注解驱动全栈开发框架 - 基于注解实现前后端强映射关系</p>
+        
+        <div class="links">
+            <a href="index.html" class="btn btn-primary">访问首页</a>
+            <a href="docs.html" class="btn">查看文档</a>
+        </div>
+        
+        <div style="margin-top: 3rem; opacity: 0.8;">
+            <p><strong>框架特性：</strong></p>
+            <p>• 注解驱动开发 • 组件化设计 • 全栈架构 • 多主题支持</p>
+        </div>
+    </div>
+</body>
+</html>

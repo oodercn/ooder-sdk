@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>ooder-common-all</artifactId>
-    <version>3.0.2</version>
+    <version>3.0.3</version>
     <packaging>pom</packaging>
 
     <name>ooder-common-all</name>
@@ -214,6 +214,7 @@
         <module>ooder-org-web</module>
         <module>ooder-msg-web</module>
         <module>ooder-bpm-web</module>
+        <module>ooder-annotation</module>
     </modules>
 
     <repositories>

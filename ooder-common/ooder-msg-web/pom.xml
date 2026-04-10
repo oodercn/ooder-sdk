@@ -11,7 +11,7 @@
     <parent>
         <groupId>net.ooder</groupId>
         <artifactId>ooder-common-all</artifactId>
-        <version>3.0.2</version>
+        <version>3.0.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -19,17 +19,17 @@
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-common-client</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-org-web</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-vfs-web</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>net.ooder</groupId>
             <artifactId>ooder-index-web</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.paho</groupId>

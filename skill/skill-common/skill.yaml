@@ -1,0 +1,289 @@
+apiVersion: skill.ooder.net/v1
+kind: Skill
+
+metadata:
+  id: skill-common
+  name: 通用工具集
+  version: "3.0.1"
+  description: 通用工具集 - 提供认证、组织、配置等核心 API
+  author: ooder Team
+  type: system-service
+  license: Apache-2.0
+  homepage: https://gitee.com/ooderCN/skills
+  keywords:
+    - common
+    - auth
+    - org
+    - config
+    - storage
+
+spec:
+  skillForm: PROVIDER
+  skillCategory: SERVICE
+  sceneType: AUTO
+  purposes:
+    - TEAM
+    - PERSISTENT
+  type: service-skill
+  
+  ownership: platform
+  
+  capability:
+    address: 0x01
+    category: sys
+    code: SYS_COMMON
+    operations: [auth, org, config, storage]
+  
+  runtime:
+    language: java
+    javaVersion: "8"
+    framework: spring-boot
+
+  llmConfig:
+    required: false
+    defaultProvider: "deepseek"
+    defaultModel: "deepseek-chat"
+    capabilities:
+      - chat
+      - streaming
+      - function-calling
+    modelSelection:
+      allowUserOverride: true
+      availableProviders:
+        - deepseek
+        - openai
+        - qianwen
+        - volcengine
+        - ollama
+    functionCalling:
+      enabled: true
+      tools:
+        - name: query_skill_capability
+          description: "查询当前技能的能力和使用方法"
+          parameters:
+            type: object
+            properties:
+              capability:
+                type: string
+                description: "能力名称"
+              detail:
+                type: string
+                enum: [brief, detailed, examples]
+                default: "brief"
+        - name: execute_mvel_action
+          description: "通过MVEL表达式执行后台操作"
+          parameters:
+            type: object
+            properties:
+              expression:
+                type: string
+                description: "MVEL表达式"
+              context:
+                type: object
+        - name: generate_ui_form
+          description: "生成UI表单供用户填写"
+          parameters:
+            type: object
+            properties:
+              formType:
+                type: string
+              fields:
+                type: array
+                items:
+                  type: object
+        - name: execute_batch_operation
+          description: "执行批量操作"
+          parameters:
+            type: object
+            properties:
+              operation:
+                type: string
+              items:
+                type: array
+                items:
+                  type: object
+        - name: convert_to_javascript
+          description: "转换为JavaScript代码供用户使用"
+          parameters:
+            type: object
+            properties:
+              action:
+                type: string
+              parameters:
+                type: object
+      toolChoice: auto
+    rateLimits:
+      requestsPerMinute: 60
+      tokensPerMinute: 100000
+
+  
+  supportedSceneTypes:
+    - all
+    
+  dynamicSceneTypes: true
+  
+  autoStart:
+    enabled: true
+    delay: 1s
+    
+  autoJoin:
+    enabled: true
+    matchSceneTypes: true
+    maxSceneGroups: 100
+  
+  dependencies: []
+  
+  providedInterfaces:
+    - id: auth-service
+      version: "1.0"
+      description: "认证服务接口"
+    - id: org-service
+      version: "1.0"
+      description: "组织管理接口"
+    - id: config-service
+      version: "1.0"
+      description: "配置服务接口"
+    - id: storage-service
+      version: "1.0"
+      description: "存储服务接口"
+  
+  capabilities:
+    - id: auth
+      name: 认证服务
+      description: 提供用户登录、登出、会话管理
+      category: service
+    - id: org
+      name: 组织管理
+      description: 提供用户、部门、组织树管理
+      category: service
+    - id: config
+      name: 系统配置
+      description: 提供系统配置查询
+      category: service
+    - id: storage
+      name: 存储服务
+      description: 提供键值存储、缓存管理
+      category: service
+  
+  endpoints:
+    - path: /api/v1/auth/login
+      method: POST
+      description: 用户登录
+      capability: auth
+    - path: /api/v1/auth/logout
+      method: POST
+      description: 用户登出
+      capability: auth
+    - path: /api/v1/auth/session
+      method: GET
+      description: 获取会话信息
+      capability: auth
+    - path: /api/v1/auth/current-user
+      method: GET
+      description: 获取当前用户
+      capability: auth
+    - path: /api/v1/auth/roles
+      method: GET
+      description: 获取可用角色列表
+      capability: auth
+    - path: /api/v1/auth/check-permission
+      method: GET
+      description: 检查权限
+      capability: auth
+    - path: /api/v1/auth/check-role
+      method: GET
+      description: 检查角色
+      capability: auth
+    - path: /api/v1/org/users/current
+      method: GET
+      description: 获取当前用户
+      capability: org
+    - path: /api/v1/org/users
+      method: GET
+      description: 列出用户
+      capability: org
+    - path: /api/v1/org/users
+      method: POST
+      description: 创建用户
+      capability: org
+    - path: /api/v1/org/users/{userId}
+      method: GET
+      description: 获取用户
+      capability: org
+    - path: /api/v1/org/users/{userId}
+      method: PUT
+      description: 更新用户
+      capability: org
+    - path: /api/v1/org/users/{userId}
+      method: DELETE
+      description: 删除用户
+      capability: org
+    - path: /api/v1/org/departments
+      method: GET
+      description: 列出部门
+      capability: org
+    - path: /api/v1/org/departments
+      method: POST
+      description: 创建部门
+      capability: org
+    - path: /api/v1/org/departments/{departmentId}
+      method: GET
+      description: 获取部门
+      capability: org
+    - path: /api/v1/org/departments/{departmentId}
+      method: PUT
+      description: 更新部门
+      capability: org
+    - path: /api/v1/org/departments/{departmentId}
+      method: DELETE
+      description: 删除部门
+      capability: org
+    - path: /api/v1/org/tree
+      method: GET
+      description: 获取组织树
+      capability: org
+    - path: /api/v1/org/roles
+      method: GET
+      description: 获取角色列表
+      capability: org
+    - path: /api/v1/system/config
+      method: GET
+      description: 获取系统配置
+      capability: config
+    - path: /api/v1/system/syscode
+      method: GET
+      description: 获取系统代码
+      capability: config
+    - path: /api/v1/system/check
+      method: GET
+      description: 检查系统
+      capability: config
+    - path: /api/v1/system/health
+      method: GET
+      description: 健康检查
+      capability: config
+  
+  config:
+    optional:
+      - name: STORAGE_TYPE
+        type: string
+        default: "json"
+        description: 存储类型 (json/memory)
+      - name: STORAGE_PATH
+        type: string
+        default: "./data"
+        description: 存储路径
+      - name: SESSION_TIMEOUT
+        type: integer
+        default: 3600
+        description: 会话超时时间(秒)
+  
+  resources:
+    cpu: "50m"
+    memory: "64Mi"
+    storage: "10Mi"
+  
+  offline:
+    enabled: true
+    cacheStrategy: local
+    syncOnReconnect: false

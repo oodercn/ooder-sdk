@@ -1,0 +1,110 @@
+package net.ooder.annotation.action;
+
+import net.ooder.annotation.Enumstype;
+
+public enum FoldingTabsMethod implements Enumstype {
+    // 从父类ood.UI.Tabs继承的方法 (ood.absList方法)
+    activate("activate", "激活"),
+    insertItems("insertItems", "插入项目", "arr", "base", "before", "all"),
+    insertItems2("insertItems2", "插入项目2", "arr", "base", "before", "all"),
+    removeItems("removeItems", "移除项目", "arr", "key", "purgeNow"),
+    clearItems("clearItems", "清空项目", "purgeNow"),
+    updateItem("updateItem", "更新项目", "itemId", "options"),
+    doFilter("doFilter", "过滤", "itemFilter", "helper", "reLayout"),
+    hideItems("hideItems", "隐藏项目", "itemId"),
+    showItems("showItems", "显示项目", "itemId", "show"),
+    getItems("getItems", "获取项目", "type", "v"),
+    focusItem("focusItem", "聚焦项目", "itemId"),
+    scrollIntoView("scrollIntoView", "滚动到视图", "itemId"),
+    selectItem("selectItem", "选择项目", "itemId"),
+    fireItemClickEvent("fireItemClickEvent", "触发项目点击事件", "itemId"),
+    editItem("editItem", "编辑项目", "itemId"),
+    getSelectedItem("getSelectedItem", "获取选中项目"),
+    getItemByItemId("getItemByItemId", "根据ID获取项目", "itemId"),
+    getItemByItemCaption("getItemByItemCaption", "根据标题获取项目", "caption"),
+    getItemByDom("getItemByDom", "根据DOM获取项目", "src"),
+    getSubIdByItemId("getSubIdByItemId", "根据项目ID获取子ID", "itemId"),
+    getSubNodeByItemId("getSubNodeByItemId", "根据项目ID获取子节点", "key", "itemId", "tag"),
+    
+    // 从父类ood.UI.Tabs继承的方法 (ood.absValue方法)
+    getValue("getValue", "获取值", "returnArr"),
+    getUIValue("getUIValue", "获取UI值", "returnArr"),
+    resetValue("resetValue", "重置值", "value"),
+    setUIValue("setUIValue", "设置UI值", "value", "force", "triggerEventOnly", "tag"),
+    updateValue("updateValue", "更新值"),
+    isDirtied("isDirtied", "是否已修改"),
+    checkValid("checkValid", "检查有效性", "value"),
+    getCaptionValue("getCaptionValue", "获取标题值", "key"),
+    getUICationValue("getUICationValue", "获取UI标题值", "returnArr"),
+    
+    // 从父类ood.UI继承的方法
+    get("get", "获取元素", "index"),
+    size("size", "获取大小"),
+    boxing("boxing", "获取包装对象"),
+    each("each", "遍历", "fun", "scope"),
+    getRoot("getRoot", "获取根元素", "rtnPrf"),
+    getRootNode("getRootNode", "获取根节点"),
+    getContainer("getContainer", "获取容器", "subId"),
+    setHost("setHost", "设置宿主", "value", "alias"),
+    getHost("getHost", "获取宿主"),
+    setAlias("setAlias", "设置别名", "alias"),
+    getAlias("getAlias", "获取别名"),
+    setProperties("setProperties", "设置属性", "obj", "syncUI", "force"),
+    getProperties("getProperties", "获取属性"),
+    getProperty("getProperty", "获取属性值", "key"),
+    setProperty("setProperty", "设置属性值", "key", "value", "syncUI", "force"),
+    getFormValues("getFormValues", "获取表单值", "isAll"),
+    getAllFormValues("getAllFormValues", "获取所有表单值", "isAll"),
+    setFormValues("setFormValues", "设置表单值", "obj", "useNull"),
+    clearErrors("clearErrors", "清除错误"),
+    getChildren("getChildren", "获取子元素"),
+    append("append", "追加元素", "target", "subId", "base", "callback"),
+    removeChildren("removeChildren", "移除子元素", "subId", "destroy", "noRedraw"),
+    destroyChildren("destroyChildren", "销毁子元素", "subId", "noRedraw"),
+    setCustomStyle("setCustomStyle", "设置自定义样式", "obj", "target"),
+    setCustomAttr("setCustomAttr", "设置自定义属性", "obj", "target"),
+    getCustomStyle("getCustomStyle", "获取自定义样式", "target"),
+    getCustomAttr("getCustomAttr", "获取自定义属性", "target"),
+    serialize("serialize", "序列化", "pure", "host", "ignoreHost", "ignoreTpl", "ignoreChildren", "ignoreEvents", "ignoreEnv", "withValue", "withAlias", "withClass", "withHost", "withTpl", "withChildren", "withEvents", "withEnv", "withPrfId", "withPrfAlias"),
+    toHtml("toHtml", "转换为HTML", "tpl", "data", "subId", "tplMarker", "htmlMarker"),
+    render("render", "渲染", "force", "host", "subId", "callback"),
+    destroy("destroy", "销毁", "ignoreEffects", "purgeNow"),
+    show("show", "显示", "parent", "subId", "left", "top", "callback", "ignoreEffects"),
+    hide("hide", "隐藏", "ignoreEffects"),
+    toggle("toggle", "切换显示/隐藏", "ignoreEffects"),
+    isVisible("isVisible", "是否可见"),
+    adjustResponsive("adjustResponsive", "响应式调整"),
+    setScreenReaderLabel("setScreenReaderLabel", "设置屏幕阅读器标签", "label"),
+    enableKeyboardNavigation("enableKeyboardNavigation", "启用键盘导航"),
+    
+    // FoldingTabs自身的方法
+    setTheme("setTheme", "设置主题样式", "theme"),
+    enhanceAccessibility("enhanceAccessibility", "增强可访问性支持"),
+    adjustLayout("adjustLayout", "响应式布局调整"),
+    getTheme("getTheme", "获取当前主题"),
+    toggleTheme("toggleTheme", "切换主题");
+
+    private final String type;
+    private final String name;
+    private final String[] parameters;
+
+    FoldingTabsMethod(String type, String name, String... parameters) {
+        this.type = type;
+        this.name = name;
+        this.parameters = parameters;
+    }
+
+    @Override
+    public String getType() {
+        return type;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    public String[] getParameters() {
+        return parameters;
+    }
+}

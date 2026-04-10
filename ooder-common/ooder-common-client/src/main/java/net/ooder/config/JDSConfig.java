@@ -274,7 +274,18 @@ public class JDSConfig {
 
         public static File currServerHome() {
             // File serverHome = new File(applicationHome().getAbsolutePath() + File.separator + getConfigName());
-            File serverHome = new File(applicationHome().getAbsolutePath() + File.separator + getConfigName().getType());
+            ConfigCode configName = getConfigName();
+            String configType;
+
+            if (configName == null) {
+                // 提供默认值，使用系统属性或环境变量
+                configType = System.getProperty("jds.config.type", "default");
+                System.out.println("Warning: JDSConfig.getConfigName() is null, using fallback: " + configType);
+            } else {
+                configType = configName.getType();
+            }
+
+            File serverHome = new File(applicationHome().getAbsolutePath() + File.separator + configType);
             if (!serverHome.exists() || !serverHome.isDirectory()) {
                 System.out.println("JDSHome '" + serverHome.getAbsolutePath() + "' does not exists!");
             }
