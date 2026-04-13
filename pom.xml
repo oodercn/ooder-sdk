@@ -71,7 +71,6 @@
         
         <!-- 核心模块 -->
         <module>agent-sdk</module>
-        <module>ooder-annotation</module>
         <module>ooder-common</module>
         <module>scene-engine</module>
     </modules>

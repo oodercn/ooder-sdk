@@ -17,6 +17,7 @@ package net.ooder.config;
 import net.ooder.common.ConfigCode;
 import net.ooder.common.util.ClassUtility;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -70,26 +71,42 @@ public class UserBean {
 
 
     static {
+        boolean configLoaded = false;
+        
         try {
-            // 使用 ConfigReader 读取配置，支持多个配置文件
             List<String> configFiles = new ArrayList<>();
             configFiles.add(springPath);
             configFiles.add(clientPath);
             userProperties = ConfigReader.readUserConfig(configFiles);
             
-            // 加载原始 Properties 用于向后兼容
-            if (ClassUtility.loadResource(springPath) != null) {
-                props.load(ClassUtility.loadResource(springPath));
-            } else if (ClassUtility.loadResource(clientPath) != null) {
-                props.load(ClassUtility.loadResource(clientPath));
-            } else {
-                throw new Exception();
+            if (userProperties != null && userProperties.getServerUrl() != null) {
+                configLoaded = true;
             }
-
         } catch (Throwable e) {
-            System.out.println("系统启动文件缺失：[" + clientPath + "] 请检查系统包是否完整。");
-            System.exit(0);
-            e.printStackTrace();
+            System.out.println("ConfigReader 读取配置失败，尝试使用 ClassUtility 加载: " + e.getMessage());
+        }
+        
+        try {
+            InputStream inputStream = ClassUtility.loadResource(springPath);
+            if (inputStream != null) {
+                props.load(inputStream);
+                inputStream.close();
+                configLoaded = true;
+            } else {
+                inputStream = ClassUtility.loadResource(clientPath);
+                if (inputStream != null) {
+                    props.load(inputStream);
+                    inputStream.close();
+                    configLoaded = true;
+                }
+            }
+        } catch (Throwable e) {
+            System.out.println("ClassUtility 加载配置失败: " + e.getMessage());
+        }
+        
+        if (!configLoaded) {
+            System.out.println("警告：未能加载配置文件 [" + springPath + "] 或 [" + clientPath + "]，使用默认配置");
+            System.out.println("如果这是 Spring Boot 应用，请确保配置文件在 classpath 中");
         }
     }
 

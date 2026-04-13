@@ -469,18 +469,62 @@ public final class ClassUtility {
 
     /**
      * Loads the resource with the specified name.
+     * Supports Spring Boot fat JAR environment with LaunchedURLClassLoader.
      *
      * @param name the name of the resource
      * @return the resulting <code>java.io.InputStream</code> object
      */
     public static InputStream loadResource(String name) {
-        InputStream in = instance.getClass().getResourceAsStream(name);
-        if (in == null) {
-            in = Thread.currentThread().getContextClassLoader().getResourceAsStream(name);
-            if (in == null) {
-                in = instance.getClass().getClassLoader().getResourceAsStream(name);
+        InputStream in = null;
+        
+        // 1. 尝试使用当前类的 Class 对象加载（支持绝对路径）
+        in = instance.getClass().getResourceAsStream(name);
+        if (in != null) {
+            return in;
+        }
+        
+        // 2. 尝试使用线程上下文类加载器（Spring Boot LaunchedURLClassLoader）
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader != null) {
+            in = contextClassLoader.getResourceAsStream(name);
+            if (in != null) {
+                return in;
             }
         }
+        
+        // 3. 尝试使用当前类的类加载器
+        ClassLoader classLoader = instance.getClass().getClassLoader();
+        if (classLoader != null) {
+            in = classLoader.getResourceAsStream(name);
+            if (in != null) {
+                return in;
+            }
+        }
+        
+        // 4. 尝试使用系统类加载器
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        if (systemClassLoader != null) {
+            in = systemClassLoader.getResourceAsStream(name);
+            if (in != null) {
+                return in;
+            }
+        }
+        
+        // 5. 尝试遍历类加载器链（处理 Spring Boot fat JAR 的嵌套类加载器）
+        ClassLoader currentLoader = contextClassLoader;
+        while (currentLoader != null && in == null) {
+            in = currentLoader.getResourceAsStream(name);
+            if (in == null) {
+                currentLoader = currentLoader.getParent();
+            }
+        }
+        
+        // 6. 尝试不带前导斜杠的路径
+        if (name.startsWith("/")) {
+            String pathWithoutSlash = name.substring(1);
+            in = loadResource(pathWithoutSlash);
+        }
+        
         return in;
     }
 
