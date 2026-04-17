@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>skill-common</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.6</version>
     <packaging>jar</packaging>
 
     <name>skill-common</name>

@@ -1,0 +1,177 @@
+apiVersion: skill.ooder.net/v1
+kind: Skill
+
+metadata:
+  id: skill-role
+  name: 角色权限服务
+  version: 1.0.0
+  description: 提供角色管理、权限配置、用户授权等功能
+  author: ooder Team
+  type: system-service
+  license: Apache-2.0
+
+spec:
+  skillForm: PROVIDER
+  type: system-skill
+
+  ownership: platform
+
+  capability:
+    address: 0x30
+    category: SYS
+    code: SYS_ROLE
+    operations: [create, update, delete, assign, query]
+
+  runtime:
+    language: java
+    javaVersion: "21"
+    framework: spring-boot
+
+  dependencies:
+    - skillId: skill-org
+      version: ">=1.0.0"
+      required: false
+
+  endpoints:
+    # 角色管理
+    - path: /api/v1/role-management/roles
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: getAllRoles
+      description: 获取角色列表
+      capability: query
+    - path: /api/v1/role-management/roles/{id}
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: getRole
+      parameterTypes:
+        - java.lang.String
+      description: 获取角色详情
+      capability: query
+    - path: /api/v1/role-management/roles
+      method: POST
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: createRole
+      parameterTypes:
+        - java.util.Map
+      description: 创建角色
+      capability: create
+    - path: /api/v1/role-management/roles/{id}
+      method: PUT
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: updateRole
+      parameterTypes:
+        - java.lang.String
+        - java.util.Map
+      description: 更新角色
+      capability: update
+    - path: /api/v1/role-management/roles/{id}
+      method: DELETE
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: deleteRole
+      parameterTypes:
+        - java.lang.String
+      description: 删除角色
+      capability: delete
+    # 角色菜单
+    - path: /api/v1/role-management/roles/{roleId}/menus
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: getRoleMenus
+      parameterTypes:
+        - java.lang.String
+      description: 获取角色菜单权限
+      capability: query
+    - path: /api/v1/role-management/roles/{roleId}/menus
+      method: PUT
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: setRoleMenus
+      parameterTypes:
+        - java.lang.String
+        - java.util.List
+      description: 设置角色菜单权限
+      capability: update
+    # 角色用户
+    - path: /api/v1/role-management/roles/{roleId}/users
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: getUsersByRole
+      parameterTypes:
+        - java.lang.String
+      description: 获取角色用户
+      capability: query
+    # 用户管理
+    - path: /api/v1/role-management/users
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: getAllUsers
+      description: 获取所有用户
+      capability: query
+    - path: /api/v1/role-management/users/{id}
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: getUser
+      parameterTypes:
+        - java.lang.String
+      description: 获取用户详情
+      capability: query
+    - path: /api/v1/role-management/users
+      method: POST
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: createUser
+      parameterTypes:
+        - java.util.Map
+      description: 创建用户
+      capability: create
+    - path: /api/v1/role-management/users/{id}
+      method: PUT
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: updateUser
+      parameterTypes:
+        - java.lang.String
+        - java.util.Map
+      description: 更新用户
+      capability: update
+    - path: /api/v1/role-management/users/{id}
+      method: DELETE
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: deleteUser
+      parameterTypes:
+        - java.lang.String
+      description: 删除用户
+      capability: delete
+    # 角色绑定
+    - path: /api/v1/role-management/users/{userId}/bind-role/{roleId}
+      method: POST
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: bindUserToRole
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      description: 绑定用户到角色
+      capability: assign
+    # 类型和状态
+    - path: /api/v1/role-management/types
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: listRoleTypes
+      description: 获取角色类型列表
+      capability: query
+    - path: /api/v1/role-management/statuses
+      method: GET
+      controllerClass: net.ooder.skill.role.controller.RoleManagementController
+      methodName: listRoleStatuses
+      description: 获取角色状态列表
+      capability: query
+
+  config:
+    optional:
+      - name: DEFAULT_ROLE
+        type: string
+        default: "user"
+        description: 默认角色
+
+  resources:
+    cpu: "50m"
+    memory: "64Mi"
+    storage: "10Mi"

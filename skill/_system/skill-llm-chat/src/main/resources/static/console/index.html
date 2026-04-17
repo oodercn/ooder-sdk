@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OODER Skills Console</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/console/css/remixicon/remixicon.css">
+    <link rel="stylesheet" href="/console/css/nexus.css">
+    <style>
+        .nx-app {
+            display: flex;
+            min-height: 100vh;
+        }
+        .nx-page__sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: var(--nx-bg-card);
+            border-right: 1px solid var(--nx-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .nx-page__content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: var(--nx-bg-page);
+        }
+        .nx-page__header {
+            height: 64px;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--nx-bg-card);
+            border-bottom: 1px solid var(--nx-border);
+            flex-shrink: 0;
+        }
+        .nx-page__main {
+            flex: 1;
+            padding: 24px;
+            overflow: auto;
+        }
+        .dashboard-card {
+            background: var(--nx-bg-card);
+            border-radius: var(--nx-radius);
+            border: 1px solid var(--nx-border);
+        }
+        .dashboard-card__body {
+            padding: 20px;
+        }
+        .dashboard-card__header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--nx-border);
+        }
+        .dashboard-card__title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .stat-card {
+            background: var(--nx-bg-card);
+            border-radius: var(--nx-radius);
+            border: 1px solid var(--nx-border);
+            padding: 20px;
+        }
+        .quick-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border-radius: var(--nx-radius);
+            background: var(--nx-bg-elevated);
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .quick-link:hover {
+            background: var(--nx-bg-hover);
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--nx-border);
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="nx-app">
+        <aside class="nx-page__sidebar">
+            <div style="padding: 16px; margin-bottom: 16px;">
+                <h1 style="display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: bold; margin: 0;">
+                    <i class="ri-robot-2-line"></i> OODER Console
+                </h1>
+            </div>
+            <ul class="nav-menu" id="nav-menu"></ul>
+        </aside>
+        
+        <div class="nx-page__content">
+            <header class="nx-page__header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="nx-btn nx-btn--ghost nx-btn--icon" data-nx-sidebar-toggle aria-label="切换侧边栏">
+                        <i class="ri-menu-line"></i>
+                    </button>
+                    <h2 style="font-size: 18px; font-weight: 600; margin: 0;">工作台</h2>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="nx-btn nx-btn--ghost nx-btn--icon" data-nx-theme-toggle aria-label="切换主题">
+                        <i class="ri-sun-line"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <main class="nx-page__main">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--ns-primary-light);">
+                                <i class="ri-puzzle-line" style="font-size: 24px; color: var(--ns-primary);"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;" id="stat-capabilities">--</div>
+                                <div style="font-size: 14px; color: var(--ns-secondary);">已注册能力</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--ns-success-light);">
+                                <i class="ri-folder-line" style="font-size: 24px; color: var(--ns-success);"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;" id="stat-scenes">--</div>
+                                <div style="font-size: 14px; color: var(--ns-secondary);">场景数量</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--ns-warning-light);">
+                                <i class="ri-team-line" style="font-size: 24px; color: var(--ns-warning);"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;" id="stat-users">--</div>
+                                <div style="font-size: 14px; color: var(--ns-secondary);">用户数量</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card" style="margin-bottom: 24px;">
+                    <div class="dashboard-card__header">
+                        <h3 class="dashboard-card__title">快捷入口</h3>
+                    </div>
+                    <div class="dashboard-card__body">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                            <a href="/console/pages/capability-management.html" class="quick-link">
+                                <i class="ri-puzzle-line" style="font-size: 28px; margin-bottom: 8px; color: var(--ns-primary);"></i>
+                                <span style="font-size: 14px;">能力管理</span>
+                            </a>
+                            <a href="/console/pages/scene-management.html" class="quick-link">
+                                <i class="ri-folder-line" style="font-size: 28px; margin-bottom: 8px; color: var(--ns-success);"></i>
+                                <span style="font-size: 14px;">场景管理</span>
+                            </a>
+                            <a href="/console/pages/llm-config.html" class="quick-link">
+                                <i class="ri-robot-2-line" style="font-size: 28px; margin-bottom: 8px; color: var(--ns-warning);"></i>
+                                <span style="font-size: 14px;">LLM配置</span>
+                            </a>
+                            <a href="/console/pages/knowledge-center.html" class="quick-link">
+                                <i class="ri-book-2-line" style="font-size: 28px; margin-bottom: 8px; color: var(--ns-info);"></i>
+                                <span style="font-size: 14px;">知识库</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <div class="dashboard-card__header">
+                        <h3 class="dashboard-card__title">系统信息</h3>
+                    </div>
+                    <div class="dashboard-card__body">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 24px;">
+                            <div class="info-row">
+                                <span style="color: var(--ns-secondary);">版本</span>
+                                <span style="font-weight: 500;">MVP 2.3.1</span>
+                            </div>
+                            <div class="info-row">
+                                <span style="color: var(--ns-secondary);">已安装技能</span>
+                                <span style="font-weight: 500;" id="stat-skills">--</span>
+                            </div>
+                            <div class="info-row">
+                                <span style="color: var(--ns-secondary);">状态</span>
+                                <span class="nx-badge nx-badge--success">运行中</span>
+                            </div>
+                            <div class="info-row">
+                                <span style="color: var(--ns-secondary);">端口</span>
+                                <span style="font-weight: 500;">8084</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="/console/js/nexus.js"></script>
+    <script src="/console/js/menu.js"></script>
+    <script src="/console/js/page-init.js" data-auto-init></script>
+    <script src="/console/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            await NexusMenu.init();
+            loadStats();
+        });
+        
+        async function loadStats() {
+            try {
+                const caps = await NX.api.get('/api/v1/capabilities');
+                document.getElementById('stat-capabilities').textContent = caps.data ? caps.data.length : 0;
+            } catch(e) {}
+            
+            try {
+                const scenes = await NX.api.post('/api/v1/scenes/list', { pageNum: 1, pageSize: 100 });
+                document.getElementById('stat-scenes').textContent = scenes.data ? scenes.data.total : 0;
+            } catch(e) {}
+            
+            try {
+                const users = await NX.api.get('/api/v1/stats/users');
+                document.getElementById('stat-users').textContent = users.data || 0;
+            } catch(e) {}
+            
+            try {
+                const response = await fetch('/api/v1/scene-menu/config');
+                const result = await response.json();
+                const menuData = result.data || {};
+                const roles = menuData.roles || [];
+                let totalMenus = 0;
+                roles.forEach(function(role) {
+                    if (role.menus) {
+                        totalMenus += role.menus.length;
+                    }
+                });
+                document.getElementById('stat-skills').textContent = totalMenus;
+            } catch(e) {}
+        }
+    </script>
+</body>
+</html>

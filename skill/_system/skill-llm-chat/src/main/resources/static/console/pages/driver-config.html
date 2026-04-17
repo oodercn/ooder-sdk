@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>驱动配置管理 - Ooder Skills</title>
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages/driver-config.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar" id="sidebar"></div>
+        
+        <main class="main-content">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="ri-settings-3-line"></i> 驱动配置管理</h1>
+                    <p class="page-desc">配置和管理17种能力分类的驱动服务</p>
+                </div>
+                <div class="page-actions">
+                    <button class="nx-btn nx-btn--secondary" onclick="testAllConnections()">
+                        <i class="ri-link"></i> 测试全部连接
+                    </button>
+                    <button class="nx-btn nx-btn--primary" onclick="saveAllConfigs()">
+                        <i class="ri-save-line"></i> 保存全部配置
+                    </button>
+                </div>
+            </div>
+
+            <div class="driver-config-container">
+                <div class="config-tabs">
+                    <div class="tabs-header" id="configTabsHeader"></div>
+                    <div class="tabs-content" id="configTabsContent"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="configModal">
+        <div class="modal-content config-modal">
+            <div class="modal-header">
+                <h3 id="configModalTitle">配置驱动</h3>
+                <button class="modal-close" onclick="closeConfigModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="configModalBody"></div>
+            <div class="modal-footer">
+                <button class="nx-btn nx-btn--ghost" onclick="closeConfigModal()">取消</button>
+                <button class="nx-btn nx-btn--primary" onclick="saveDriverConfig()">保存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="testResultModal">
+        <div class="modal-content test-result-modal">
+            <div class="modal-header">
+                <h3>连接测试结果</h3>
+                <button class="modal-close" onclick="closeTestResultModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="testResultBody"></div>
+            <div class="modal-footer">
+                <button class="nx-btn nx-btn--primary" onclick="closeTestResultModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils/api-client.js"></script>
+    <script src="../js/common/category-service.js"></script>
+    <script src="../js/components/sidebar.js"></script>
+    <script src="../js/pages/driver-config.js"></script>
+</body>
+</html>

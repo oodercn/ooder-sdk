@@ -6,7 +6,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>skill-hotplug-starter</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.5</version>
     <packaging>jar</packaging>
 
     <name>Skill Hot Plug Starter</name>
@@ -174,7 +174,7 @@
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>3.2.4</version>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>false</skip>
                 </configuration>
                 <executions>
                     <execution>

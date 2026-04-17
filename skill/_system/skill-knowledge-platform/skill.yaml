@@ -1,0 +1,142 @@
+apiVersion: skill.ooder.net/v1
+kind: Skill
+
+metadata:
+  id: skill-knowledge-platform
+  name: 知识平台基础设施
+  version: 1.0.0
+  description: 知识组织架构管理、场景-知识绑定、嵌入模型配置、LLM知识配置（平台级系统服务）
+  author: ooder Team
+  type: system-service
+  license: Apache-2.0
+
+spec:
+  skillForm: PROVIDER
+  type: system-skill
+  
+  ownership: platform
+  
+  capability:
+    address: 0x2A
+    category: SYS
+    code: SYS_KNOWLEDGE_PLATFORM
+    operations: [create, read, update, delete, bind]
+  
+  runtime:
+    language: java
+    javaVersion: "21"
+    framework: spring-boot
+  
+  supportedSceneTypes:
+    - all
+    
+  dynamicSceneTypes: true
+  
+  autoStart:
+    enabled: true
+    delay: 0s
+    
+  autoJoin:
+    enabled: true
+    matchSceneTypes: true
+    
+  dependencies: []
+  
+  providedInterfaces:
+    - id: knowledge-organization-service
+      version: "1.0"
+      description: "知识组织管理接口"
+    - id: scene-knowledge-binding-service
+      version: "1.0"
+      description: "场景-知识绑定服务接口"
+    - id: embedding-model-config-service
+      version: "1.0"
+      description: "嵌入模型配置服务接口"
+  
+  capabilities:
+    - id: knowledge-organization
+      name: 知识组织管理
+      description: 知识组织（公司级/部门级/专用业务）的增删改查及与知识库的绑定关系
+      category: knowledge
+    - id: scene-knowledge-binding
+      name: 场景知识绑定
+      description: 将知识库绑定到场景分组，支持分层检索和跨层搜索
+      category: knowledge
+    - id: embedding-model-config
+      name: 嵌入模型配置
+      description: 嵌入模型的注册、配置、测试和管理
+      category: knowledge
+    - id: llm-knowledge-config
+      name: LLM知识配置
+      description: 术语词典、同义词映射、Prompt模板等LLM增强配置
+      category: knowledge
+  
+  endpoints:
+    # 知识组织端点
+    - path: /api/v1/knowledge-organizations
+      method: GET
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: listOrganizations
+      description: 获取知识组织列表
+      capability: knowledge-organization
+    - path: /api/v1/knowledge-organizations
+      method: POST
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: createOrganization
+      description: 创建知识组织
+      capability: knowledge-organization
+    - path: /api/v1/knowledge-organizations/{orgId}
+      method: GET
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: getOrganization
+      description: 获取知识组织详情
+      capability: knowledge-organization
+    - path: /api/v1/knowledge-organizations/{orgId}
+      method: PUT
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: updateOrganization
+      description: 更新知识组织
+      capability: knowledge-organization
+    - path: /api/v1/knowledge-organizations/{orgId}
+      method: DELETE
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: deleteOrganization
+      description: 删除知识组织
+      capability: knowledge-organization
+    - path: /api/v1/knowledge-organizations/{orgId}/knowledge-bases
+      method: GET
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: getOrganizationKnowledgeBases
+      description: 获取组织的关联知识库
+      capability: knowledge-organization
+    - path: /api/v1/knowledge-organizations/{orgId}/knowledge-bases/{kbId}
+      method: POST
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: bindKnowledgeBase
+      description: 绑定知识库到组织
+      capability: knowledge-organization
+    - path: /api/v1/knowledge-organizations/{orgId}/knowledge-bases/{kbId}
+      method: DELETE
+      controllerClass: net.ooder.skill.knowledge.controller.KnowledgeOrganizationController
+      methodName: unbindKnowledgeBase
+      description: 从组织解绑知识库
+      capability: knowledge-organization
+
+  config:
+    schema:
+      type: object
+      properties:
+        persistence:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [memory, json, sql]
+              default: json
+        embedding:
+          type: object
+          properties:
+            model:
+              type: string
+              enum: [mock, dashscope, openai, ollama, bge]
+              default: mock

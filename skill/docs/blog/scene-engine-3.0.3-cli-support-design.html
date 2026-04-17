@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SceneEngine 3.0.3 深度解析：Ooder Agent 核心引擎的 CLI 支持设计</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f8fafc;
+            --text-color: #334155;
+            --code-bg: #f1f5f9;
+            --border-color: #e2e8f0;
+            --highlight-bg: #dbeafe;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Content */
+        .content { padding: 40px; }
+
+        h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin: 50px 0 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin: 35px 0 20px;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin: 25px 0 15px;
+        }
+
+        p { margin: 15px 0; }
+
+        /* Code blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 25px 0;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: "Consolas", "Monaco", monospace;
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        /* SVG Diagrams */
+        .svg-diagram {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .svg-diagram img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Blockquote */
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 25px 0;
+            color: var(--text-color);
+            font-style: italic;
+            background: var(--highlight-bg);
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--code-bg);
+            padding: 30px 40px;
+            text-align: center;
+            color: var(--text-color);
+            border-top: 2px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content { padding: 20px; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.2rem; }
+            pre { padding: 15px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SceneEngine 3.0.3 深度解析</h1>
+            <div class="subtitle">Ooder Agent 核心引擎的 CLI 支持设计</div>
+            <p style="margin-top: 20px; opacity: 0.8;">
+                <small>本文是 Ooder 架构文档系列的特别篇，聚焦 SceneEngine 3.0.3 版本如何为 CLI 提供底层支持</small>
+            </p>
+        </div>
+
+        <div class="content">
+            <blockquote>
+                <strong>导读</strong>：我们将深入剖析 Ooder Agent SDK 的 Command 体系、异步任务机制、多活部署架构，以及 SceneEngine 如何通过这些核心能力实现场景驱动的 CLI 设计。文章包含完整的实操案例、落地细节和与主流 CLI 工具的对比分析。
+            </blockquote>
+
+            <h2 id="引言">引言：为什么需要重新设计 CLI 支持</h2>
+            
+            <h3 id="gui-的困境与 cli-的复兴">1.1 GUI 的困境与 CLI 的复兴</h3>
+            
+            <p>在过去的四十年里，图形用户界面（GUI）一直是软件交互的主流。然而，随着软件系统复杂度的指数级增长，GUI 的局限性日益凸显：</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>痛点</th>
+                        <th>具体表现</th>
+                        <th>影响</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>操作效率低下</strong></td>
+                        <td>完成复杂任务需多次点击、切换界面</td>
+                        <td>用户学习成本高，操作时间长</td>
+                    </tr>
+                    <tr>
+                        <td><strong>自动化困难</strong></td>
+                        <td>GUI 操作难以脚本化、自动化</td>
+                        <td>无法集成到 DevOps 流程</td>
+                    </tr>
+                    <tr>
+                        <td><strong>远程管理受限</strong></td>
+                        <td>服务器、容器环境难以部署 GUI</td>
+                        <td>运维成本高</td>
+                    </tr>
+                    <tr>
+                        <td><strong>版本控制缺失</strong></td>
+                        <td>GUI 配置无法像代码一样版本化</td>
+                        <td>配置管理混乱</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>与此同时，CLI 正在经历一场复兴。从 <code>kubectl</code> 到 <code>aws-cli</code>，从 <code>docker</code> 到 <code>terraform</code>，现代 DevOps 工具链几乎都以 CLI 为核心。</p>
+
+            <h3 id="ooder 的 cli 设计哲学">1.2 Ooder 的 CLI 设计哲学</h3>
+
+            <p>Ooder Skills 框架的 CLI 设计不是简单的命令工具，而是<strong>"场景驱动，命令即服务"</strong>的完整架构：</p>
+
+            <pre><code># 传统 CLI - 直接操作底层资源
+kubectl get pods
+aws s3 ls
+docker ps
+
+# Ooder CLI - 场景驱动的能力调用
+skill scene create --type=meeting --participants=user1,user2
+skill scene invoke my-scene rag-skill:search --query="项目进度"
+skill exec rag-skill reindex --knowledgeBase=docs</code></pre>
+
+            <p><strong>核心差异</strong>：</p>
+            <ul>
+                <li><strong>有抽象层</strong>：CLI 不直接操作 Skill，而是通过 Agent SDK 和 SceneEngine 间接操作</li>
+                <li><strong>可组合</strong>：多个 Skill 可以在场景中组合协作</li>
+                <li><strong>有上下文</strong>：场景维护状态，命令可以复用上下文</li>
+                <li><strong>异步化</strong>：长时间运行的任务通过异步机制处理</li>
+            </ul>
+
+            <h2 id="第一章">第一章：整体架构与 SceneEngine 定位</h2>
+
+            <h3 id="三层架构设计">1.1 三层架构设计</h3>
+
+            <div class="svg-diagram">
+                <img src="diagram_three_layer_architecture.svg" alt="三层架构设计图" />
+            </div>
+
+            <h3 id="sceneengine 与 agent-sdk 的职责边界">1.2 SceneEngine 与 Agent SDK 的职责边界</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>Agent SDK</th>
+                        <th>SceneEngine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>状态管理</strong></td>
+                        <td>无状态</td>
+                        <td>有状态（场景状态、参与者状态）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>编排能力</strong></td>
+                        <td>无编排（原子操作）</td>
+                        <td>场景级编排（多 Skill 协作）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>职责范围</strong></td>
+                        <td>协议层原子操作</td>
+                        <td>业务层协调</td>
+                    </tr>
+                    <tr>
+                        <td><strong>扩展方式</strong></td>
+                        <td>水平扩展（多活部署）</td>
+                        <td>垂直扩展（场景复杂度）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CLI 支持</strong></td>
+                        <td>提供 Command 通道</td>
+                        <td>提供场景上下文和编排能力</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p><strong>关键设计原则</strong>：</p>
+            <ul>
+                <li><strong>Agent SDK</strong>：专注于提供无状态、原子化、异步化的命令执行机制</li>
+                <li><strong>SceneEngine</strong>：在 Agent SDK 之上提供有状态的场景编排能力</li>
+                <li><strong>CLI</strong>：通过 Agent SDK 访问底层能力，通过 SceneEngine 访问场景能力</li>
+            </ul>
+
+            <h2 id="第二章">第二章：Agent SDK 核心机制深度解析</h2>
+
+            <h3 id="command 体系设计">2.1 Command 体系设计</h3>
+
+            <h4 id="command 接口定义">2.1.1 Command 接口定义</h4>
+
+            <pre><code>/**
+ * Command 接口 - Agent SDK 的核心抽象
+ */
+public interface Command&lt;R&gt; {
+    
+    /**
+     * 命令唯一标识
+     * 格式规范：skill-id:command-name
+     */
+    String getCommandId();
+    
+    CommandType getType();
+    
+    R execute(CommandContext context);
+    
+    default boolean isAsync() {
+        return false;
+    }
+    
+    default long getTimeout() {
+        return 30000L; // 默认 30 秒
+    }
+}</code></pre>
+
+            <h4 id="command-id 设计规范">2.1.2 Command ID 设计规范</h4>
+
+            <pre><code>格式：{skill-id}:{command-name}
+
+示例：
+- rag-skill:reindex        # RAG 技能 - 重建索引
+- rag-skill:search         # RAG 技能 - 搜索
+- chart-skill:refresh      # 图表技能 - 刷新
+- db-skill:migrate         # 数据库技能 - 迁移
+
+约束：
+1. skill-id 必须全局唯一（避免冲突）
+2. command-name 使用小写字母和连字符
+3. 避免使用特殊字符（: 以外的符号）
+4. 版本兼容策略：command-name 不变，skill-id 带版本号</code></pre>
+
+            <h3 id="异步任务机制">2.2 异步任务机制</h3>
+
+            <h4 id="异步任务执行流程">2.2.1 异步任务执行流程</h4>
+
+            <div class="svg-diagram">
+                <img src="diagram_async_task_flow.svg" alt="异步任务执行流程图" />
+            </div>
+
+            <h4 id="重试策略与超时配置">2.2.2 重试策略与超时配置</h4>
+
+            <p><strong>落地建议值</strong>：</p>
+
+            <pre><code>// 重试策略配置（推荐值）
+最大重试次数：3 次（避免无限重试）
+重试退避算法：指数退避（1s, 2s, 4s, 8s...）
+初始间隔：1000ms
+最大间隔：60000ms
+
+// 超时配置（按任务类型）
+快速任务（&lt; 5 秒）：5000L
+普通任务（30 秒）：30000L
+长时间任务（5 分钟）：300000L
+超长时间任务（30 分钟）：1800000L
+
+// 实际配置示例
+RAG 索引重建：600000L (10 分钟)
+数据库迁移：1800000L (30 分钟)
+图表生成：30000L (30 秒)
+知识检索：5000L (5 秒)</code></pre>
+
+            <h3 id="多活部署架构">2.3 多活部署架构</h3>
+
+            <h4 id="多活部署架构设计">2.3.1 多活部署架构</h4>
+
+            <div class="svg-diagram">
+                <img src="diagram_multi_active_deployment.svg" alt="多活部署架构图" />
+            </div>
+
+            <h2 id="第三章">第三章：SceneEngine 3.0.3 的 CLI 支持机制</h2>
+
+            <h3 id="cli 与 sceneengine 的集成架构">3.1 CLI 与 SceneEngine 的集成架构</h3>
+
+            <p>CLI 层负责用户交互、权限校验、命令转换和结果格式化。Agent SDK 层提供协议封装、任务调度、状态管理和多活支持。SceneEngine 层提供场景编排、状态维护、事件驱动和权限控制。</p>
+
+            <h3 id="scenecontextapi 核心接口">3.2 SceneContextApi 核心接口</h3>
+
+            <pre><code>public interface SceneContextApi {
+    String getSceneGroupId();
+    String getSceneType();
+    String getSkillId();
+    Object getConfig(String key);
+    void setConfig(String key, Object value);
+    Object invokeCapability(String capabilityId, Map&lt;String, Object&gt; params);
+    List&lt;ParticipantInfo&gt; getParticipants();
+    void publishEvent(String eventType, Map&lt;String, Object&gt; data);
+    
+    // SceneEngine 3.0.3 新增的 CLI 支持方法
+    SceneStatus getStatus();
+    List&lt;String&gt; getActiveSkills();
+    boolean isSkillActive(String skillId);
+    CommandResult executeCommand(String commandId, Map&lt;String, Object&gt; params);
+    List&lt;NlpCapability&gt; getAvailableNlpCapabilities();
+}</code></pre>
+
+            <h2 id="第四章">第四章：实操案例与端到端场景</h2>
+
+            <h3 id="案例一创建会议场景并调用 rag 技能">4.1 案例一：创建会议场景并调用 RAG 技能</h3>
+
+            <p><strong>场景描述</strong>：创建一个项目会议场景，邀请团队成员，然后使用 RAG 技能检索项目文档。</p>
+
+            <pre><code># 1. 创建会议场景
+$ skill scene create --type=meeting --participants=zhangsan,lisi,wangwu
+{
+  "sceneGroupId": "scene-meeting-001",
+  "sceneType": "meeting",
+  "status": "CREATED"
+}
+
+# 2. 激活场景
+$ skill scene activate scene-meeting-001
+{
+  "sceneGroupId": "scene-meeting-001",
+  "status": "ACTIVE"
+}
+
+# 3. 在场景内调用 RAG 检索能力
+$ skill scene invoke scene-meeting-001 rag-skill:search --query="项目进度报告" --limit=10
+{
+  "results": [
+    {
+      "documentId": "doc-001",
+      "title": "2024 年 Q1 项目进度报告",
+      "score": 0.95
+    }
+  ]
+}
+
+# 4. 使用 LLM 生成会议纪要
+$ skill scene invoke scene-meeting-001 llm-skill:summarize --context="meeting"
+{
+  "summary": "项目整体进度完成 75%...",
+  "keyPoints": ["进度完成 75%", "已完成需求分析"]
+}</code></pre>
+
+            <h3 id="案例二异步执行 rag 索引重建">4.2 案例二：异步执行 RAG 索引重建</h3>
+
+            <pre><code># 1. 提交异步任务
+$ skill exec rag-skill reindex --knowledgeBase=docs
+{
+  "taskId": "task-reindex-20240115-001",
+  "status": "PENDING"
+}
+
+# 2. 查询任务状态
+$ skill task status task-reindex-20240115-001
+{
+  "taskId": "task-reindex-20240115-001",
+  "status": "RUNNING",
+  "progress": {
+    "current": 750,
+    "total": 1500,
+    "percentage": 50
+  }
+}
+
+# 3. 等待任务完成
+$ skill task wait task-reindex-20240115-001 --timeout=300s
+{
+  "taskId": "task-reindex-20240115-001",
+  "status": "COMPLETED",
+  "result": {
+    "documentsIndexed": 1500,
+    "timeElapsed": "2m30s"
+  }
+}</code></pre>
+
+            <h2 id="第五章">第五章：与主流 CLI 工具对比</h2>
+
+            <h3 id="功能对比表">5.1 功能对比表</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>kubectl</th>
+                        <th>aws-cli</th>
+                        <th>terraform</th>
+                        <th>Ooder CLI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>抽象层级</strong></td>
+                        <td>资源级</td>
+                        <td>API 级</td>
+                        <td>基础设施级</td>
+                        <td><strong>场景级</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>组合能力</strong></td>
+                        <td>弱</td>
+                        <td>弱</td>
+                        <td>中</td>
+                        <td><strong>强</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>异步支持</strong></td>
+                        <td>中</td>
+                        <td>中</td>
+                        <td>弱</td>
+                        <td><strong>强</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>场景编排</strong></td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td><strong>✅</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>上下文持久化</strong></td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>✅</td>
+                        <td><strong>✅</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>命令发现性</strong></td>
+                        <td>中</td>
+                        <td>弱</td>
+                        <td>中</td>
+                        <td><strong>强</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="第六章">第六章：CLI 交互体验优化建议</h2>
+
+            <h3 id="上下文持久化">6.1 上下文持久化</h3>
+
+            <pre><code># 设置当前会话上下文
+$ skill context set scene scene-meeting-001
+Context set: scene=scene-meeting-001
+
+$ skill context set output json
+Context set: output=json
+
+# 后续命令可以省略场景参数
+$ skill invoke rag-skill:search --query="项目进度"
+
+# 查看当前上下文
+$ skill context show
+Current Context:
+  - scene: scene-meeting-001
+  - output: json</code></pre>
+
+            <h3 id="命令补全与提示">6.2 命令补全与提示</h3>
+
+            <pre><code># 列出所有可用 Skills
+$ skill skill list
+
+# 查看 Skill 的可用命令
+$ skill command list rag-skill
+
+# 查看命令详细用法
+$ skill command describe rag-skill:reindex</code></pre>
+
+            <h2 id="第七章">第七章：监控与可观测性</h2>
+
+            <h3 id="监控指标">7.1 监控指标</h3>
+
+            <pre><code>// 推荐的 Prometheus 指标
+ooder_command_execution_total           # Command 执行次数
+ooder_command_execution_duration_seconds # 命令执行耗时
+ooder_command_execution_errors_total    # 命令执行错误数
+ooder_task_queue_length                 # 任务队列长度
+ooder_scene_active_count                # 活跃场景数</code></pre>
+
+            <h3 id="日志规范">7.2 日志规范</h3>
+
+            <pre><code>// 结构化日志字段规范
+必填字段：
+- timestamp: 时间戳
+- level: 日志级别
+- traceId: 追踪 ID
+- commandId: 命令 ID
+- taskId: 任务 ID
+- userId: 用户 ID
+- action: 操作类型
+- status: 状态
+- durationMs: 耗时（毫秒）</code></pre>
+
+            <h2 id="结语">结语：CLI 设计的未来</h2>
+
+            <p>Ooder Agent SDK 和 SceneEngine 3.0.3 的 CLI 支持设计，代表了一种新的软件交互范式：</p>
+
+            <h3 id="核心创新点">核心创新点</h3>
+
+            <ul>
+                <li><strong>场景驱动</strong>：从资源操作升级到场景编排，降低用户认知负担</li>
+                <li><strong>异步原生</strong>：所有长时间任务都支持异步执行，提升用户体验</li>
+                <li><strong>多层抽象</strong>：CLI → Agent SDK → SceneEngine → Skill，职责清晰</li>
+                <li><strong>强发现性</strong>：命令可发现、可探索，降低学习成本</li>
+                <li><strong>可观测性</strong>：全链路追踪、结构化日志、监控指标</li>
+                <li><strong>插件化</strong>：第三方 Skill 可以无缝接入 CLI 体系</li>
+            </ul>
+
+            <h3 id="落地建议">落地建议</h3>
+
+            <ol>
+                <li><strong>标准化先行</strong>：先固化 Command 接口、CLI 语法、Skill 接入规范</li>
+                <li><strong>核心场景验证</strong>：优先落地高频场景（文档检索、图表生成、智能对话）</li>
+                <li><strong>用户体验迭代</strong>：通过用户反馈持续优化命令简洁度、响应速度、错误提示</li>
+            </ol>
+
+            <h3 id="未来展望">未来展望</h3>
+
+            <p>随着 LLM 能力的进一步集成，CLI 将变得更加智能：</p>
+            <ul>
+                <li><strong>自然语言转 CLI 命令</strong>：用户说"帮我创建会议场景"，自动生成 CLI 命令</li>
+                <li><strong>智能命令推荐</strong>：根据用户历史行为推荐常用命令</li>
+                <li><strong>自动化运维</strong>：结合 AI 实现故障自愈、性能优化</li>
+            </ul>
+
+            <p>这，就是下一代软件的底层革命。</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>参考资源</strong>：</p>
+            <ul style="list-style: none;">
+                <li><a href="https://github.com/ooderCN/ooder-skills">Ooder Skills GitHub</a></li>
+                <li><a href="../architecture/02-agent-sdk/README.md">Agent SDK 深度解析</a></li>
+                <li><a href="../architecture/03-scene-engine/README.md">SceneEngine 场景引擎</a></li>
+                <li><a href="../architecture/04-cli-design/README.md">CLI 设计实现</a></li>
+            </ul>
+            <p style="margin-top: 30px;">
+                <small>本文作者：Ooder 技术团队 | 发布日期：2026 年 4 月 | 版本：v1.0 | SceneEngine 版本：3.0.3</small>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

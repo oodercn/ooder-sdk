@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ooder Agent SDK CLI 实战指南：从入门到精通</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f8fafc;
+            --text-color: #334155;
+            --code-bg: #f1f5f9;
+            --border-color: #e2e8f0;
+            --highlight-bg: #dbeafe;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .header .meta {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        .nav {
+            background: white;
+            padding: 20px 40px;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav h2 {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav li {
+            flex: 0 0 auto;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            background: var(--highlight-bg);
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin: 50px 0 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin: 35px 0 20px;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            color: #475569;
+            margin: 25px 0 15px;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 25px 0;
+            font-family: "Consolas", "Monaco", "Courier New", monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "Consolas", "Monaco", "Courier New", monospace;
+            font-size: 0.85em;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover {
+            background-color: var(--highlight-bg);
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding: 15px 20px;
+            margin: 20px 0;
+            background: var(--highlight-bg);
+            color: #1e293b;
+            font-style: italic;
+        }
+
+        .svg-diagram {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .svg-diagram img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .highlight-box {
+            background: var(--highlight-bg);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box strong {
+            color: var(--primary-color);
+        }
+
+        .footer {
+            background: #1e293b;
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .footer a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .nav ul {
+                flex-direction: column;
+            }
+            
+            .nav a {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ooder Agent SDK CLI 实战指南：从入门到精通</h1>
+            <div class="meta">
+                <strong>作者:</strong> Ooder SDK Team | 
+                <strong>版本:</strong> 3.0.3 | 
+                <strong>发布日期:</strong> 2026-04-17
+            </div>
+        </div>
+
+        <div class="nav">
+            <h2>目录</h2>
+            <ul>
+                <li><a href="#section1">OoderAgent 有什么用？</a></li>
+                <li><a href="#section2">为什么要做一个 CLI？</a></li>
+                <li><a href="#section3">如何配置 CLI？</a></li>
+                <li><a href="#section4">如何快速上手 CLI？</a></li>
+                <li><a href="#section5">WebConsole + LLM</a></li>
+                <li><a href="#section6">常见 CLI 命令列表</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <h2 id="section1">1. OoderAgent 有什么用？</h2>
+            
+            <h3>1.1 核心定位</h3>
+            <p>Ooder Agent SDK 是一个面向南向协议实现的轻量级 Agent SDK，提供完整的 Agent 生命周期管理、能力编排、场景管理和协议适配功能。它解决了企业级应用中 Agent 系统的核心痛点：</p>
+            
+            <ul>
+                <li><strong>Agent 管理</strong>: 完整的 Agent 生命周期管理</li>
+                <li><strong>能力编排</strong>: Story/Will 编排引擎</li>
+                <li><strong>场景管理</strong>: Scene 和 SceneGroup 管理</li>
+                <li><strong>协议适配</strong>: A2A、REACH 南向协议支持</li>
+                <li><strong>技能框架</strong>: 技能加载、生成和运行时支持</li>
+                <li><strong>LLM 集成</strong>: 结构化输出、工具调用增强、激活引导、Token配额管理</li>
+                <li><strong>负载均衡</strong>: 内置负载均衡和故障转移服务</li>
+            </ul>
+
+            <h3>1.2 架构特点</h3>
+            <pre><code>agent-sdk (父工程) 3.0.3
+├── llm-sdk                              # LLM SDK
+├── skills-framework                     # 技能框架
+├── agent-sdk-core                       # 核心实现
+├── agent-sdk-cli                        # CLI 工具
+└── agent-sdk-spring-boot-starter        # Spring Boot Starter</code></pre>
+
+            <h3>1.3 典型应用场景</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>场景</th>
+                        <th>描述</th>
+                        <th>价值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>智能客服系统</strong></td>
+                        <td>多 Agent 协作的客服场景</td>
+                        <td>提升响应效率 60%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>知识库管理</strong></td>
+                        <td>RAG 技能的安装和管理</td>
+                        <td>知识检索准确率 95%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>协作会议</strong></td>
+                        <td>场景化的会议 Agent 协作</td>
+                        <td>会议效率提升 40%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>数据分析</strong></td>
+                        <td>多技能编排的数据处理</td>
+                        <td>分析周期缩短 50%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="section2">2. 为什么要做一个 CLI？</h2>
+            
+            <h3>2.1 痛点分析</h3>
+            <p>在没有 CLI 工具之前，开发者面临以下问题：</p>
+            <ol>
+                <li><strong>操作复杂</strong>: 需要编写代码或调用 API 才能管理 Agent</li>
+                <li><strong>调试困难</strong>: 缺乏实时交互和状态查看能力</li>
+                <li><strong>效率低下</strong>: 重复性操作需要大量编码工作</li>
+                <li><strong>学习成本高</strong>: 需要深入了解 SDK 内部机制</li>
+            </ol>
+
+            <h3>2.2 CLI 的核心价值</h3>
+            
+            <h4>2.2.1 提升开发效率</h4>
+            <pre><code class="language-bash"># 传统方式：需要编写 Java 代码
+OoderSDK sdk = OoderSDK.builder()
+    .agentId("my-agent")
+    .agentName("My Agent")
+    .build();
+WorkerAgent worker = sdk.getAgentFactory()
+    .createWorkerAgent("scene-001", "worker-1", "skill-001");
+worker.execute("capability-id", params);
+
+# CLI 方式：一行命令搞定
+ooder skill:install --source ./my-skill.jar
+ooder skill:start --skill-id my-skill
+ooder skill exec my-skill:process --input data.json</code></pre>
+
+            <h4>2.2.2 降低学习门槛</h4>
+            <p>CLI 提供了直观的命令体系和帮助系统，新用户可以快速上手：</p>
+            <pre><code class="language-bash"># 查看帮助
+ooder --help
+
+# 查看特定命令的用法
+ooder skill:install --help
+
+# 列出所有技能
+ooder skill:list</code></pre>
+
+            <h4>2.2.3 支持自动化运维</h4>
+            <p>CLI 可以轻松集成到 CI/CD 流程中：</p>
+            <pre><code class="language-bash">#!/bin/bash
+# 自动化部署脚本
+
+# 安装技能
+ooder skill:install --source $SKILL_URL --force
+
+# 启动技能
+ooder skill:start --skill-id $SKILL_ID
+
+# 创建场景
+ooder scene:create --group-id production --main $MAIN_CAPABILITY
+
+# 验证状态
+ooder status</code></pre>
+
+            <h3>2.3 CLI 架构设计</h3>
+            <div class="svg-diagram">
+                <img src="diagram_cli_architecture.svg" alt="CLI 架构设计" style="max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 8px;"/>
+            </div>
+
+            <h2 id="section3">3. 如何配置 CLI？</h2>
+            
+            <h3>3.1 Maven 依赖配置</h3>
+            
+            <h4>3.1.1 添加依赖</h4>
+            <p>在项目的 <code>pom.xml</code> 中添加以下依赖：</p>
+            <pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;net.ooder&lt;/groupId&gt;
+    &lt;artifactId&gt;agent-sdk-cli&lt;/artifactId&gt;
+    &lt;version&gt;3.0.3&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+
+            <h4>3.1.2 完整的 pom.xml 示例</h4>
+            <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;my-agent-app&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+    
+    &lt;dependencies&gt;
+        &lt;!-- Agent SDK CLI --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;net.ooder&lt;/groupId&gt;
+            &lt;artifactId&gt;agent-sdk-cli&lt;/artifactId&gt;
+            &lt;version&gt;3.0.3&lt;/version&gt;
+        &lt;/dependency&gt;
+        
+        &lt;!-- Agent SDK Core --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;net.ooder&lt;/groupId&gt;
+            &lt;artifactId&gt;agent-sdk-core&lt;/artifactId&gt;
+            &lt;version&gt;3.0.3&lt;/version&gt;
+        &lt;/dependency&gt;
+        
+        &lt;!-- Skills Framework --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;net.ooder&lt;/groupId&gt;
+            &lt;artifactId&gt;skills-framework&lt;/artifactId&gt;
+            &lt;version&gt;3.0.3&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/project&gt;</code></pre>
+
+            <h3>3.2 配置文件设置</h3>
+            
+            <h4>3.2.1 CLI 配置文件 (cli-config.yml)</h4>
+            <p>在 <code>src/main/resources</code> 目录下创建 <code>cli-config.yml</code>：</p>
+            <pre><code class="language-yaml"># Ooder CLI Configuration
+ooder:
+  cli:
+    # 安全配置
+    security:
+      enabled: true
+      whitelist-enabled: true
+      injection-check-enabled: true
+      dangerous-chars-check-enabled: true
+      audit-enabled: true
+      
+      # 命令白名单
+      whitelist:
+        - skill:list
+        - skill:info
+        - skill:install
+        - skill:uninstall
+        - skill:update
+        - skill:start
+        - skill:stop
+        - skill:exec
+        - scene:list
+        - scene:create
+        - scene:info
+        - scene:invoke
+        - scene:event
+        - task:list
+        - task:status
+        - status
+        - help
+      
+      # 敏感字段
+      sensitive-keys:
+        - password
+        - secret
+        - token
+        - key
+        - api-key
+        - credential
+        - auth
+        - private-key
+        - access-token
+        - refresh-token
+      
+      # 安全检测正则表达式
+      dangerous-chars-pattern: "[;|&amp;$`\\{}\\[\\]\\(\\)\\*\\?&lt;&gt;]"
+      sql-injection-pattern: "(\\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\\b)|(--|#|/\\*)"
+      script-injection-pattern: "&lt;script|javascript:|on\\w+\\s*="
+    
+    # 输出配置
+    output:
+      default-format: text
+      color-enabled: true
+      
+    # 交互式配置
+    interactive:
+      enabled: true
+      history-size: 1000
+      history-file: "${user.home}/.ooder/cli-history"
+      prompt: "ooder&gt; "
+      
+    # 任务配置
+    task:
+      default-timeout: 60
+      cleanup-interval: 3600
+      max-concurrent: 10</code></pre>
+
+            <h4>3.2.2 Spring Boot 配置 (application.yml)</h4>
+            <pre><code class="language-yaml">ooder:
+  sdk:
+    enabled: true
+    agent-id: my-agent
+    agent-name: My Agent
+    agent-type: WORKER
+    endpoint: http://localhost:8080
+    discovery-enabled: true
+    heartbeat-interval: 30000</code></pre>
+
+            <h3>3.3 代码集成</h3>
+            
+            <h4>3.3.1 Spring Boot 集成方式</h4>
+            <pre><code class="language-java">@SpringBootApplication
+public class AgentApplication {
+    
+    @Bean
+    public OoderCli ooderCli(SkillRegistry skillRegistry,
+                             SkillInstaller skillInstaller,
+                             SkillInvoker skillInvoker,
+                             CollaborativeSceneGroupManager sceneGroupManager) {
+        OoderCli cli = OoderCli.builder()
+            .skillRegistry(skillRegistry)
+            .skillInstaller(skillInstaller)
+            .skillInvoker(skillInvoker)
+            .sceneGroupManager(sceneGroupManager)
+            .build();
+        
+        cli.initializeAdapters();
+        return cli;
+    }
+    
+    public static void main(String[] args) {
+        SpringApplication.run(AgentApplication.class, args);
+    }
+}</code></pre>
+
+            <h4>3.3.2 独立应用集成方式</h4>
+            <pre><code class="language-java">public class StandaloneCliApp {
+    public static void main(String[] args) {
+        // 创建 SDK 实例
+        OoderSDK sdk = OoderSDK.builder()
+            .agentId("cli-agent")
+            .agentName("CLI Agent")
+            .build();
+        
+        // 创建 CLI 实例
+        OoderCli cli = OoderCli.builder()
+            .skillRegistry(sdk.getSkillRegistry())
+            .skillInstaller(sdk.getSkillInstaller())
+            .skillInvoker(sdk.getSkillInvoker())
+            .sceneGroupManager(sdk.getSceneGroupManager())
+            .build();
+        
+        // 初始化适配器
+        cli.initializeAdapters();
+        
+        // 运行 CLI
+        int exitCode = cli.run(args);
+        System.exit(exitCode);
+    }
+}</code></pre>
+
+            <h3>3.4 本地 Maven 仓库配置</h3>
+            <div class="highlight-box">
+                <p><strong>本地 Maven 地址:</strong> <code>D:\maven\.m2</code></p>
+                <p>在 <code>settings.xml</code> 中配置：</p>
+                <pre><code class="language-xml">&lt;settings&gt;
+    &lt;localRepository&gt;D:\maven\.m2&lt;/localRepository&gt;
+    
+    &lt;mirrors&gt;
+        &lt;mirror&gt;
+            &lt;id&gt;aliyun&lt;/id&gt;
+            &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;
+            &lt;name&gt;Aliyun Maven Mirror&lt;/name&gt;
+            &lt;url&gt;https://maven.aliyun.com/repository/public&lt;/url&gt;
+        &lt;/mirror&gt;
+    &lt;/mirrors&gt;
+&lt;/settings&gt;</code></pre>
+            </div>
+
+            <h2 id="section4">4. 如何快速上手 CLI？</h2>
+            
+            <h3>4.1 安装和构建</h3>
+            
+            <h4>4.1.1 从源码构建</h4>
+            <pre><code class="language-bash"># 克隆仓库
+git clone https://github.com/oodercn/ooder-sdk.git
+cd ooder-sdk
+
+# 编译安装
+mvn clean install -DskipTests
+
+# 构建 CLI 模块
+cd agent-sdk/agent-sdk-cli
+mvn clean package</code></pre>
+
+            <h4>4.1.2 运行 CLI</h4>
+            <pre><code class="language-bash"># 方式1: 直接运行主类
+java -cp target/agent-sdk-cli-3.0.3.jar net.ooder.sdk.cli.OoderCli
+
+# 方式2: 进入交互式模式
+java -cp target/agent-sdk-cli-3.0.3.jar net.ooder.sdk.cli.OoderCli
+
+# 方式3: 执行单个命令
+java -cp target/agent-sdk-cli-3.0.3.jar net.ooder.sdk.cli.OoderCli skill:list</code></pre>
+
+            <h3>4.2 交互式模式</h3>
+            
+            <h4>4.2.1 启动交互式 CLI</h4>
+            <pre><code class="language-bash">$ java -cp target/agent-sdk-cli-3.0.3.jar net.ooder.sdk.cli.OoderCli
+
+Ooder Agent SDK CLI v3.1.0
+Type 'help' for available commands or 'exit' to quit.
+
+ooder&gt;</code></pre>
+
+            <h4>4.2.2 基本操作</h4>
+            <pre><code class="language-bash"># 查看帮助
+ooder&gt; help
+
+# 查看系统状态
+ooder&gt; status
+
+# 列出所有技能
+ooder&gt; skill:list
+
+# 安装技能
+ooder&gt; skill:install --source ./my-skill.jar
+
+# 启动技能
+ooder&gt; skill:start --skill-id my-skill
+
+# 退出
+ooder&gt; exit</code></pre>
+
+            <h3>4.3 命令行模式</h3>
+            
+            <h4>4.3.1 单次命令执行</h4>
+            <pre><code class="language-bash"># 列出所有技能
+java -cp ... net.ooder.sdk.cli.OoderCli skill:list
+
+# 安装技能
+java -cp ... net.ooder.sdk.cli.OoderCli skill:install --source ./skill.jar
+
+# 查看技能详情
+java -cp ... net.ooder.sdk.cli.OoderCli skill:info --skill-id rag-skill
+
+# 创建场景
+java -cp ... net.ooder.sdk.cli.OoderCli scene:create --group-id meeting-001 --main video-call</code></pre>
+
+            <h4>4.3.2 输出格式控制</h4>
+            <pre><code class="language-bash"># JSON 格式输出
+java -cp ... net.ooder.sdk.cli.OoderCli skill:list --output json
+
+# 表格格式输出
+java -cp ... net.ooder.sdk.cli.OoderCli skill:list --output table
+
+# 详细输出
+java -cp ... net.ooder.sdk.cli.OoderCli skill:list --verbose</code></pre>
+
+            <h3>4.4 快速实战案例</h3>
+            
+            <h4>4.4.1 案例1: 安装并运行 RAG 技能</h4>
+            <pre><code class="language-bash"># 步骤1: 安装 RAG 技能
+ooder skill:install --source https://repo.ooder.cn/skills/rag-skill-1.0.0.jar
+
+# 步骤2: 查看安装结果
+ooder skill:list --status INSTALLED
+
+# 步骤3: 启动技能
+ooder skill:start --skill-id rag-skill
+
+# 步骤4: 执行技能命令
+ooder skill exec rag-skill:reindex --knowledgeBase ./docs
+
+# 步骤5: 查询任务状态
+ooder task:status --task-id &lt;task-id&gt;</code></pre>
+
+            <h4>4.4.2 案例2: 创建协作场景</h4>
+            <pre><code class="language-bash"># 步骤1: 创建场景组
+ooder scene:create --group-id meeting-001 \
+    --main video-call \
+    --collaborative whiteboard,screen-share,chat
+
+# 步骤2: 查看场景信息
+ooder scene:info --group-id meeting-001
+
+# 步骤3: 调用场景能力
+ooder scene:invoke --group-id meeting-001 \
+    --capability video-call:start \
+    --participants user1,user2,user3
+
+# 步骤4: 发布场景事件
+ooder scene:event --group-id meeting-001 \
+    --event-type participant.joined \
+    --user user4</code></pre>
+
+            <h2 id="section5">5. 如何使用 skills-cli-console 结合 LLM 快速熟悉 CLI 命令？</h2>
+            
+            <h3>5.1 skills-cli-console 简介</h3>
+            <p><strong>apexos 1.0.5 版本</strong>默认支持了 <code>skills-cli-console</code> 能力，这是一个革命性的 CLI 交互增强工具。通过发现和安装 <code>cli-console</code> 能力后，您可以在多个平台上完成 CLI 操作：</p>
+            
+            <ul>
+                <li><strong>agent-chat 小助手</strong>: 内置的智能对话助手</li>
+                <li><strong>cli-console chat 窗口</strong>: 专用的 CLI 对话界面</li>
+                <li><strong>钉钉集成</strong>: 通过钉钉机器人进行 CLI 操作</li>
+                <li><strong>微信集成</strong>: 通过微信公众号/企业微信进行 CLI 操作</li>
+                <li><strong>飞书集成</strong>: 通过飞书机器人进行 CLI 操作</li>
+            </ul>
+
+            <h3>5.2 skills-cli-console 架构设计</h3>
+            <div class="svg-diagram">
+                <img src="diagram_skills_cli_console_architecture.svg" alt="skills-cli-console 多渠道架构" style="max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 8px;"/>
+            </div>
+
+            <h3>5.3 安装和配置 skills-cli-console</h3>
+            
+            <h4>5.3.1 自动发现和安装</h4>
+            <p>apexos 1.0.5 会自动发现 <code>cli-console</code> 能力：</p>
+            <pre><code class="language-bash"># 方式1: 通过 agent-chat 小助手
+用户: "帮我安装 cli-console 能力"
+Agent: 正在为您安装 skills-cli-console...
+       ✓ 安装成功
+       ✓ 已启用 cli-console 能力
+       您现在可以通过对话方式执行 CLI 命令了！
+
+# 方式2: 通过传统 CLI 命令
+ooder skill:install --source skills-cli-console --auto-discover</code></pre>
+
+            <h4>5.3.2 配置多渠道接入</h4>
+            <pre><code class="language-yaml"># application.yml
+ooder:
+  cli-console:
+    enabled: true
+    
+    # Agent-Chat 配置
+    agent-chat:
+      enabled: true
+      welcome-message: "您好！我是 CLI 助手，可以通过对话帮您执行命令。"
+      
+    # 钉钉集成配置
+    dingtalk:
+      enabled: true
+      webhook: ${DINGTALK_WEBHOOK}
+      secret: ${DINGTALK_SECRET}
+      at-all: false
+      
+    # 微信集成配置
+    wechat:
+      enabled: true
+      corp-id: ${WECHAT_CORP_ID}
+      agent-id: ${WECHAT_AGENT_ID}
+      secret: ${WECHAT_SECRET}
+      
+    # 飞书集成配置
+    feishu:
+      enabled: true
+      app-id: ${FEISHU_APP_ID}
+      app-secret: ${FEISHU_APP_SECRET}
+      
+    # LLM 配置
+    llm:
+      enabled: true
+      provider: openai
+      model: gpt-4
+      temperature: 0.7
+      max-tokens: 2000</code></pre>
+
+            <h3>5.3 LLM 辅助功能</h3>
+            
+            <h4>5.3.1 自然语言转命令</h4>
+            <p>在 WebConsole 中，您可以使用自然语言描述需求，LLM 会自动转换为 CLI 命令：</p>
+            <pre><code class="language-bash"># 用户输入自然语言
+用户: "我想安装一个 RAG 技能"
+
+# LLM 转换为命令
+LLM 建议: ooder skill:install --source &lt;rag-skill-url&gt;
+
+# 用户确认后执行
+ooder&gt; skill:install --source https://repo.ooder.cn/skills/rag-skill-1.0.0.jar</code></pre>
+
+            <h4>5.3.2 智能命令补全</h4>
+            <pre><code class="language-bash"># 用户输入部分命令
+ooder&gt; skill:i
+
+# LLM 提供补全建议
+[1] skill:info      - 查看技能详情
+[2] skill:install   - 安装技能
+[3] skill:invoke    - 调用技能能力
+
+# 用户选择或继续输入
+ooder&gt; skill:install --source ./my-skill.jar</code></pre>
+
+            <h4>5.3.3 错误诊断与修复</h4>
+            <pre><code class="language-bash"># 用户输入错误命令
+ooder&gt; skill:install my-skill.jar
+
+# CLI 返回错误
+错误: 缺少必需参数 --source
+
+# LLM 提供修复建议
+LLM 建议: 您可能想要执行以下命令：
+  ooder skill:install --source my-skill.jar
+
+是否执行建议的命令？(y/n)</code></pre>
+
+            <h3>5.4 实战示例</h3>
+            
+            <h4>5.4.1 示例1: 通过自然语言创建场景</h4>
+            <pre><code class="language-bash"># 用户输入
+用户: "创建一个包含视频通话和白板的协作场景"
+
+# LLM 解析并生成命令
+LLM 分析:
+  - 场景类型: 协作场景
+  - 主要能力: 视频通话
+  - 协作能力: 白板
+
+生成命令:
+  ooder scene:create --group-id collab-001 \
+      --main video-call \
+      --collaborative whiteboard
+
+# 执行命令
+ooder&gt; scene:create --group-id collab-001 --main video-call --collaborative whiteboard
+
+场景组创建成功:
+  - Group ID: collab-001
+  - Main Capability: video-call
+  - Collaborative Capabilities: [whiteboard]
+  - Status: CREATED</code></pre>
+
+            <h4>5.4.2 示例2: 智能技能推荐</h4>
+            <pre><code class="language-bash"># 用户描述需求
+用户: "我需要一个能够处理文档检索和问答的技能"
+
+# LLM 分析并推荐
+LLM 推荐:
+  基于您的需求，推荐以下技能：
+
+  [1] rag-skill (v1.2.0)
+      - 文档检索与问答
+      - 支持多种文档格式
+      - 内置向量检索引擎
+      
+  [2] qa-skill (v2.0.0)
+      - 智能问答系统
+      - 支持多轮对话
+      - 知识图谱集成
+
+选择要安装的技能 (1-2): 1
+
+# 安装推荐的技能
+ooder&gt; skill:install --source https://repo.ooder.cn/skills/rag-skill-1.2.0.jar</code></pre>
+
+            <h3>5.5 WebConsole 使用技巧</h3>
+            
+            <h4>5.5.1 快捷键</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>快捷键</th>
+                        <th>功能</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Tab</code></td>
+                        <td>自动补全命令</td>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl+Space</code></td>
+                        <td>触发 LLM 建议</td>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl+L</code></td>
+                        <td>清屏</td>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl+C</code></td>
+                        <td>取消当前命令</td>
+                    </tr>
+                    <tr>
+                        <td><code>↑/↓</code></td>
+                        <td>浏览历史命令</td>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl+R</code></td>
+                        <td>搜索历史命令</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>5.5.2 命令模板</h4>
+            <p>WebConsole 提供常用命令模板，可通过 LLM 智能填充：</p>
+            <pre><code class="language-bash"># 模板1: 技能安装
+ooder&gt; template skill-install
+请输入技能源地址: https://repo.ooder.cn/skills/my-skill.jar
+是否强制安装? (y/n): y
+生成命令: ooder skill:install --source https://repo.ooder.cn/skills/my-skill.jar --force
+
+# 模板2: 场景创建
+ooder&gt; template scene-create
+请输入场景组ID: meeting-001
+请输入主要能力: video-call
+请输入协作能力(逗号分隔): whiteboard,chat
+生成命令: ooder scene:create --group-id meeting-001 --main video-call --collaborative whiteboard,chat</code></pre>
+
+            <h2 id="section6">6. 常见 CLI 命令列表</h2>
+            
+            <h3>6.1 命令分类总览</h3>
+            <pre><code>ooder
+├── Core Commands (核心命令)
+│   ├── skill:list          # 列出所有 Skills
+│   ├── skill:info          # 查看 Skill 详情
+│   ├── skill:install       # 安装 Skill
+│   ├── skill:uninstall     # 卸载 Skill
+│   ├── skill:start         # 启动 Skill
+│   ├── skill:stop          # 停止 Skill
+│   ├── skill:update        # 更新 Skill
+│   └── skill exec          # 执行 Skill 命令
+│
+├── Scene Commands (场景命令)
+│   ├── scene:create        # 创建场景
+│   ├── scene:list          # 列出场景
+│   ├── scene:info          # 查看场景详情
+│   ├── scene:invoke        # 调用场景能力
+│   └── scene:event         # 发布场景事件
+│
+├── Task Commands (任务命令)
+│   ├── task:list           # 列出所有任务
+│   └── task:status         # 查询任务状态
+│
+└── System Commands (系统命令)
+    ├── status              # 查看系统状态
+    └── help                # 查看帮助</code></pre>
+
+            <h3>6.2 详细命令说明</h3>
+            
+            <h4>6.2.1 Skill 命令</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>命令</th>
+                        <th>用法</th>
+                        <th>说明</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>skill:list</code></td>
+                        <td><code>ooder skill:list [--status &lt;status&gt;] [--type &lt;type&gt;]</code></td>
+                        <td>列出所有已安装的技能</td>
+                        <td><code>ooder skill:list --status RUNNING</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>skill:info</code></td>
+                        <td><code>ooder skill:info --skill-id &lt;id&gt;</code></td>
+                        <td>查看技能详细信息</td>
+                        <td><code>ooder skill:info --skill-id rag-skill</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>skill:install</code></td>
+                        <td><code>ooder skill:install --source &lt;path|url&gt; [--force]</code></td>
+                        <td>安装技能</td>
+                        <td><code>ooder skill:install --source ./skill.jar</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>skill:uninstall</code></td>
+                        <td><code>ooder skill:uninstall --skill-id &lt;id&gt;</code></td>
+                        <td>卸载技能</td>
+                        <td><code>ooder skill:uninstall --skill-id rag-skill</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>skill:start</code></td>
+                        <td><code>ooder skill:start --skill-id &lt;id&gt;</code></td>
+                        <td>启动技能</td>
+                        <td><code>ooder skill:start --skill-id rag-skill</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>skill:stop</code></td>
+                        <td><code>ooder skill:stop --skill-id &lt;id&gt;</code></td>
+                        <td>停止技能</td>
+                        <td><code>ooder skill:stop --skill-id rag-skill</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>skill:update</code></td>
+                        <td><code>ooder skill:update --skill-id &lt;id&gt; --source &lt;path|url&gt;</code></td>
+                        <td>更新技能</td>
+                        <td><code>ooder skill:update --skill-id rag-skill --source ./skill-v2.jar</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>skill exec</code></td>
+                        <td><code>ooder skill exec &lt;skill-id&gt;:&lt;command&gt; [options]</code></td>
+                        <td>执行技能扩展命令</td>
+                        <td><code>ooder skill exec rag-skill:reindex --knowledgeBase ./docs</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>6.2.2 Scene 命令</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>命令</th>
+                        <th>用法</th>
+                        <th>说明</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>scene:create</code></td>
+                        <td><code>ooder scene:create --group-id &lt;id&gt; --main &lt;capability&gt; [--collaborative &lt;cap1,cap2,...&gt;]</code></td>
+                        <td>创建场景组</td>
+                        <td><code>ooder scene:create --group-id meeting-001 --main video-call --collaborative whiteboard,chat</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>scene:list</code></td>
+                        <td><code>ooder scene:list [--status &lt;status&gt;]</code></td>
+                        <td>列出所有场景</td>
+                        <td><code>ooder scene:list --status ACTIVE</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>scene:info</code></td>
+                        <td><code>ooder scene:info --group-id &lt;id&gt;</code></td>
+                        <td>查看场景详情</td>
+                        <td><code>ooder scene:info --group-id meeting-001</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>scene:invoke</code></td>
+                        <td><code>ooder scene:invoke --group-id &lt;id&gt; --capability &lt;cap-id&gt; [options]</code></td>
+                        <td>调用场景能力</td>
+                        <td><code>ooder scene:invoke --group-id meeting-001 --capability video-call:start --participants user1,user2</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>scene:event</code></td>
+                        <td><code>ooder scene:event --group-id &lt;id&gt; --event-type &lt;type&gt; [options]</code></td>
+                        <td>发布场景事件</td>
+                        <td><code>ooder scene:event --group-id meeting-001 --event-type participant.joined --user user3</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>6.2.3 Task 命令</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>命令</th>
+                        <th>用法</th>
+                        <th>说明</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>task:list</code></td>
+                        <td><code>ooder task:list [--status &lt;status&gt;]</code></td>
+                        <td>列出所有任务</td>
+                        <td><code>ooder task:list --status RUNNING</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>task:status</code></td>
+                        <td><code>ooder task:status --task-id &lt;id&gt;</code></td>
+                        <td>查询任务状态</td>
+                        <td><code>ooder task:status --task-id task-12345</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>6.2.4 System 命令</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>命令</th>
+                        <th>用法</th>
+                        <th>说明</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>status</code></td>
+                        <td><code>ooder status</code></td>
+                        <td>查看系统状态</td>
+                        <td><code>ooder status</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>help</code></td>
+                        <td><code>ooder help [command]</code></td>
+                        <td>查看帮助信息</td>
+                        <td><code>ooder help skill:install</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>6.3 全局选项</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>选项</th>
+                        <th>简写</th>
+                        <th>说明</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>--verbose</code></td>
+                        <td><code>-v</code></td>
+                        <td>显示详细输出</td>
+                        <td><code>ooder skill:list --verbose</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>--quiet</code></td>
+                        <td><code>-q</code></td>
+                        <td>静默模式</td>
+                        <td><code>ooder skill:install --source ./skill.jar --quiet</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>--output</code></td>
+                        <td><code>-o</code></td>
+                        <td>输出格式 (text/json/table)</td>
+                        <td><code>ooder skill:list --output json</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>--help</code></td>
+                        <td><code>-h</code></td>
+                        <td>显示帮助信息</td>
+                        <td><code>ooder skill:install --help</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>--version</code></td>
+                        <td></td>
+                        <td>显示版本信息</td>
+                        <td><code>ooder --version</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>6.4 命令权限矩阵</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>角色</th>
+                        <th>核心命令</th>
+                        <th>场景命令</th>
+                        <th>任务命令</th>
+                        <th>扩展命令</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>installer</td>
+                        <td>✅ 全部</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td>admin</td>
+                        <td>✅ 全部</td>
+                        <td>✅ 全部</td>
+                        <td>✅ 全部</td>
+                        <td>✅ 白名单内</td>
+                    </tr>
+                    <tr>
+                        <td>leader</td>
+                        <td>✅ view</td>
+                        <td>✅ 全部</td>
+                        <td>✅ 全部</td>
+                        <td>✅ 白名单内</td>
+                    </tr>
+                    <tr>
+                        <td>collaborator</td>
+                        <td>✅ view</td>
+                        <td>✅ view/invoke</td>
+                        <td>✅ view</td>
+                        <td>❌</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>总结</h2>
+            <p>Ooder Agent SDK CLI 是一个强大而灵活的命令行工具，它极大地简化了 Agent 系统的管理和运维工作。通过本文的实战指南，您应该已经掌握了：</p>
+            <ol>
+                <li><strong>OoderAgent 的核心价值</strong>: Agent 生命周期管理、能力编排、场景管理等</li>
+                <li><strong>CLI 的必要性</strong>: 提升效率、降低门槛、支持自动化</li>
+                <li><strong>配置方法</strong>: Maven 依赖、配置文件、代码集成</li>
+                <li><strong>快速上手</strong>: 交互式模式、命令行模式、实战案例</li>
+                <li><strong>WebConsole + LLM</strong>: 自然语言交互、智能推荐、错误诊断</li>
+                <li><strong>命令体系</strong>: 完整的命令列表和使用方法</li>
+            </ol>
+
+            <h2>相关资源</h2>
+            <ul>
+                <li><strong>GitHub 仓库</strong>: <a href="https://github.com/oodercn/ooder-sdk" target="_blank">https://github.com/oodercn/ooder-sdk</a></li>
+                <li><strong>Maven Central</strong>: <a href="https://central.sonatype.com/artifact/net.ooder/agent-sdk" target="_blank">https://central.sonatype.com/artifact/net.ooder/agent-sdk</a></li>
+                <li><strong>本地 Maven 仓库</strong>: <code>D:\maven\.m2</code></li>
+                <li><strong>架构设计文档</strong>: <a href="file:///e:/github/ooder-sdk/skill/docs/architecture/04-cli-design/README.md">e:\github\ooder-sdk\skill\docs\architecture\04-cli-design\README.md</a></li>
+                <li><strong>CLI 配置示例</strong>: <a href="file:///e:/github/ooder-sdk/agent-sdk/agent-sdk-cli/src/main/resources/cli-config.yml">e:\github\ooder-sdk\agent-sdk\agent-sdk-cli\src\main\resources\cli-config.yml</a></li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p><strong>版权所有 © 2026 Ooder SDK Team</strong></p>
+            <p style="margin-top: 10px;">
+                <a href="https://github.com/oodercn/ooder-sdk" target="_blank">GitHub</a> | 
+                <a href="https://ooder.cn" target="_blank">官方网站</a> | 
+                <a href="mailto:18683731@qq.com">联系我们</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -13,7 +13,7 @@
 
     <groupId>net.ooder</groupId>
     <artifactId>agent-sdk</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.5</version>
     <packaging>pom</packaging>
 
   <modules>
@@ -21,6 +21,8 @@
         <module>llm-sdk</module>
         <module>skills-framework</module>
         <module>agent-sdk-core</module>
+        <module>agent-sdk-cli</module>
+        <module>agent-sdk-cli-starter</module>
         <module>agent-sdk-spring-boot-starter</module>
     </modules>
     <name>Ooder Agent SDK</name>
@@ -295,13 +297,7 @@
                 </executions>
             </plugin>
             
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <finalName>agent-sdk-${project.version}</finalName>
-                </configuration>
-            </plugin>
+
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
