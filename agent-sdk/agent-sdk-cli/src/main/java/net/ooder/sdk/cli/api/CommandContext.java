@@ -1,25 +1,19 @@
 package net.ooder.sdk.cli.api;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-/**
- * 命令上下文
- *
- * <p>保存命令执行时的上下文信息</p>
- *
- * @author Agent-SDK Team
- * @version 3.1.0
- * @since 3.1.0
- */
 public class CommandContext {
 
     private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, String> parameters = new HashMap<>();
+    private final Map<String, String> options = new HashMap<>();
+    private final List<String> positionalArgs = new ArrayList<>();
     private String currentUser;
     private String currentScene;
     private String outputFormat = "text";
     private boolean verbose = false;
     private boolean quiet = false;
+    private boolean interactive = false;
     private String[] args = new String[0];
 
     public void setAttribute(String key, Object value) {
@@ -33,6 +27,54 @@ public class CommandContext {
 
     public Map<String, Object> getAttributes() {
         return new HashMap<>(attributes);
+    }
+
+    public String getParameter(String name) {
+        return parameters.get(name);
+    }
+
+    public String getParameter(String name, String defaultValue) {
+        return parameters.getOrDefault(name, defaultValue);
+    }
+
+    public void setParameter(String name, String value) {
+        parameters.put(name, value);
+    }
+
+    public Map<String, String> getParameters() {
+        return new HashMap<>(parameters);
+    }
+
+    public String getOption(String name) {
+        return options.get(name);
+    }
+
+    public String getOption(String name, String defaultValue) {
+        return options.getOrDefault(name, defaultValue);
+    }
+
+    public void setOption(String name, String value) {
+        options.put(name, value);
+    }
+
+    public Map<String, String> getOptions() {
+        return new HashMap<>(options);
+    }
+
+    public List<String> getPositionalArgs() {
+        return new ArrayList<>(positionalArgs);
+    }
+
+    public void addPositionalArg(String arg) {
+        positionalArgs.add(arg);
+    }
+
+    public String getPositionalArg(int index) {
+        return index < positionalArgs.size() ? positionalArgs.get(index) : null;
+    }
+
+    public String getPositionalArg(int index, String defaultValue) {
+        return index < positionalArgs.size() ? positionalArgs.get(index) : defaultValue;
     }
 
     public String getCurrentUser() {
@@ -75,31 +117,27 @@ public class CommandContext {
         this.quiet = quiet;
     }
 
-    /**
-     * 获取命令参数
-     */
+    public boolean isInteractive() {
+        return interactive;
+    }
+
+    public void setInteractive(boolean interactive) {
+        this.interactive = interactive;
+    }
+
     public String[] getArgs() {
         return args;
     }
 
-    /**
-     * 设置命令参数
-     */
     public void setArgs(String[] args) {
         this.args = args != null ? args : new String[0];
     }
 
-    /**
-     * 获取属性值，如果不存在返回默认值
-     */
     public String getString(String key, String defaultValue) {
         Object value = attributes.get(key);
         return value != null ? value.toString() : defaultValue;
     }
 
-    /**
-     * 获取属性值
-     */
     public Object get(String key) {
         return attributes.get(key);
     }

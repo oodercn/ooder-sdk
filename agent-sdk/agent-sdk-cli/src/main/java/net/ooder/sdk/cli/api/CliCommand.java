@@ -1,83 +1,46 @@
 package net.ooder.sdk.cli.api;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-/**
- * CLI命令接口
- *
- * <p>所有CLI命令必须实现此接口</p>
- *
- * @author Agent-SDK Team
- * @version 3.1.0
- * @since 3.1.0
- */
 public interface CliCommand extends Callable<Integer> {
 
-    /**
-     * 获取命令名称
-     *
-     * @return 命令名称
-     */
     String getName();
 
-    /**
-     * 获取命令描述
-     *
-     * @return 命令描述
-     */
     String getDescription();
 
-    /**
-     * 获取命令用法
-     *
-     * @return 命令用法
-     */
     String getUsage();
 
-    /**
-     * 执行命令
-     *
-     * @param context 命令上下文
-     * @return 执行结果
-     */
     CommandResult execute(CommandContext context);
 
-    /**
-     * 检查是否需要交互式模式
-     *
-     * @return 是否需要交互式模式
-     */
     default boolean isInteractive() {
         return false;
     }
 
-    /**
-     * 获取命令分类
-     *
-     * @return 命令分类
-     */
     default String getCategory() {
         return "general";
     }
 
-    /**
-     * 获取命令别名
-     *
-     * @return 命令别名数组
-     */
     default String[] getAliases() {
         return new String[0];
     }
 
-    /**
-     * 验证参数
-     *
-     * @param args 参数
-     * @return 验证结果
-     */
     default boolean validate(String[] args) {
         return true;
+    }
+
+    default List<CliCommand> getSubCommands() {
+        return Collections.emptyList();
+    }
+
+    default String[] getRequiredPermissions() {
+        return new String[0];
+    }
+
+    default List<ParamDefinition> getParameters() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -85,5 +48,39 @@ public interface CliCommand extends Callable<Integer> {
         CommandContext context = new CommandContext();
         CommandResult result = execute(context);
         return result.getExitCode();
+    }
+
+    class ParamDefinition {
+        private final String name;
+        private final String description;
+        private final boolean required;
+        private final String defaultValue;
+        private final String type;
+
+        public ParamDefinition(String name, String description, boolean required, String defaultValue, String type) {
+            this.name = name;
+            this.description = description;
+            this.required = required;
+            this.defaultValue = defaultValue;
+            this.type = type;
+        }
+
+        public static ParamDefinition required(String name, String description) {
+            return new ParamDefinition(name, description, true, null, "string");
+        }
+
+        public static ParamDefinition required(String name, String description, String type) {
+            return new ParamDefinition(name, description, true, null, type);
+        }
+
+        public static ParamDefinition optional(String name, String description, String defaultValue) {
+            return new ParamDefinition(name, description, false, defaultValue, "string");
+        }
+
+        public String getName() { return name; }
+        public String getDescription() { return description; }
+        public boolean isRequired() { return required; }
+        public String getDefaultValue() { return defaultValue; }
+        public String getType() { return type; }
     }
 }

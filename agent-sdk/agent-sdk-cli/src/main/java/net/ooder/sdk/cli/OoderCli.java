@@ -19,6 +19,8 @@ import net.ooder.sdk.cli.command.scene.SceneInfoCommand;
 import net.ooder.sdk.cli.command.scene.SceneInvokeCommand;
 import net.ooder.sdk.cli.command.scene.SceneListCommand;
 import net.ooder.sdk.cli.command.skill.*;
+import net.ooder.sdk.cli.command.nlp.*;
+import net.ooder.sdk.cli.command.llm.*;
 import net.ooder.sdk.cli.command.system.StatusCommand;
 import net.ooder.sdk.cli.command.task.TaskListCommand;
 import net.ooder.sdk.cli.command.task.TaskStatusCommand;
@@ -392,6 +394,8 @@ public class OoderCli {
         registerSkillCommands();
         registerSceneCommands();
         registerTaskCommands();
+        registerNlpCommands();
+        registerLlmCommands();
     }
 
     private void registerSkillCommands() {
@@ -452,6 +456,20 @@ public class OoderCli {
         registerSecureCommand(new TaskListCommand(taskMonitor));
 
         log.debug("Registered task commands");
+    }
+
+    private void registerNlpCommands() {
+        registerSecureCommand(new NlpConvertCommand());
+        registerSecureCommand(new NlpSkillsCommand());
+        registerSecureCommand(new NlpExecuteCommand());
+        log.debug("Registered NLP commands");
+    }
+
+    private void registerLlmCommands() {
+        registerSecureCommand(new LlmGenerateCommand());
+        registerSecureCommand(new LlmIntentCommand());
+        registerSecureCommand(new LlmChatCommand());
+        log.debug("Registered LLM commands");
     }
 
     private void registerSecureCommand(CliCommand command) {
